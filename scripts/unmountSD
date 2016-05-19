@@ -1,0 +1,6 @@
+#!/bin/zsh
+sudo umount /media/matt/root/dev
+sudo umount /media/matt/root/tmp
+sudo umount /media/matt/root/proc
+sudo umount /media/matt/root/etc/resolv.conf
+sudo umount /dev/mmcblk0p*

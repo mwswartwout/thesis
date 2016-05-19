@@ -1,0 +1,34 @@
+#!/bin/bash
+echo "Starting ethernet connection"
+dhclient eth0
+echo "auto eth0" >> /etc/network/interfaces
+echo "iface eth0 inet dhcp" >> /etc/network/interfaces
+
+echo "enabling multicast for multimaster_FKIE"
+echo "net.ipv4.icmp_echo_ignore_broadcasts=0" >> /etc/sysctl.conf
+
+echo "Synchronizing time with nist.gov"
+ntpdate time.nist.gov
+
+echo "Making sure /tmp folder has proper permissions"
+chmod 1777 /tmp
+
+echo "Making sure sudo has proper permissions"
+chown root:root /usr/bin/sudo && chmod 4755 /usr/bin/sudo
+
+echo "Making sure ping has proper permissions"
+chmod u+s `which ping`
+
+#Now we are going to change the root password to something we know
+echo "Change the root password now"
+passwd
+
+echo "What do you want the hostname of this machine to be?"
+read hostname
+echo "$hostname" > /etc/hostname
+
+echo "Adding the admin user zed"
+adduser zed
+adduser zed admin
+adduser zed sudo
+su zed

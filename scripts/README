@@ -1,0 +1,11 @@
+This directory provides a number of useful scripts.
+
+Users should modify setupEnvironment with their specific Xilinx installation directories and the source it before running any other scripts (though as a failsafe it is called as the first step in most other scripts). It can be conviently added into a user's .bashrc or other preferred shell setup script
+
+buildKernel.sh will build the Zedboard kernel
+
+buildUBoot.sh will build UBoot for use when building the Zedboard kernel
+
+buildDTC.sh will build the Device Tree Compiler. You must have flex and bison installed to use do this. `sudo apt-get install flex bison`
+
+The linaroNano*SetupScript is for use on a Linaro Nano install, running all configurations and downloads necessary for a working TurtleBot

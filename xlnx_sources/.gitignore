@@ -1,0 +1,7 @@
+# xlnx_sources gitignore
+device-tree-xlnx/
+dtc/
+linux-adi/
+linux-firmware/
+linux-xlnx/
+u-boot-xlnx/

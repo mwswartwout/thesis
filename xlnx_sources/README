@@ -1,0 +1,5 @@
+This directory contains two scripts for fetching necessary sources for usingthe Xilinx Zedboard
+
+clone_git_repos can be used to initially clone the git repositories, and pull_git_repos can be used to keep them up to date
+
+Some of these repos are very large, so they are not committed here but can be independently maintained

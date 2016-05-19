@@ -1,0 +1,13 @@
+#!/bin/zsh
+echo "Pulling device-tree-xlnx..."
+(cd device-tree-xlnx && git checkout master && git pull origin master)
+echo "Pulling dtc..."
+(cd dtc && git checkout master && git pull origin master)
+echo "Pulling linux-xlnx..."
+(cd linux-xlnx && git checkout master && git pull origin master)
+echo "Pulling u-boot-xlnx..."
+(cd u-boot-xlnx && git checkout master && git pull origin master)
+echo "Pulling linux-adi..."
+(cd linux-adi && git checkout xcomm_zynq && git pull origin xcomm_zynq)
+echo "Pulling firmware..."
+(cd linux-firmware && git checkout master && git pull origin master)
