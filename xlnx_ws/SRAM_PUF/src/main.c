@@ -48,11 +48,16 @@
 #include <stdio.h>
 #include "platform.h"
 #include <ff.h>
+#include "sram_puf.h"
 
 void print(char *str);
 
 int main()
 {
+	return xilffs_polled_example();
+}
+
+int read_sram() {
 	print("About to init_platform\n\r");
     init_platform();
     print("Hello World\n\r");

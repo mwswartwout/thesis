@@ -65,6 +65,8 @@
 #include "xil_cache.h"
 #include "xplatform_info.h"
 
+#include "sram_puf.h"
+
 /************************** Constant Definitions *****************************/
 
 
@@ -106,7 +108,7 @@ u8 SourceAddress[10*1024*1024] __attribute__ ((aligned(32)));
 * @note		None
 *
 ******************************************************************************/
-int main(void)
+int xilffs_polled_example(void)
 {
 	int Status;
 
