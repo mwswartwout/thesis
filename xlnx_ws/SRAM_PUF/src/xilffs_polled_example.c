@@ -75,23 +75,23 @@
 /***************** Macros (Inline Functions) Definitions *********************/
 
 /************************** Function Prototypes ******************************/
-int FfsSdPolledExample(void);
+int FfsSdPolledExample(int *OCM_ADDR, char FileName[32]);
 
 /************************** Variable Definitions *****************************/
 static FIL fil;		/* File object */
 static FATFS fatfs;
-static char FileName[32] = "Test.bin";
+//static char FileName[32] = "Test.bin";
 static char *SD_File;
 u32 Platform;
 
 #ifdef __ICCARM__
 #pragma data_alignment = 32
-u8 DestinationAddress[10*1024*1024];
-u8 SourceAddress[10*1024*1024];
+u8 DestinationAddress[10*1024];
+u8 SourceAddress[10*1024];
 #pragma data_alignment = 4
 #else
-u8 DestinationAddress[10*1024*1024] __attribute__ ((aligned(32)));
-u8 SourceAddress[10*1024*1024] __attribute__ ((aligned(32)));
+u8 DestinationAddress[10*1024] __attribute__ ((aligned(32)));
+u8 SourceAddress[10*1024] __attribute__ ((aligned(32)));
 #endif
 
 #define TEST 7
@@ -108,13 +108,13 @@ u8 SourceAddress[10*1024*1024] __attribute__ ((aligned(32)));
 * @note		None
 *
 ******************************************************************************/
-int xilffs_polled_example(void)
+int xilffs_polled_example(int *OCM_ADDR, char FileName[32])
 {
 	int Status;
 
 	xil_printf("SD Polled File System Example Test \r\n");
 
-	Status = FfsSdPolledExample();
+	Status = FfsSdPolledExample(OCM_ADDR, FileName);
 	if (Status != XST_SUCCESS) {
 		xil_printf("SD Polled File System Example Test failed \r\n");
 		return XST_FAILURE;
@@ -141,14 +141,15 @@ int xilffs_polled_example(void)
 * @note		None
 *
 ******************************************************************************/
-int FfsSdPolledExample(void)
+int FfsSdPolledExample(int* OCM_ADDR, char FileName[32])
 {
 	FRESULT Res;
 	UINT NumBytesRead;
 	UINT NumBytesWritten;
 	u32 BuffCnt;
-	u32 FileSize = (8*1024*1024);
+	u32 FileSize = (8*1024); // 8 KB
 	TCHAR *Path = "0:/";
+
 
 	Platform = XGetPlatform_Info();
 	if (Platform == XPLAT_ZYNQ_ULTRA_MP) {
@@ -160,7 +161,7 @@ int FfsSdPolledExample(void)
 	}
 
 	for(BuffCnt = 0; BuffCnt < FileSize; BuffCnt++){
-		SourceAddress[BuffCnt] = TEST + BuffCnt;
+		SourceAddress[BuffCnt] = OCM_ADDR[BuffCnt];
 	}
 
 	/*
@@ -213,21 +214,23 @@ int FfsSdPolledExample(void)
 	/*
 	 * Read data from file.
 	 */
-	Res = f_read(&fil, (void*)DestinationAddress, FileSize,
+/*
+   Res = f_read(&fil, (void*)DestinationAddress, FileSize,
 			&NumBytesRead);
 	if (Res) {
 		return XST_FAILURE;
 	}
-
+*/
 	/*
 	 * Data verification
 	 */
+/*
 	for(BuffCnt = 0; BuffCnt < FileSize; BuffCnt++){
 		if(SourceAddress[BuffCnt] != DestinationAddress[BuffCnt]){
 			return XST_FAILURE;
 		}
 	}
-
+*/
 	/*
 	 * Close file.
 	 */

@@ -54,7 +54,22 @@ void print(char *str);
 
 int main()
 {
-	return xilffs_polled_example();
+	int *OCM0_ADDR = 0x0;
+	int *OCM1_ADDR = 0x10000;
+	int *OCM2_ADDR = 0x20000;
+	int *OCM3_ADDR = 0xFFFF0000;
+
+	char OCM0_FN[32] = "ocm_0.bin";
+	char OCM1_FN[32] = "ocm_1.bin";
+	char OCM2_FN[32] = "ocm_2.bin";
+	char OCM3_FN[32] = "ocm_3.bin";
+
+	int OCM0 = xilffs_polled_example(OCM0_ADDR, OCM0_FN);
+	int OCM1 = xilffs_polled_example(OCM1_ADDR, OCM1_FN);
+	int OCM2 = xilffs_polled_example(OCM2_ADDR, OCM2_FN);
+	int OCM3 = xilffs_polled_example(OCM3_ADDR, OCM3_FN);
+
+	return (OCM0 || OCM1 || OCM2 || OCM3);
 }
 
 int read_sram() {
