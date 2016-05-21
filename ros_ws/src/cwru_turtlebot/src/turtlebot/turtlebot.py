@@ -3,17 +3,15 @@
 import math
 import numpy
 import rospy
+import roslib
 
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose2D
-from project1.msg import ScanWithVariance, ScanWithVarianceStamped
+from turtlebot import ScanWithVariance, ScanWithVarianceStamped
 
 
+# Base class for all TurtleBots
 class TurtleBot:
-    """
-    Base class for the Turtle Bot 2 in our experiments
-    author: Matt Swartwout and Shaun Howard
-    """
 
     def __init__(self, rate=10):
         rospy.init_node('robot')
@@ -23,7 +21,7 @@ class TurtleBot:
         y_pos = rospy.get_param('y_pos')
         yaw = rospy.get_param('yaw')
 
-        # create a pose object for this t-bot so we can easily know its initial pose
+        # create a pose object for this turtlebot so we can easily know its initial pose
         self.pose = Pose2D()
         self.pose.x = x_pos
         self.pose.y = y_pos
@@ -45,6 +43,7 @@ class TurtleBot:
         self.lidar_subscriber = rospy.Subscriber('scan',
                                                  LaserScan,
                                                  self.scan_callback)
+
 
     def initialize_publishers(self):
         self.processed_scan_publisher = rospy.Publisher('processed_scan',
