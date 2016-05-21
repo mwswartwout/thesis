@@ -7,7 +7,8 @@ project(cwru_turtlebot)
 find_package(catkin REQUIRED COMPONENTS
     rospy
     message_generation
-    std_msgs)
+    std_msgs
+    sensor_msgs)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

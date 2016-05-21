@@ -7,7 +7,7 @@ import roslib
 
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose2D
-from turtlebot import ScanWithVariance, ScanWithVarianceStamped
+from cwru_turtlebot.msg import ScanWithVariance, ScanWithVarianceStamped
 
 
 # Base class for all TurtleBots

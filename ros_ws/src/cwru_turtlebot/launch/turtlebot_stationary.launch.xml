@@ -10,12 +10,14 @@
     <arg name="y_pos" default="0"/>
     <arg name="yaw" default="0"/>
 
+    <!-- Load the starting position into the parameter server-->
+    <!-- So that they can be accessed by the turtlebot node on startup-->
     <param name="x_pos" type="double" value="$(arg x_pos)"/>
     <param name="y_pos" type="double" value="$(arg y_pos)"/>
     <param name="yaw" type="double" value="$(arg yaw)"/>
 
     <!-- Launch the necessary Kobuki nodes for turtlebot operation-->
-    <include file="$(find turtlebot)/launch/kobuki.launch.xml">
+    <include file="$(find cwru_turtlebot)/launch/kobuki.launch.xml">
         <arg name="base" value="$(arg base)"/>
         <arg name="stacks" value="$(arg stacks)"/>
         <arg name="3d_sensor" value="$(arg 3d_sensor)"/>
@@ -43,5 +45,5 @@
     </node>
 
     <!-- Main ROS node for turtlebot logic-->
-    <node pkg="turtlebot" type="stationary_turtlebot.py" name="robot"/>
+    <node pkg="cwru_turtlebot" type="stationary_turtlebot.py" name="robot"/>
 </launch>
