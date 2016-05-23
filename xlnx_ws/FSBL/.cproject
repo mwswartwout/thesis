@@ -33,9 +33,7 @@
 								<option id="xilinx.gnu.compiler.dircategory.includes.1778869096" name="Include Paths" superClass="xilinx.gnu.compiler.dircategory.includes" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zed_hw_platform}&quot;"/>
 								</option>
-								<option id="xilinx.gnu.compiler.symbols.defined.384947901" superClass="xilinx.gnu.compiler.symbols.defined" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="FSBL_DEBUG"/>
-								</option>
+								<option id="xilinx.gnu.compiler.symbols.defined.384947901" name="Defined symbols (-D)" superClass="xilinx.gnu.compiler.symbols.defined" valueType="definedSymbols"/>
 								<inputType id="xilinx.gnu.armv7.c.compiler.input.1633424905" name="C source files" superClass="xilinx.gnu.armv7.c.compiler.input"/>
 							</tool>
 							<tool id="xilinx.gnu.armv7.cxx.toolchain.compiler.debug.1306299656" name="ARM v7 g++ compiler" superClass="xilinx.gnu.armv7.cxx.toolchain.compiler.debug">
