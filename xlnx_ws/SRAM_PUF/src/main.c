@@ -65,13 +65,14 @@ int main()
 	char OCM3_FN[32] = "ocm_3.bin";
 
 	int OCM0 = xilffs_polled_example(OCM0_ADDR, OCM0_FN);
-	int OCM1 = xilffs_polled_example(OCM1_ADDR, OCM1_FN);
-	int OCM2 = xilffs_polled_example(OCM2_ADDR, OCM2_FN);
-	int OCM3 = xilffs_polled_example(OCM3_ADDR, OCM3_FN);
+	//int OCM1 = xilffs_polled_example(OCM1_ADDR, OCM1_FN);
+	//int OCM2 = xilffs_polled_example(OCM2_ADDR, OCM2_FN);
+	//int OCM3 = xilffs_polled_example(OCM3_ADDR, OCM3_FN);
 
-	return (OCM0 || OCM1 || OCM2 || OCM3);
+	return OCM0; //|| OCM1 || OCM2 || OCM3);
 }
 
+/*
 int read_sram() {
 	print("About to init_platform\n\r");
     init_platform();
@@ -118,4 +119,4 @@ int read_sram() {
     cleanup_platform();
     print("Exiting...\n\r");
     return 0;
-}
+}*/

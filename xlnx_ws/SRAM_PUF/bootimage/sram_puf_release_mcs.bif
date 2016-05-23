@@ -1,0 +1,6 @@
+//arch = zynq; split = false; format = MCS
+the_ROM_image:
+{
+	[bootloader]/home/matt/thesis/xlnx_ws/FSBL/Release/FSBL.elf
+	/home/matt/thesis/xlnx_ws/SRAM_PUF/Release/SRAM_PUF.elf
+}
