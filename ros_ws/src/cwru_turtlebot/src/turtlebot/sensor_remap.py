@@ -15,7 +15,7 @@ namespace = rospy.get_namespace()[1:]
 def imu_remap(imu_msg):
     # remap imu message to base_link_self and publish the new message
     remapped_msg = imu_msg
-    remapped_msg.header.frame_id = namespace + 'base_link_self'
+    remapped_msg.header.frame_id = namespace + 'base_link_continuous'
     try:
         imu_publisher.publish(remapped_msg)
     except rospy.ROSException as e:
@@ -25,13 +25,13 @@ def imu_remap(imu_msg):
 def odom_remap(odom_msg):
     # remap odom message to base_footprint_self and publish the new message
     remapped_msg = odom_msg
-    remapped_msg.child_frame_id = namespace + 'base_footprint_self'
+    remapped_msg.child_frame_id = namespace + 'base_footprint_continuous'
     odom_publisher.publish(remapped_msg)
 
 
 def main():
     # initialize ros node for the imu remap process
-    rospy.init_node('imu_remap')
+    rospy.init_node('sensor_remap')
     # subscribe to imu and odom from the robot
     imu_subscriber = rospy.Subscriber('mobile_base/sensors/imu_data', Imu, imu_remap)
     odom_subscriber = rospy.Subscriber('odom', Odometry, odom_remap)
