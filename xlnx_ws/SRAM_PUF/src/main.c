@@ -54,7 +54,7 @@
 
 int main()
 {
-	xil_printf("Starting SRAM read...\n\r");
+	xil_printf("Starting SRAM read...");
 
 	int *OCM0_ADDR = 0x0;
 	int *OCM1_ADDR = 0x10000;
