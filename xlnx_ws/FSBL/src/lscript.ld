@@ -51,15 +51,15 @@ SECTIONS
    *(.vfp11_veneer)
    *(.ARM.extab)
    *(.gnu.linkonce.armextab.*)
-} > ps7_ddr_0_S_AXI_BASEADDR
+} > ps7_qspi_linear_0_S_AXI_BASEADDR
 
 .init : {
    KEEP (*(.init))
-} > ps7_ddr_0_S_AXI_BASEADDR
+} > ps7_qspi_linear_0_S_AXI_BASEADDR
 
 .fini : {
    KEEP (*(.fini))
-} > ps7_ddr_0_S_AXI_BASEADDR
+} > ps7_qspi_linear_0_S_AXI_BASEADDR
 
 .rodata : {
    __rodata_start = .;
