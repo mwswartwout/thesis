@@ -45,15 +45,17 @@
  *   ps7_uart    115200 (configured by bootrom/bsp)
  */
 
-#include <stdio.h>
+#include "xil_printf.h"
 #include "platform.h"
 #include <ff.h>
 #include "sram_puf.h"
 
-void print(char *str);
+//void print(char *str);
 
 int main()
 {
+	xil_printf("Starting SRAM read...\n\r");
+
 	int *OCM0_ADDR = 0x0;
 	int *OCM1_ADDR = 0x10000;
 	int *OCM2_ADDR = 0x20000;
@@ -64,12 +66,20 @@ int main()
 	char OCM2_FN[32] = "ocm_2.bin";
 	char OCM3_FN[32] = "ocm_3.bin";
 
+	xil_printf("Reading OCM0...\n\r");
 	int OCM0 = xilffs_polled_example(OCM0_ADDR, OCM0_FN);
-	//int OCM1 = xilffs_polled_example(OCM1_ADDR, OCM1_FN);
-	//int OCM2 = xilffs_polled_example(OCM2_ADDR, OCM2_FN);
-	//int OCM3 = xilffs_polled_example(OCM3_ADDR, OCM3_FN);
 
-	return OCM0; //|| OCM1 || OCM2 || OCM3);
+	xil_printf("Reading OCM1...\n\r");
+	int OCM1 = xilffs_polled_example(OCM1_ADDR, OCM1_FN);
+
+	xil_printf("Reading OCM2...\n\r");
+	int OCM2 = xilffs_polled_example(OCM2_ADDR, OCM2_FN);
+
+	xil_printf("Reading OCM3...\n\r");
+	int OCM3 = xilffs_polled_example(OCM3_ADDR, OCM3_FN);
+
+	xil_printf("Done with SRAM read...\n\r");
+	return 1; //OCM0 || OCM1 || OCM2 || OCM3;
 }
 
 /*
