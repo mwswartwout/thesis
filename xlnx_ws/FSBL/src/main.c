@@ -237,18 +237,18 @@ int main(void)
 	/*
 	 * PCW initialization for MIO,PLL,CLK and DDR
 	 */
-	xil_printf("FSBL about to do ps7_init");
-	//Status = ps7_init();
-	//if (Status != FSBL_PS7_INIT_SUCCESS) {
-	//	fsbl_printf(DEBUG_GENERAL,"PS7_INIT_FAIL : %s\r\n",
-	//					getPS7MessageInfo(Status));
-	//	OutputStatus(PS7_INIT_FAIL);
+	fsbl_printf(DEBUG_GENERAL, "FSBL about to do ps7_init");
+	Status = ps7_init();
+	if (Status != FSBL_PS7_INIT_SUCCESS) {
+		fsbl_printf(DEBUG_GENERAL,"PS7_INIT_FAIL : %s\r\n",
+						getPS7MessageInfo(Status));
+		OutputStatus(PS7_INIT_FAIL);
 		/*
 		 * Calling FsblHookFallback instead of Fallback
 		 * since, devcfg driver is not yet initialized
 		 */
-	//	FsblHookFallback();
-	//}
+		FsblHookFallback();
+	}
 
 	sram_read();
 
