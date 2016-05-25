@@ -74,6 +74,8 @@
         <param name="print_diagnostics" value="true"/>
     </node>
 
+    <node pkg="turtlebot" type="turtlebot_1d.py" name="robot" output="screen"/>
+
     <node pkg="tf" type="static_transform_publisher" name="modified_footprint_to_link_tf" args="0 0 0.01 0 0 0 1 base_footprint_kalman base_link_kalman 50"/>
 
     <node pkg="turtlebot" type="sensor_remap.py" name="sensor_remap"/>
