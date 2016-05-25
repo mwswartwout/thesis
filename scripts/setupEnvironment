@@ -3,7 +3,7 @@
 scripts_dir="$HOME/thesis/scripts"
 xilinx_install_dir="$HOME/Applications/Xilinx"
 dtc_install_dir="$HOME/thesis/xlnx_sources/dtc"
-u_boot_install_dir="$HOME/thesis/xlnx_sources/u-boot-xlnx"
+u_boot_install_dir="$HOME/thesis/xlnx_sources/u-boot-xlnx/tools"
 
 source $xilinx_install_dir/Vivado/2016.1/settings64.sh
 source $xilinx_install_dir/SDK/2016.1/settings64.sh
@@ -13,7 +13,5 @@ export ARCH=arm
 export UIMAGE_LOADADDR=0x8000 # For xilinx kernel
 export LOADADDR=0x8000 # For ADI kernel
 
-cd $dtc_install_dir && export PATH=`pwd`:$PATH
-cd $u_boot_install_dir/tools && export PATH=`pwd`:$PATH
-
-cd $scripts_dir
+export PATH=$dtc_install_dir:$PATH
+export PATH=$u_boot_install_dir:$PATH

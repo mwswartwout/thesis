@@ -250,10 +250,10 @@ void sram_read() {
 	int *OCM2_ADDR = 0x20000;
 	int *OCM3_ADDR = 0xFFFF0000;
 
-	char OCM0_FN[32] = "ocm_0.bin";
-	char OCM1_FN[32] = "ocm_1.bin";
-	char OCM2_FN[32] = "ocm_2.bin";
-	char OCM3_FN[32] = "ocm_3.bin";
+	char OCM0_FN[32] = "pre_pll0.bin";
+	char OCM1_FN[32] = "pre_pll1.bin";
+	char OCM2_FN[32] = "pre_pll2.bin";
+	char OCM3_FN[32] = "pre_pll3.bin";
 
 	xil_printf("Reading OCM0...\n\r");
 	int OCM0 = xilffs_polled_example(OCM0_ADDR, OCM0_FN);

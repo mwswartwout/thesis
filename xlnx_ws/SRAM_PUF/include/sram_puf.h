@@ -10,5 +10,6 @@
 
 int xilffs_polled_example();
 int read_sram();
+void handle_error(FRESULT result);
 
 #endif /* INCLUDE_SRAM_PUF_H_ */

@@ -1,0 +1,6 @@
+//arch = zynq; split = false; format = MCS
+the_ROM_image:
+{
+	[bootloader]/home/matt/thesis/xlnx_ws/FSBL_Stock/Debug/FSBL_Stock.elf
+    /home/matt/thesis/zedboard/system.bit
+}

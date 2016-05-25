@@ -61,14 +61,14 @@ int main()
 	int *OCM2_ADDR = 0x20000;
 	int *OCM3_ADDR = 0xFFFF0000;
 
-	char OCM0_FN[32] = "ocm_0.bin";
+	char OCM0_FN[32] = "ocmfsbl0.bin";
 	char OCM1_FN[32] = "ocm_1.bin";
 	char OCM2_FN[32] = "ocm_2.bin";
-	char OCM3_FN[32] = "ocm_3.bin";
+	char OCM3_FN[32] = "ocm_3_fsbl.bin";
 
 	xil_printf("Reading OCM0...\n\r");
 	int OCM0 = xilffs_polled_example(OCM0_ADDR, OCM0_FN);
-
+/*
 	xil_printf("Reading OCM1...\n\r");
 	int OCM1 = xilffs_polled_example(OCM1_ADDR, OCM1_FN);
 
@@ -77,9 +77,9 @@ int main()
 
 	xil_printf("Reading OCM3...\n\r");
 	int OCM3 = xilffs_polled_example(OCM3_ADDR, OCM3_FN);
-
+*/
 	xil_printf("Done with SRAM read...\n\r");
-	return 1; //OCM0 || OCM1 || OCM2 || OCM3;
+	return OCM0; // || OCM1 || OCM2 || OCM3;
 }
 
 /*

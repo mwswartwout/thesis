@@ -170,6 +170,8 @@ int FfsSdPolledExample(int* OCM_ADDR, char FileName[32])
 	Res = f_mount(&fatfs, Path, 0);
 
 	if (Res != FR_OK) {
+		xil_printf("f_mount failed\n\r");
+		handle_error(Res);
 		return XST_FAILURE;
 	}
 
@@ -183,6 +185,11 @@ int FfsSdPolledExample(int* OCM_ADDR, char FileName[32])
 
 	Res = f_open(&fil, SD_File, FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
 	if (Res) {
+		xil_printf("f_open failed\n\r");
+		xil_printf("Filename passed in was: ");
+		xil_printf(SD_File);
+		xil_printf("\n\r");
+		handle_error(Res);
 		return XST_FAILURE;
 	}
 
@@ -191,6 +198,8 @@ int FfsSdPolledExample(int* OCM_ADDR, char FileName[32])
 	 */
 	Res = f_lseek(&fil, 0);
 	if (Res) {
+		xil_printf("f_lseek failed\n\r");
+		handle_error(Res);
 		return XST_FAILURE;
 	}
 
@@ -200,6 +209,8 @@ int FfsSdPolledExample(int* OCM_ADDR, char FileName[32])
 	Res = f_write(&fil, (const void*)SourceAddress, FileSize,
 			&NumBytesWritten);
 	if (Res) {
+		xil_printf("f_write failed\n\r");
+		handle_error(Res);
 		return XST_FAILURE;
 	}
 
@@ -208,6 +219,8 @@ int FfsSdPolledExample(int* OCM_ADDR, char FileName[32])
 	 */
 	Res = f_lseek(&fil, 0);
 	if (Res) {
+		xil_printf("f_lseek after data write failed\n\r");
+		handle_error(Res);
 		return XST_FAILURE;
 	}
 
@@ -236,8 +249,77 @@ int FfsSdPolledExample(int* OCM_ADDR, char FileName[32])
 	 */
 	Res = f_close(&fil);
 	if (Res) {
+		xil_printf("f_close failed\n\r");
+		handle_error(Res);
 		return XST_FAILURE;
 	}
 
 	return XST_SUCCESS;
+}
+
+void handle_error(FRESULT result) {
+	switch(result) {
+	case FR_OK:
+		xil_printf("(0) Succeeded\n\r");
+		break;
+	case FR_DISK_ERR:
+		xil_printf(" (1) A hard error occurred in the low level disk I/O layer\n\r");
+		break;
+	case FR_INT_ERR:
+		xil_printf(" (2) Assertion failed \n\r");
+		break;
+	case FR_NOT_READY:
+		xil_printf(" (3) The physical drive cannot work\n\r");
+		break;
+	case FR_NO_FILE:
+		xil_printf(" (4) Could not find the file\n\r");
+		break;
+	case FR_NO_PATH:
+		xil_printf(" (5) Could not find the path\n\r");
+		break;
+	case FR_INVALID_NAME:
+		xil_printf(" (6) The path name format is invalid\n\r");
+		break;
+	case FR_DENIED:
+		xil_printf(" (7) Access denied due to prohibited access or directory full\n\r");
+		break;
+	case FR_EXIST:
+		xil_printf(" (8) Access denied due to prohibited access\n\r");
+		break;
+	case FR_INVALID_OBJECT:
+		xil_printf(" (9) The file/directory object is invalid\n\r");
+		break;
+	case FR_WRITE_PROTECTED:
+		xil_printf(" (10) The physical drive is write protected\n\r");
+		break;
+	case FR_INVALID_DRIVE:
+		xil_printf(" (11) The logical drive number is invalid\n\r");
+		break;
+	case FR_NOT_ENABLED:
+		xil_printf(" (12) The volume has no work area\n\r");
+		break;
+	case FR_NO_FILESYSTEM:
+		xil_printf(" (13) There is no valid FAT volume\n\r");
+		break;
+	case FR_MKFS_ABORTED:
+		xil_printf(" (14) The f_mkfs() aborted due to any parameter error\n\r");
+		break;
+	case FR_TIMEOUT:
+		xil_printf(" (15) Could not get a grant to access the volume within defined period\n\r");
+		break;
+	case FR_LOCKED:
+		xil_printf(" (16) The operation is rejected according to the file sharing policy\n\r");
+		break;
+	case FR_NOT_ENOUGH_CORE:
+		xil_printf(" (17) LFN working buffer could not be allocated\n\r");
+		break;
+	case FR_TOO_MANY_OPEN_FILES:
+		xil_printf(" (18) Number of open files > _FS_SHARE\n\r");
+		break;
+	case FR_INVALID_PARAMETER:
+		xil_printf(" (19) Given parameter is invalid\n\r");
+		break;
+	default:
+		xil_printf("Returned error code not recognized as a valid FatFS error\n\r");
+	}
 }
