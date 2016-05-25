@@ -2,4 +2,5 @@
 the_ROM_image:
 {
 	[bootloader]/home/matt/thesis/xlnx_ws/FSBL/Debug/FSBL.elf
+    /home/matt/thesis/zedboard/system.bit
 }
