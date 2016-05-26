@@ -106,7 +106,7 @@ class TurtleBot1D(TurtleBot, object):
         # update the pose estimate for the first robot to the moving robot
         scan = self.robot_1_distance.scan
         if not h.scan_has_none_check(scan):
-            self.pose11.pose.pose.position.x = self.robot_1_position.x + scan.median - self.pose.x
+            self.pose11.pose.pose.position.x = self.robot_1_position.x + scan.median - self.initial_pose.x
             self.covariance11[0] = self.robot_1_distance.scan.variance
             self.pose11.pose.covariance = self.covariance11
             self.pose11.header.stamp = rospy.get_rostime()
@@ -119,7 +119,7 @@ class TurtleBot1D(TurtleBot, object):
         # update the pose estimate for the third robot to the moving robot
         scan = self.robot_3_distance.scan
         if not h.scan_has_none_check(scan):
-            self.pose33.pose.pose.position.x = self.robot_3_position.x - scan.median - self.pose.x
+            self.pose33.pose.pose.position.x = self.robot_3_position.x - scan.median - self.initial_pose.x
             self.covariance33[0] = self.robot_3_distance.scan.variance
             self.pose33.pose.covariance = self.covariance33
             self.pose33.header.stamp = rospy.get_rostime()
@@ -131,7 +131,7 @@ class TurtleBot1D(TurtleBot, object):
     def update_pose_32(self):
         # update the pose estimate for the moving robot to the third, static robot
         if self.processed_scan is not None and self.robot_3_position is not None:
-            self.pose32.pose.pose.position.x = self.robot_3_position.x - self.processed_scan.scan.median - self.pose.x
+            self.pose32.pose.pose.position.x = self.robot_3_position.x - self.processed_scan.scan.median - self.initial_pose.x
             # Have to include this since robot_localization forces us to fuse y and yaw on at least one sensor
             self.pose32.pose.pose.orientation.w = 1
             self.covariance32[0] = self.processed_scan.scan.variance

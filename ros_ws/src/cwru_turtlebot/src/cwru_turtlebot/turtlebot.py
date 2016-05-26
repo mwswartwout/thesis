@@ -16,21 +16,17 @@ class TurtleBot:
     def __init__(self, rate=10):
         rospy.init_node('robot')
 
-        # get the initial robot starting positions from the ros parameter server
-        x_pos = rospy.get_param('x_pos')
-        y_pos = rospy.get_param('y_pos')
-        yaw = rospy.get_param('yaw')
-
-        # create a pose object for this turtlebot so we can easily know its initial pose
-        self.pose = Pose2D()
-        self.pose.x = x_pos
-        self.pose.y = y_pos
-        self.pose.theta = yaw
+        # Create initial pose object from parameter server
+        self.initial_pose = Pose2D()
+        self.initial_pose.x = rospy.get_param('x_pos')
+        self.initial_pose.y = rospy.get_param('y_pos')
+        self.initial_pose.theta = rospy.get_param('yaw')
 
         self.initialize_subscribers()
         self.initialize_publishers()
+        self.initialize_action_servers()
 
-        self.position_publisher.publish(self.pose)
+        self.position_publisher.publish(self.initial_pose)
 
         self.scan_received = False  # We haven't received a valid LaserScan yet
         self.processed_scan = None
@@ -54,7 +50,8 @@ class TurtleBot:
                                                   Pose2D,
                                                   queue_size=1,
                                                   latch=True)
-
+    def initialize_action_servers(self):
+        self.
     def initialize_scanner(self, scan_msg):
         self.angle_min = scan_msg.angle_min
         self.angle_max = scan_msg.angle_max
