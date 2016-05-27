@@ -11,42 +11,11 @@
         <arg name="yaw" value="$(arg yaw)"/>
     </include>
 
-    <!-- Robot Localization nodes-->
-    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_continuous" clear_params="true" output="screen">
-        <!--remap from="odometry/filtered" to="odometry/filtered"/-->
-        <remap from="set_pose" to="set_pose_continuous"/>
-        <param name="frequency" value="10"/>
-        <param name="sensor_timeout"  value="0.1"/>
-        <param name="two_d_mode" value="true"/>
-        <param name="odom_frame" value="$(arg model_name)/odom"/>
-        <param name="base_link_frame" value="$(arg model_name)/base_footprint_continuous"/>
-        <param name="world_frame" value="$(arg model_name)/odom"/>
-        <param name="transform_time_offset" value="0.0"/>
-        <param name="odom0" value="$(arg model_name)/odom_remapped"/> <!-- internal odom-->
-        <rosparam param="odom0_config">[false,   false,   false, <!-- x y z -->
-            false,  false,  true, <!-- roll pitch yaw -->
-            true,   true,  false, <!-- x_vel y_vel z_vel -->
-            false,  false,  true, <!-- roll_vel pitch_vel yaw_vel -->
-            false,  false,  false] <!-- x_acc y_acc z_acc -->
-        </rosparam>
-        <param name="imu0" value="$(arg model_name)/imu_data_remapped"/>
-        <rosparam param="imu0_config">[false,   false,  false, <!-- x y z -->
-            false,   false,  true, <!-- roll pitch yaw -->
-            false,   false,  false, <!-- x_vel y_vel z_vel -->
-            false,   false,  true, <!-- roll_vel pitch_vel yaw_vel -->
-            true,    false,  false] <!-- x_acc y_acc z_acc -->
-        </rosparam>
-        <param name="odom0_differential" value="false"/>
-        <param name="imu0_differential" value="false"/>
-        <param name="odom0_relative" value="false"/>
-        <param name="imu0_relative" value="false"/>
-        <param name="print_diagnostics" value="true"/>
-    </node>
+    <include file="$(find cwru_turtlebot)/launch/turtlebot_filters.launch.xml">
+        <arg name="model_name" value="$(arg model_name)"/>
+    </include>
 
     <node pkg="cwru_turtlebot" type="turtlebot_2d.py" name="robot"/><!-- output="screen"/-->
 
-    <node pkg="tf" type="static_transform_publisher" name="modified_footprint_to_link_tf" args="0 0 0.01 0 0 0 1 $(arg model_name)/base_footprint_continuous $(arg model_name)/base_link_continuous 50"/>
-
-    <node pkg="cwru_turtlebot" type="sensor_remap.py" name="sensor_remap"/>
     <!--node pkg="turtlebot" type="sensor_record.py" name="sensor_record"/-->
 </launch>
