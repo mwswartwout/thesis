@@ -33,6 +33,7 @@ class TurtleBot2D(TurtleBot, object):
 
     def initialize_publishers(self):
         super(TurtleBot2D, self).initialize_publishers()
+
         self.cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/navi', Twist,
                                            queue_size=1)
 
@@ -41,8 +42,8 @@ class TurtleBot2D(TurtleBot, object):
 
     def scan_callback(self, scan_msg):
         super(TurtleBot2D, self).scan_callback(scan_msg)
-        self.update_pose_32()
 
+    # TODO make this a 2D movement
     def move(self, amount, lower_bound=-1, upper_bound=1):
         # Employs dead-reckoning to move a turtle bot
         goal_x = self.odom_pose.x + amount

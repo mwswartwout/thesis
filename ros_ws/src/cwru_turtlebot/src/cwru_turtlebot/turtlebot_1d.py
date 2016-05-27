@@ -130,11 +130,11 @@ class TurtleBot1D(TurtleBot, object):
 
     def update_pose_32(self):
         # update the pose estimate for the moving robot to the third, static robot
-        if self.processed_scan is not None and self.robot_3_position is not None:
-            self.pose32.pose.pose.position.x = self.robot_3_position.x - self.processed_scan.scan.median - self.initial_pose.x
+        if self.most_recent_scan is not None and self.robot_3_position is not None:
+            self.pose32.pose.pose.position.x = self.robot_3_position.x - self.most_recent_scan.scan.median - self.initial_pose.x
             # Have to include this since robot_localization forces us to fuse y and yaw on at least one sensor
             self.pose32.pose.pose.orientation.w = 1
-            self.covariance32[0] = self.processed_scan.scan.variance
+            self.covariance32[0] = self.most_recent_scan.scan.variance
             self.pose32.pose.covariance = self.covariance32
             self.pose32.header.stamp = rospy.get_rostime()
             self.pose32.header.frame_id = self.namespace + 'odom'
@@ -182,8 +182,8 @@ def main():
     # Once everything is ready we need to reset our filters
     # because they could have gotten erroneous readings
     rospy.loginfo("Calling service reset")
-    subprocess.Popen(["rosservice", "call", "set_pose_distributed", "{}"])
-    subprocess.Popen(["rosservice", "call", "set_pose_self","{}"])
+    subprocess.Popen(["rosservice", "call", "set_pose_discrete", "{}"])
+    subprocess.Popen(["rosservice", "call", "set_pose_continuous","{}"])
     rospy.loginfo("Poses reset")
     rospy.sleep(3)
 

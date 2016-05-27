@@ -17,4 +17,6 @@
     </include>
 
     <node pkg="cwru_turtlebot" type="turtlebot_2d.py" name="robot"/><!-- output="screen"/-->
+
+    <node if="$(arg record_sensors)" pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record"/>
 </launch>

@@ -33,7 +33,7 @@ class TurtleBot:
         self.position_publisher.publish(self.initial_pose)
 
         self.scan_received = False  # We haven't received a valid LaserScan yet
-        self.processed_scan = None
+        self.most_recent_scan = None
 
         self.rate = rospy.Rate(rate)
 
@@ -67,6 +67,7 @@ class TurtleBot:
         self.external_pose_as.start()
 
     def initialize_scanner(self, scan_msg):
+        # Scan properties
         self.angle_min = scan_msg.angle_min
         self.angle_max = scan_msg.angle_max
         self.angle_increment = scan_msg.angle_increment
@@ -74,6 +75,8 @@ class TurtleBot:
         self.scan_time = scan_msg.scan_time
         self.range_min = scan_msg.range_min
         self.range_max = scan_msg.range_max
+
+        # Don't reinitialize scanner multiple times
         self.scan_received = True
 
     def scan_callback(self, scan_msg):
@@ -96,13 +99,11 @@ class TurtleBot:
             scan.max = numpy.max(valid_particles)
             scan.mean = numpy.mean(valid_particles)
             scan.median = numpy.median(valid_particles)
-            var = numpy.var(valid_particles)
-            std = math.sqrt(var)
-            scan.variance = var
-            scan.std_dev = std
-            scan.std_error = std / math.sqrt(len(valid_particles))
+            scan.variance = numpy.var(valid_particles)
+            scan.std_dev = math.sqrt(scan.variance) # standard deviation is square root of variance
+            scan.std_error = scan.std_dev / math.sqrt(len(valid_particles))
         else:
-            # otherwise, set all values to 0
+            # otherwise if there are no valid particles, set all values to 0
             scan.min = 0
             scan.max = 0
             scan.mean = 0
@@ -111,15 +112,17 @@ class TurtleBot:
             scan.median = 0
             scan.std_error = 0
 
-        self.processed_scan = self.stamp_scan_w_variance(scan)
-        self.processed_scan_publisher.publish(self.processed_scan)
+        processed_scan = self.stamp_scan_w_variance(scan)
+        self.processed_scan_publisher.publish(processed_scan)
+
+        self.most_recent_scan = processed_scan
 
     def external_pose_cb(self, goal):
         self.external_pose_publisher.publish(goal)
 
         result = ExternalPoseResult()
         result.success = True
-        self.external_pose_as.set_succeeded(self.result)
+        self.external_pose_as.set_succeeded(result)
 
     @staticmethod
     def stamp_scan_w_variance(scan_w_variance):
