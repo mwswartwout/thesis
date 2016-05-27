@@ -3,10 +3,14 @@
 import math
 import numpy
 import rospy
-import roslib
 
+# Action server imports
+import actionlib
+from cwru_turtlebot.msg import ExternalPoseAction, ExternalPoseResult
+
+#Publish/Subscribe type imports
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Pose2D
+from geometry_msgs.msg import Pose2D, PoseWithCovarianceStamped
 from cwru_turtlebot.msg import ScanWithVariance, ScanWithVarianceStamped
 
 
@@ -50,8 +54,18 @@ class TurtleBot:
                                                   Pose2D,
                                                   queue_size=1,
                                                   latch=True)
+
+        self.external_pose_publisher = rospy.Publisher('external_poses',
+                                                       PoseWithCovarianceStamped,
+                                                       queue_size=10)
+
     def initialize_action_servers(self):
-        self.
+        self.external_pose_as = actionlib.SimpleActionServer('external_pose_action',
+                                                             ExternalPoseAction,
+                                                             execute_cb=self.external_pose_cb,
+                                                             auto_start=False)
+        self.external_pose_as.start()
+
     def initialize_scanner(self, scan_msg):
         self.angle_min = scan_msg.angle_min
         self.angle_max = scan_msg.angle_max
@@ -99,6 +113,13 @@ class TurtleBot:
 
         self.processed_scan = self.stamp_scan_w_variance(scan)
         self.processed_scan_publisher.publish(self.processed_scan)
+
+    def external_pose_cb(self, goal):
+        self.external_pose_publisher.publish(goal)
+
+        result = ExternalPoseResult()
+        result.success = True
+        self.external_pose_as.set_succeeded(self.result)
 
     @staticmethod
     def stamp_scan_w_variance(scan_w_variance):
