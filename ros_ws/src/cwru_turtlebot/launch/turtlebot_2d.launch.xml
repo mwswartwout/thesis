@@ -16,7 +16,7 @@
         <arg name="model_name" value="$(arg model_name)"/>
     </include>
 
-    <node pkg="cwru_turtlebot" type="turtlebot_2d.py" name="robot"/><!-- output="screen"/-->
+    <node pkg="cwru_turtlebot" type="turtlebot_2d.py" name="robot" output="screen"/>
 
     <node if="$(arg sensor_record)" pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record"/>
 </launch>
