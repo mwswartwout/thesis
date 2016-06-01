@@ -50,13 +50,14 @@ def gazebo_odom_callback(new_odom):
         writer = csv.writer(pose_file)
         writer.writerow(data)
 
- def main():
-     rospy.init_node('sensor_record')
-     continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous', Odometry, continuous_odom_callback)
-     discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete', Odometry, discrete_odom_callback)
-     gazebo_odom_subscriber = rospy.Subscriber('odom', Odometry, gazebo_odom_callback)
-     while not rospy.is_shutdown():
-         rospy.spin()
+
+def main():
+    rospy.init_node('sensor_record')
+    continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous', Odometry, continuous_odom_callback)
+    discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete', Odometry, discrete_odom_callback)
+    gazebo_odom_subscriber = rospy.Subscriber('odom', Odometry, gazebo_odom_callback)
+    while not rospy.is_shutdown():
+        rospy.spin()
 
 if __name__ == '__main__':
     try:
