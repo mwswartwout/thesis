@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 
 import rospy
-import helpers as h
 import math
-import random
-import subprocess
 
-from geometry_msgs.msg import Twist, Pose2D, PoseWithCovarianceStamped
+from geometry_msgs.msg import Twist
 from turtlebot import TurtleBot
-from cwru_turtlebot.msg import ScanWithVarianceStamped
-from nav_msgs.msg import Odometry
+
+
+# TODO add ROS debug statements
 
 
 class TurtleBot2D(TurtleBot, object):
@@ -19,17 +17,15 @@ class TurtleBot2D(TurtleBot, object):
     position through an EKF or UKF node that accurately predicts the position of the moving robot.
     author: Shaun Howard and Matt Swartwout
     """
-    def __init__(self, speed=.2):
+    def __init__(self, linear_speed=.2, angular_speed=.2):
         super(TurtleBot2D, self).__init__()
 
         rospy.on_shutdown(self.stop)
 
         # initialize all variable values
 
-        self.odom_pose = None
-        self.speed = speed
-        self.initialize_subscribers()
-        self.initialize_publishers()
+        self.linear_speed = linear_speed # expressed in m/s
+        self.angular_speed = angular_speed # expressed in rad/s
 
     def initialize_publishers(self):
         super(TurtleBot2D, self).initialize_publishers()
@@ -37,43 +33,77 @@ class TurtleBot2D(TurtleBot, object):
         self.cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/navi', Twist,
                                            queue_size=1)
 
-    def initialize_subscribers(self):
-        super(TurtleBot2D, self).initialize_subscribers()
+    # TODO test 2D movement
+    def move(self, distance, yaw, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
+        # Employs dead-reckoning to move TurtleBot via a desired heading and move distance
 
-    def scan_callback(self, scan_msg):
-        super(TurtleBot2D, self).scan_callback(scan_msg)
+        # First check if desired location is within our set bounds
+        goal_x = self.current_pose.x + math.cos(yaw)*distance
+        goal_y = self.current_pose.y + math.sin(yaw)*distance
 
-    # TODO make this a 2D movement
-    def move(self, amount, lower_bound=-1, upper_bound=1):
-        # Employs dead-reckoning to move a turtle bot
-        goal_x = self.odom_pose.x + amount
+        within_bounds_x = self.check_move_bounds(goal_x, x_lower_bound, x_upper_bound)
+        within_bounds_y = self.check_move_bounds(goal_y, y_lower_bound, y_upper_bound)
 
-        within_bounds = h.check_bounds(goal_x, lower_bound, upper_bound)
-        if within_bounds:
-            move_cmd = Twist()
-            # use opposite sign if direction is reversed
-            if amount < 0:
-                move_cmd.linear.x = -self.speed
-            else:
-                move_cmd.linear.x = self.speed
-            rospy.logdebug('Robot is heading to x: %s', str(goal_x))
+        if within_bounds_x and within_bounds_y:
+            # First execute rotation to desired heading
+            self.rotate(yaw)
 
-            # calculate the distance to the nearest goal from the robot's odom
-            dist_to_goal = math.fabs(goal_x - self.odom_pose.x)
-            # move closer to the goal until within a .1 meter tolerance
-            while dist_to_goal > 0.1:
+            # Next translate to desired location
+            self.translate(distance)
+        else:
+            rospy.logwarn('Goal received out of bounds')
+
+    def rotate(self, yaw):
+        yaw = self.correct_angle(yaw)
+        move_cmd = Twist()
+        if self.current_pose.theta < yaw:  # Positive rotation needed
+            move_cmd.angular.z = self.angular_speed
+        else:  # Negative rotation needed
+            move_cmd.angular.z = -self.angular_speed
+
+        distance_to_goal = math.fabs(self.current_pose.theta - yaw)
+        move_time = distance_to_goal / self.angular_speed
+        move_steps = move_time * self.rate_frequency
+        while move_steps > 0:
+            self.cmd_vel_pub.publish(move_cmd)
+            self.rate.sleep()
+            move_steps -= 1
+
+    def translate(self, distance):
+        move_cmd = Twist()
+        if distance < 0:
+            rospy.logwarn("Distance for movement should not be negative! Aborting translation...")
+        else:
+            move_cmd.linear.x = self.linear_speed
+
+            move_time = distance / self.linear_speed
+            move_steps = move_time * self.rate_frequency
+            while move_steps > 0:
                 self.cmd_vel_pub.publish(move_cmd)
                 self.rate.sleep()
                 # decrease and update distance to goal
-                dist_to_goal = math.fabs(goal_x - self.odom_pose.x)
-            rospy.logdebug('Robot reached x: %s', str(goal_x))
-        else:
-            rospy.logwarn('Goal received out of bounds')
+                move_steps -= 1
 
     def stop(self):
         rospy.logdebug('%s has stopped', self.namespace)
         self.cmd_vel_pub.publish(Twist())
         rospy.sleep(1)
+
+    @staticmethod
+    def check_move_bounds(val, lower, upper):
+        # check that the val is between lower and upper values
+        return lower < val < upper
+
+    @staticmethod
+    def correct_angle(yaw):
+        # Correct yaws to smallest possible value, accounting for periodicity
+        while yaw > 2 * math.pi:
+            yaw -= 2 * math.pi
+
+        while yaw < -2 * math.pi:
+            yaw += 2 * math.pi
+
+        return yaw
 
 
 def main():

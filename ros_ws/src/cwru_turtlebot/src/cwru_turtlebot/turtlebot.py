@@ -10,9 +10,10 @@ import rospy
 import actionlib
 from cwru_turtlebot.msg import ExternalPoseAction, ExternalPoseGoal, ExternalPoseResult
 
-#Publish/Subscribe type imports
+# Publish/Subscribe type imports
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose2D, PoseWithCovariance, PoseWithCovarianceStamped
+from nav_msgs.msg import Odometry
 from cwru_turtlebot.msg import ScanWithVariance, ScanWithVarianceStamped
 
 
@@ -44,6 +45,7 @@ class TurtleBot:
         self.scan_received = False  # We haven't received a valid LaserScan yet
         self.most_recent_scan = None
 
+        self.rate_frequency = rate
         self.rate = rospy.Rate(rate)
 
         self.namespace = rospy.get_namespace()[1:]  # Get rid of the leading /
@@ -56,6 +58,10 @@ class TurtleBot:
         self.lidar_subscriber = rospy.Subscriber('scan',
                                                  LaserScan,
                                                  self.scan_callback)
+
+        self.odom_subscriber = rospy.Subscriber('odometry/filtered_discrete',
+                                                Odometry,
+                                                self.odom_callback)
 
     def initialize_publishers(self):
         # TODO do we really need this anymore?
@@ -155,6 +161,11 @@ class TurtleBot:
         self.most_recent_scan = processed_scan
         self.send_scan_to_clients(processed_scan)
 
+    def odom_callback(self, odom):
+        self.current_pose.x = odom.pose.pose.position.x
+        self.current_pose.y = odom.pose.pose.position.y
+        self.current_pose.theta = self.convert_quaternion_to_yaw(odom.pose.pose.orientation)
+
     def send_scan_to_clients(self, scan):
         pose = self.convert_scan_to_pose(scan)
         self.update_client_list()
@@ -202,3 +213,10 @@ class TurtleBot:
         stamped_scan_w_variance.header.stamp = rospy.get_rostime()
 
         return stamped_scan_w_variance
+
+    @staticmethod
+    def convert_quaternion_to_yaw(quaternion):
+        z = quaternion.z
+        w = quaternion.w
+        yaw = 2 * math.atan2(z, w)
+        return yaw
