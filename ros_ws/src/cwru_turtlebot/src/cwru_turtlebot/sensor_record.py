@@ -12,7 +12,9 @@ def continuous_odom_callback(new_odom):
     twist_covariance = new_odom.twist.covariance
     data = [pose_x, pose_y, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
 
-    with open('continuous_odometry_filtered.csv', 'a') as pose_file:
+    namespace = rospy.get_namespace()
+    filename = namespace + '_continuous_odometry_filtered.csv'
+    with open(filename, 'a') as pose_file:
         writer = csv.writer(pose_file)
         writer.writerow(data)
 
@@ -29,7 +31,9 @@ def discrete_odom_callback(new_odom):
     twist_covariance = new_odom.twist.covariance
     data = [pose_x, pose_y, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
 
-    with open('discrete_odometry_filtered.csv', 'a') as pose_file:
+    namespace = rospy.get_namespace()
+    filename = namespace + '_discrete_odometry_filtered.csv'
+    with open(filename, 'a') as pose_file:
         writer = csv.writer(pose_file)
         writer.writerow(data)
 
@@ -46,16 +50,20 @@ def gazebo_odom_callback(new_odom):
     twist_covariance = new_odom.twist.covariance
     data = [pose_x, pose_y, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
 
-    with open('discrete_odometry_filtered.csv', 'a') as pose_file:
+    namespace = rospy.get_namespace()
+    filename = namespace + '_gazebo_odometry_filtered.csv'
+    with open(filename, 'a') as pose_file:
         writer = csv.writer(pose_file)
         writer.writerow(data)
 
 
 def main():
     rospy.init_node('sensor_record')
+
     continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous', Odometry, continuous_odom_callback)
     discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete', Odometry, discrete_odom_callback)
     gazebo_odom_subscriber = rospy.Subscriber('odom', Odometry, gazebo_odom_callback)
+
     while not rospy.is_shutdown():
         rospy.spin()
 
