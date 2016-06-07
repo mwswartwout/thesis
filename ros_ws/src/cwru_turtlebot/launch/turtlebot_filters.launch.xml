@@ -23,11 +23,12 @@
                                         false,  false,  false] <!-- x_acc y_acc z_acc -->
         </rosparam>
         <param name="imu0" value="imu_data_remapped"/>
+        <!-- TODO reinclude x_acc once using real turtlebot and see if it has a better IMU than Gazebo -->
         <rosparam param="imu0_config">[false,   false,  false, <!-- x y z -->
                                     false,   false,  true, <!-- roll pitch yaw -->
                                     false,   false,  false, <!-- x_vel y_vel z_vel -->
                                     false,   false,  true, <!-- roll_vel pitch_vel yaw_vel -->
-                                    true,    false,  false] <!-- x_acc y_acc z_acc -->
+                                    false,    false,  false] <!-- x_acc y_acc z_acc -->
         </rosparam>
         <param name="odom0_differential" value="false"/>
         <param name="imu0_differential" value="false"/>
