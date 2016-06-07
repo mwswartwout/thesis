@@ -119,7 +119,8 @@ namespace RosFilterUtilities
                      targetFrameTrans);
 
         ROS_WARN_STREAM_THROTTLE(2.0, "Transform from " << sourceFrame << " to " << targetFrame <<
-                                      " was unavailable for the time requested. Using latest instead.\n");
+                                      " was unavailable for the time requested: " << time.toSec() <<
+                                      ". Using latest instead.\n");
       }
       catch(tf2::TransformException &ex)
       {
