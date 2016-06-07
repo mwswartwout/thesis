@@ -43,4 +43,8 @@
         <remap from="image" to="camera/depth/image_raw"/>
         <!--remap from="scan" to="scan"/-->
     </node>
+
+    <include file="$(find cwru_turtlebot)/launch/turtlebot_filters.launch.xml">
+        <arg name="model_name" value="$(arg model_name)"/>
+    </include>
 </launch>

@@ -2,13 +2,14 @@
 
 import rospy
 import math
+import random
 
 from geometry_msgs.msg import Twist
 from turtlebot import TurtleBot
 
 
 # TODO add ROS debug statements
-
+# TODO add something to correct odom drift
 
 class TurtleBot2D(TurtleBot, object):
     """
@@ -103,6 +104,10 @@ class TurtleBot2D(TurtleBot, object):
         while yaw < -2 * math.pi:
             yaw += 2 * math.pi
 
+        # Make sure we're using the shortest rotation
+        if math.fabs(yaw - 2*math.pi) < yaw:
+            yaw -= 2*math.pi
+
         return yaw
 
 
@@ -111,19 +116,25 @@ def main():
     robot = TurtleBot2D()
 
     # Wait for everything else in Gazebo world to be ready
-    #rospy.sleep(7)
+    rospy.sleep(7)
 
     # Once everything is ready we need to reset our filters
     # because they could have gotten erroneous readings
+    robot.reset_filters()
     #rospy.loginfo("Calling service reset")
     #subprocess.Popen(["rosservice", "call", "set_pose_continuous", "{}"])
     #subprocess.Popen(["rosservice", "call", "set_pose_discrete","{}"])
-    #rospy.loginfo("Poses reset")
-    #rospy.sleep(3)
+    rospy.loginfo("Poses reset")
+    rospy.sleep(3)
 
     # move the robot back and forth randomly until process killed with ctrl-c
     while not rospy.is_shutdown():
-        #robot.move(amount=random.uniform(-1, 1))
+        robot.move(distance=random.uniform(0, 4),
+                   yaw=random.uniform(0, 2*math.pi),
+                   x_lower_bound=-10,
+                   x_upper_bound=10,
+                   y_lower_bound=-10,
+                   y_upper_bound=10)
         rospy.sleep(1)
 
 if __name__ == '__main__':

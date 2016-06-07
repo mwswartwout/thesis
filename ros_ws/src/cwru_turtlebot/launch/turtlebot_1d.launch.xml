@@ -12,10 +12,6 @@
         <arg name="yaw" value="$(arg yaw)"/>
     </include>
 
-    <include file="$(find cwru_turtlebot)/launch/turtlebot_filters.launch.xml">
-        <arg name="model_name" value="$(arg model_name)"/>
-    </include>
-
     <node pkg="cwru_turtlebot" type="turtlebot_1d.py" name="robot" output="screen"/>
 
     <node if="$(arg sensor_record)" pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record"/>

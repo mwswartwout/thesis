@@ -21,7 +21,7 @@
             <arg name="y_pos" value="0"/>
         </include>
     </group>
-
+    <!--
     <group ns="turtlebot2">
         <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot2"/>
@@ -38,7 +38,7 @@
             <arg name="yaw" value="3.14159"/>
         </include>
     </group>
-
+    -->
     <!--node pkg="rviz" type="rviz" name="turtlebot1_rviz" args="-d $(find project1)/rviz/turtlebot1.rviz"/>
     <node pkg="rviz" type="rviz" name="turtlebot2_rviz" args="-d $(find project1)/rviz/turtlebot2.rviz"/>
     <node pkg="rviz" type="rviz" name="turtlebot3_rviz" args="-d $(find project1)/rviz/turtlebot3.rviz"/-->

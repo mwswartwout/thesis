@@ -16,6 +16,8 @@ from geometry_msgs.msg import Pose2D, PoseWithCovariance, PoseWithCovarianceStam
 from nav_msgs.msg import Odometry
 from cwru_turtlebot.msg import ScanWithVariance, ScanWithVarianceStamped
 
+# Service type imports
+from robot_localization.srv import SetPose, SetPoseRequest
 
 # Base class for all TurtleBots
 class TurtleBot:
@@ -220,3 +222,23 @@ class TurtleBot:
         w = quaternion.w
         yaw = 2 * math.atan2(z, w)
         return yaw
+
+    @staticmethod
+    def reset_filters():
+        # First reset the continuous filter
+        rospy.wait_for_service('set_pose_continuous')
+        try:
+            continuous_service = rospy.ServiceProxy('set_pose_continuous', SetPose)
+            request = SetPoseRequest()
+            continuous_service(request)
+        except rospy.ServiceException, e:
+            rospy.loginfo("Service call failed: %s", e)
+
+        # Next reset the discrete filter
+        rospy.wait_for_service('set_pose_discrete')
+        try:
+            continuous_service = rospy.ServiceProxy('set_pose_discrete', SetPose)
+            request = SetPoseRequest()
+            continuous_service(request)
+        except rospy.ServiceException, e:
+            rospy.loginfo("Service call failed: %s", e)

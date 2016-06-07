@@ -14,4 +14,6 @@
 
     <!-- Main ROS node for turtlebot logic-->
     <node pkg="cwru_turtlebot" type="stationary_turtlebot.py" name="robot"/>
+
+    <node if="$(arg sensor_record)" pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record"/>
 </launch>
