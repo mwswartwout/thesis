@@ -163,8 +163,9 @@ class TurtleBot:
         self.send_scan_to_clients(processed_scan)
 
     def odom_callback(self, odom):
-        self.current_pose.x = odom.pose.pose.position.x
-        self.current_pose.y = odom.pose.pose.position.y
+        # TODO convert this to using a map to generate a map -> odom transform rather than just consulting initial pose
+        self.current_pose.x = odom.pose.pose.position.x + self.initial_pose.x
+        self.current_pose.y = odom.pose.pose.position.y + self.initial_pose.y
         self.current_pose.theta = self.convert_quaternion_to_yaw(odom.pose.pose.orientation)
 
     def send_scan_to_clients(self, scan):
