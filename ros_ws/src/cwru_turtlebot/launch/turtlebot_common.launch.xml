@@ -9,6 +9,7 @@
     <arg name="x_pos" default="0"/>
     <arg name="y_pos" default="0"/>
     <arg name="yaw" default="0"/>
+    <arg name="sensor_record" default="false"/>
 
     <!-- Load the starting position into the parameter server-->
     <!-- So that they can be accessed by the turtlebot node on startup-->
@@ -47,4 +48,6 @@
     <include file="$(find cwru_turtlebot)/launch/turtlebot_filters.launch.xml">
         <arg name="model_name" value="$(arg model_name)"/>
     </include>
+
+    <node if="$(arg sensor_record)" pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record" output="screen"/>
 </launch>

@@ -10,10 +10,9 @@
         <arg name="x_pos" value="$(arg x_pos)"/>
         <arg name="y_pos" value="$(arg y_pos)"/>
         <arg name="yaw" value="$(arg yaw)"/>
+        <arg name="sensor_record" value="$(arg sensor_record)"/>
     </include>
 
     <!-- Main ROS node for turtlebot logic-->
     <node pkg="cwru_turtlebot" type="stationary_turtlebot.py" name="robot"/>
-
-    <node if="$(arg sensor_record)" pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record"/>
 </launch>
