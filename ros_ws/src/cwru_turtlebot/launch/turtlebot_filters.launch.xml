@@ -24,6 +24,7 @@
         </rosparam>
         <param name="imu0" value="imu_data_remapped"/>
         <!-- TODO reinclude x_acc once using real turtlebot and see if it has a better IMU than Gazebo -->
+        <!-- Because Gazebo produces constant x_acc of .2-.3 -->
         <rosparam param="imu0_config">[false,   false,  false, <!-- x y z -->
                                     false,   false,  true, <!-- roll pitch yaw -->
                                     false,   false,  false, <!-- x_vel y_vel z_vel -->
