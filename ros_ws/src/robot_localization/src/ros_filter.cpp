@@ -2880,34 +2880,34 @@ namespace RobotLocalization
         // We know that there are certain limits to accuracy of wheel encoders and IMUs
         // The result is that we can confidently filter out some noisy values if they are below a threshold
         double threshold = 0.001; // Any "measured" velocity less than this is certainly just noise
-        ROS_INFO("Cleaning twist...");
+        RF_DEBUG("Cleaning twist...");
         if (twist.twist.twist.linear.x < threshold) {
-            ROS_INFO("Found twist value that should be 0, linear x was %f", twist.twist.twist.linear.x);
+            RF_DEBUG("Found twist value that should be 0, linear x was " << twist.twist.twist.linear.x << "\n");
             twist.twist.twist.linear.x = 0;
         }
 
         if (twist.twist.twist.linear.y < threshold) {
-            ROS_INFO("Found twist value that should be 0, linear y was %f", twist.twist.twist.linear.y);
+            RF_DEBUG("Found twist value that should be 0, linear y was " << twist.twist.twist.linear.y << "\n");
             twist.twist.twist.linear.y = 0;
         }
 
         if (twist.twist.twist.linear.z < threshold) {
-            ROS_INFO("Found twist value that should be 0, linear z was %f", twist.twist.twist.linear.z);
+            RF_DEBUG("Found twist value that should be 0, linear z was " << twist.twist.twist.linear.z << "\n");
             twist.twist.twist.linear.z = 0;
         }
 
         if (twist.twist.twist.angular.x < threshold) {
-            ROS_INFO("Found twist value that should be 0, angular x was %f", twist.twist.twist.angular.x);
+            RF_DEBUG("Found twist value that should be 0, angular x was " << twist.twist.twist.angular.x << "\n");
             twist.twist.twist.angular.x = 0;
         }
 
         if (twist.twist.twist.angular.y < threshold) {
-            ROS_INFO("Found twist value that should be 0, angular y was %f", twist.twist.twist.angular.y);
+            RF_DEBUG("Found twist value that should be 0, angular y was " << twist.twist.twist.angular.y << "\n");
             twist.twist.twist.angular.y = 0;
         }
 
         if (twist.twist.twist.angular.z < threshold) {
-            ROS_INFO("Found twist value that should be 0, angular z was %f", twist.twist.twist.angular.z);
+            RF_DEBUG("Found twist value that should be 0, angular z was " << twist.twist.twist.angular.z << "\n");
             twist.twist.twist.angular.z = 0;
         }
     }
