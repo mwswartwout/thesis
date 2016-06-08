@@ -40,8 +40,6 @@ def gazebo_odom_callback(new_odom):
 
 
 def write_to_files(event):
-    rospy.loginfo("Writing to files...")
-
     global continuous_data
     global discrete_data
     global gazebo_data
