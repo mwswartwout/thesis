@@ -34,7 +34,6 @@ class TurtleBot2D(TurtleBot, object):
         self.cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/navi', Twist,
                                            queue_size=1)
 
-    # TODO test 2D movement
     def move(self, distance, yaw, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
         # Employs dead-reckoning to move TurtleBot via a desired heading and move distance
 

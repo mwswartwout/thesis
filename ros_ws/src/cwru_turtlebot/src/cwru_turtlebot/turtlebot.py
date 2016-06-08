@@ -31,7 +31,6 @@ class TurtleBot:
         self.initial_pose.y = rospy.get_param('y_pos')
         self.initial_pose.theta = rospy.get_param('yaw')
 
-        # TODO add logic to update this from the UKF
         self.current_pose = Pose2D()
         self.current_pose = self.initial_pose
 
