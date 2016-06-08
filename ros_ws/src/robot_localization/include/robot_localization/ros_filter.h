@@ -582,6 +582,8 @@ template<class T> class RosFilter
     MeasurementHistoryDeque measurementHistory_;
 
     void cleanTwist(geometry_msgs::TwistWithCovarianceStamped &twist);
+
+    void cleanAcceleration(Eigen::VectorXd &measurement);
 };
 
 }  // namespace RobotLocalization

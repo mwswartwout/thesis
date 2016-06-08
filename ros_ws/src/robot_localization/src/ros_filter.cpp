@@ -129,6 +129,9 @@ namespace RobotLocalization
             if (prepareAcceleration(msg, topicName, targetFrame, updateVectorCorrected, measurement,
                                     measurementCovariance))
             {
+                // Clean acceleration to remove noisy values
+                cleanAcceleration(measurement);
+
                 // Store the measurement. Add an "acceleration" suffix so we know what kind of measurement
                 // we're dealing with when we debug the core filter logic.
                 enqueueMeasurement(topicName,
@@ -2909,6 +2912,17 @@ namespace RobotLocalization
         if (twist.twist.twist.angular.z < threshold) {
             RF_DEBUG("Found twist value that should be 0, angular z was " << twist.twist.twist.angular.z << "\n");
             twist.twist.twist.angular.z = 0;
+        }
+    }
+
+    template<typename T>
+    void RosFilter<T>::cleanAcceleration(Eigen::VectorXd &measurement) {
+        for (int i = 0; i < STATE_SIZE; i++) {
+            if (measurement(12) < .001) {
+                ROS_INFO_STREAM("Found x acceleration with value " << measurement(i) <<
+                                " that is just noise, setting to 0");
+                measurement(12) = 0;
+            }
         }
     }
 }  // namespace RobotLocalization
