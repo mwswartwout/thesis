@@ -12,12 +12,7 @@ from turtlebot import TurtleBot
 # TODO add something to correct odom drift
 
 class TurtleBot2D(TurtleBot, object):
-    """
-    A class for a TurtleBot 2 to move between two other static robots which act as helpful landmarks.
-    These landmarks have laser scanners like the moving robot, so they feed their own estimates of the moving robot's
-    position through an EKF or UKF node that accurately predicts the position of the moving robot.
-    author: Shaun Howard and Matt Swartwout
-    """
+
     def __init__(self, linear_speed=.2, angular_speed=.2):
         super(TurtleBot2D, self).__init__()
 
@@ -115,16 +110,11 @@ def main():
     robot = TurtleBot2D()
 
     # Wait for everything else in Gazebo world to be ready
-    rospy.sleep(7)
+    robot.wait_for_clients()
 
     # Once everything is ready we need to reset our filters
     # because they could have gotten erroneous readings
     robot.reset_filters()
-    #rospy.loginfo("Calling service reset")
-    #subprocess.Popen(["rosservice", "call", "set_pose_continuous", "{}"])
-    #subprocess.Popen(["rosservice", "call", "set_pose_discrete","{}"])
-    rospy.loginfo("Poses reset")
-    rospy.sleep(3)
 
     # move the robot back and forth randomly until process killed with ctrl-c
     while not rospy.is_shutdown():
@@ -141,5 +131,4 @@ if __name__ == '__main__':
     try:
         main()
     except rospy.ROSInterruptException:
-        print "exiting turtle"
         pass

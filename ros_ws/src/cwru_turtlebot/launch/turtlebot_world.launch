@@ -8,6 +8,8 @@
     <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro -->
     <arg name="sensor_record" default="false"/>
 
+    <param name="number_of_robots" type="int" value="2"/>
+
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="use_sim_time" value="true"/>
         <arg name="debug" value="false"/>
@@ -16,7 +18,7 @@
     </include>
 
     <group ns="turtlebot1">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_stationary.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot1"/>
             <arg name="x_pos" value="0"/>
             <arg name="y_pos" value="0"/>
@@ -25,7 +27,7 @@
     </group>
 
     <group ns="turtlebot2">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_stationary.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot2"/>
             <arg name="x_pos" value="2"/>
             <arg name="y_pos" value="0"/>

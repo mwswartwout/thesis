@@ -207,6 +207,16 @@ class TurtleBot:
         result.success = True
         self.external_pose_as.set_succeeded(result)
 
+    def wait_for_clients(self):
+        num_clients = rospy.get_param('/number_of_robots')
+        complete = False
+        while not rospy.is_shutdown() and not complete:
+            if num_clients - 1 != len(self.existing_clients):
+                rospy.loginfo('Waiting for other robots to come online...')  # + str(num_clients) + '!=' + str(len(self.existing_clients) - 1))
+                self.rate.sleep()
+            else:
+                complete = True
+
     @staticmethod
     def stamp_scan_w_variance(scan_w_variance):
         # Create time-stamped scan message including the scan and variance of points
@@ -225,6 +235,8 @@ class TurtleBot:
 
     @staticmethod
     def reset_filters():
+        rospy.loginfo('Resetting filters...')
+        error = False
         # First reset the continuous filter
         rospy.wait_for_service('set_pose_continuous')
         try:
@@ -233,6 +245,7 @@ class TurtleBot:
             continuous_service(request)
         except rospy.ServiceException, e:
             rospy.loginfo("Service call failed: %s", e)
+            error = True
 
         # Next reset the discrete filter
         rospy.wait_for_service('set_pose_discrete')
@@ -242,3 +255,9 @@ class TurtleBot:
             continuous_service(request)
         except rospy.ServiceException, e:
             rospy.loginfo("Service call failed: %s", e)
+            error = True
+
+        if not error:
+            rospy.loginfo('Filter reset complete')
+        else:
+            rospy.loginfo('Filter reset encountered errors')
