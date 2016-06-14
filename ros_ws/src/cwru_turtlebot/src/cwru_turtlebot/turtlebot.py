@@ -3,7 +3,7 @@
 import math
 import numpy
 import rospy
-
+import copy
 # Action server imports
 # TODO need to switch from SimpleActionServer to ActionServer so that new goals don't preempt old ones
 
@@ -12,12 +12,13 @@ from cwru_turtlebot.msg import ExternalPoseAction, ExternalPoseGoal, ExternalPos
 
 # Publish/Subscribe type imports
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Pose2D, PoseWithCovariance, PoseWithCovarianceStamped
+from geometry_msgs.msg import Pose2D, PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 from cwru_turtlebot.msg import ScanWithVariance, ScanWithVarianceStamped
 
 # Service type imports
 from robot_localization.srv import SetPose, SetPoseRequest
+
 
 # Base class for all TurtleBots
 class TurtleBot:
@@ -31,8 +32,7 @@ class TurtleBot:
         self.initial_pose.y = rospy.get_param('y_pos')
         self.initial_pose.theta = rospy.get_param('yaw')
 
-        self.current_pose = Pose2D()
-        self.current_pose = self.initial_pose
+        self.current_continuous_pose = copy.deepcopy(self.initial_pose)
 
         self.initialize_subscribers()
         self.initialize_publishers()
@@ -60,9 +60,9 @@ class TurtleBot:
                                                  LaserScan,
                                                  self.scan_callback)
 
-        self.odom_subscriber = rospy.Subscriber('odometry/filtered_discrete',
+        self.odom_subscriber = rospy.Subscriber('odometry/filtered_continuous',
                                                 Odometry,
-                                                self.odom_callback)
+                                                self.continuous_odom_callback)
 
     def initialize_publishers(self):
         # TODO do we really need this anymore?
@@ -142,7 +142,7 @@ class TurtleBot:
             scan.mean = numpy.mean(valid_particles)
             scan.median = numpy.median(valid_particles)
             scan.variance = numpy.var(valid_particles)
-            scan.std_dev = math.sqrt(scan.variance) # standard deviation is square root of variance
+            scan.std_dev = math.sqrt(scan.variance)  # standard deviation is square root of variance
             scan.std_error = scan.std_dev / math.sqrt(len(valid_particles))
             scan.valid = True
         else:
@@ -162,11 +162,13 @@ class TurtleBot:
         self.most_recent_scan = processed_scan
         self.send_scan_to_clients(processed_scan)
 
-    def odom_callback(self, odom):
+    def continuous_odom_callback(self, odom):
         # TODO convert this to using a map to generate a map -> odom transform rather than just consulting initial pose
-        self.current_pose.x = odom.pose.pose.position.x + self.initial_pose.x
-        self.current_pose.y = odom.pose.pose.position.y + self.initial_pose.y
-        self.current_pose.theta = self.convert_quaternion_to_yaw(odom.pose.pose.orientation)
+        self.current_continuous_pose.x = odom.pose.pose.position.x + self.initial_pose.x
+        self.current_continuous_pose.y = odom.pose.pose.position.y + self.initial_pose.y
+        #rospy.loginfo('Updated continuous pose via callback to' + str(self.current_continuous_pose.x) + ',' + str(self.current_continuous_pose.y))
+        #rospy.loginfo('Received odom pose was ' + str(odom.pose.pose.position.x) + ',' + str(odom.pose.pose.position.y) + '\n')
+        self.current_continuous_pose.theta = self.convert_quaternion_to_yaw(odom.pose.pose.orientation) + self.initial_pose.theta
 
     def send_scan_to_clients(self, scan):
         pose = self.convert_scan_to_pose(scan)
@@ -185,8 +187,13 @@ class TurtleBot:
         if scan.scan.valid is True:
             # Scan is valid so we can create a pose from it
             pose = PoseWithCovarianceStamped()
-            pose.pose.pose.position.x = self.current_pose.x + scan.scan.median * math.cos(self.current_pose.theta)
-            pose.pose.pose.position.y = self.current_pose.y + scan.scan.median * math.sin(self.current_pose.theta)
+            pose.pose.pose.position.x = self.current_continuous_pose.x + scan.scan.median * math.cos(self.current_continuous_pose.theta)
+            pose.pose.pose.position.y = self.current_continuous_pose.y + scan.scan.median * math.sin(self.current_continuous_pose.theta)
+            #if self.namespace == 'turtlebot1/':
+                #rospy.loginfo('Scan with distance ' + str(scan.scan.median) + ' calculated pose is ' + str(pose.pose.pose.position.x) + ',' + str(pose.pose.pose.position.y))
+                #rospy.loginfo('Current pose is ' + str(self.current_continuous_pose.x) + ',' + str(self.current_continuous_pose.y) + ',' + str(self.current_continuous_pose.theta))
+                #rospy.loginfo('x component is ' + str(scan.scan.median * math.cos(self.current_continuous_pose.theta)))
+                #rospy.loginfo('y component is ' + str(scan.scan.median * math.sin(self.current_continuous_pose.theta)))
             # Right now use default quaternion since we can't figure out orientation from our scans
             pose.pose.pose.orientation.x = 0
             pose.pose.pose.orientation.y = 0
@@ -201,7 +208,8 @@ class TurtleBot:
         return pose
 
     def external_pose_cb(self, goal):
-        self.external_pose_publisher.publish(goal.pose)
+        if not rospy.is_shutdown():
+            self.external_pose_publisher.publish(goal.pose)
 
         result = ExternalPoseResult()
         result.success = True

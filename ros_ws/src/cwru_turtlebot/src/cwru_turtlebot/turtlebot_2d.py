@@ -20,8 +20,8 @@ class TurtleBot2D(TurtleBot, object):
 
         # initialize all variable values
 
-        self.linear_speed = linear_speed # expressed in m/s
-        self.angular_speed = angular_speed # expressed in rad/s
+        self.linear_speed = linear_speed  # expressed in m/s
+        self.angular_speed = angular_speed  # expressed in rad/s
 
     def initialize_publishers(self):
         super(TurtleBot2D, self).initialize_publishers()
@@ -33,8 +33,8 @@ class TurtleBot2D(TurtleBot, object):
         # Employs dead-reckoning to move TurtleBot via a desired heading and move distance
 
         # First check if desired location is within our set bounds
-        goal_x = self.current_pose.x + math.cos(yaw)*distance
-        goal_y = self.current_pose.y + math.sin(yaw)*distance
+        goal_x = self.current_continuous_pose.x + math.cos(yaw)*distance
+        goal_y = self.current_continuous_pose.y + math.sin(yaw)*distance
 
         within_bounds_x = self.check_move_bounds(goal_x, x_lower_bound, x_upper_bound)
         within_bounds_y = self.check_move_bounds(goal_y, y_lower_bound, y_upper_bound)
@@ -46,20 +46,21 @@ class TurtleBot2D(TurtleBot, object):
             # Next translate to desired location
             self.translate(distance)
         else:
-            rospy.logwarn('Goal received out of bounds')
+            rospy.loginfo('Goal received out of bounds' + str(goal_x) + ',' + str(goal_y))
+            rospy.loginfo('Current pose is ' + str(self.current_continuous_pose.x) + ',' + str(self.current_continuous_pose.y))
 
     def rotate(self, yaw):
         yaw = self.correct_angle(yaw)
         move_cmd = Twist()
-        if self.current_pose.theta < yaw:  # Positive rotation needed
+        if self.current_continuous_pose.theta < yaw:  # Positive rotation needed
             move_cmd.angular.z = self.angular_speed
         else:  # Negative rotation needed
             move_cmd.angular.z = -self.angular_speed
 
-        distance_to_goal = math.fabs(self.current_pose.theta - yaw)
+        distance_to_goal = math.fabs(self.current_continuous_pose.theta - yaw)
         move_time = distance_to_goal / self.angular_speed
         move_steps = move_time * self.rate_frequency
-        while move_steps > 0:
+        while move_steps > 0 and not rospy.is_shutdown():
             self.cmd_vel_pub.publish(move_cmd)
             self.rate.sleep()
             move_steps -= 1
@@ -73,7 +74,7 @@ class TurtleBot2D(TurtleBot, object):
 
             move_time = distance / self.linear_speed
             move_steps = move_time * self.rate_frequency
-            while move_steps > 0:
+            while move_steps > 0 and not rospy.is_shutdown():
                 self.cmd_vel_pub.publish(move_cmd)
                 self.rate.sleep()
                 # decrease and update distance to goal
@@ -92,10 +93,10 @@ class TurtleBot2D(TurtleBot, object):
     @staticmethod
     def correct_angle(yaw):
         # Correct yaws to smallest possible value, accounting for periodicity
-        while yaw > 2 * math.pi:
+        while yaw > 2 * math.pi and not rospy.is_shutdown():
             yaw -= 2 * math.pi
 
-        while yaw < -2 * math.pi:
+        while yaw < -2 * math.pi and not rospy.is_shutdown():
             yaw += 2 * math.pi
 
         # Make sure we're using the shortest rotation
@@ -118,13 +119,12 @@ def main():
 
     # move the robot back and forth randomly until process killed with ctrl-c
     while not rospy.is_shutdown():
-        robot.move(distance=random.uniform(0, 4),
+        robot.move(distance=random.uniform(0, 2),
                    yaw=random.uniform(0, 2*math.pi),
                    x_lower_bound=-10,
                    x_upper_bound=10,
                    y_lower_bound=-10,
                    y_upper_bound=10)
-        rospy.sleep(1)
 
 if __name__ == '__main__':
     # run program and gracefully handle exit
