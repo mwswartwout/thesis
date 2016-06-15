@@ -46,6 +46,7 @@ class TurtleBot:
 
         self.scan_received = False  # We haven't received a valid LaserScan yet
         self.most_recent_scan = None
+        self.lidar_alarm = False
 
         self.rate_frequency = rate
         self.rate = rospy.Rate(rate)
@@ -163,8 +164,20 @@ class TurtleBot:
             scan.std_error = 0
             scan.valid = False
 
+        # Check whether we need to activate lidar alarm
+        if 0 < scan.median < 0.5:
+            self.lidar_alarm = True
+        else:
+            self.lidar_alarm = False
+
         processed_scan = self.stamp_scan_w_variance(scan)
-        self.processed_scan_publisher.publish(processed_scan)
+
+        if not rospy.is_shutdown():
+            try:
+                self.processed_scan_publisher.publish(processed_scan)
+            except rospy.ROSException as e:
+                rospy.logwarn('Unable to publish most recent processed scan')
+                rospy.logwarn(e.message)
 
         self.most_recent_scan = processed_scan
         self.send_scan_to_clients(processed_scan)
@@ -173,8 +186,6 @@ class TurtleBot:
         # TODO convert this to using a map to generate a map -> odom transform rather than just consulting initial pose
         self.current_continuous_pose.x = odom.pose.pose.position.x + self.initial_pose.x
         self.current_continuous_pose.y = odom.pose.pose.position.y + self.initial_pose.y
-        #rospy.loginfo('Updated continuous pose via callback to' + str(self.current_continuous_pose.x) + ',' + str(self.current_continuous_pose.y))
-        #rospy.loginfo('Received odom pose was ' + str(odom.pose.pose.position.x) + ',' + str(odom.pose.pose.position.y) + '\n')
         self.current_continuous_pose.theta = self.convert_quaternion_to_yaw(odom.pose.pose.orientation) + self.initial_pose.theta
 
     def send_scan_to_clients(self, scan):
@@ -196,11 +207,7 @@ class TurtleBot:
             pose = PoseWithCovarianceStamped()
             pose.pose.pose.position.x = self.current_continuous_pose.x + scan.scan.median * math.cos(self.current_continuous_pose.theta)
             pose.pose.pose.position.y = self.current_continuous_pose.y + scan.scan.median * math.sin(self.current_continuous_pose.theta)
-            #if self.namespace == 'turtlebot1/':
-                #rospy.loginfo('Scan with distance ' + str(scan.scan.median) + ' calculated pose is ' + str(pose.pose.pose.position.x) + ',' + str(pose.pose.pose.position.y))
-                #rospy.loginfo('Current pose is ' + str(self.current_continuous_pose.x) + ',' + str(self.current_continuous_pose.y) + ',' + str(self.current_continuous_pose.theta))
-                #rospy.loginfo('x component is ' + str(scan.scan.median * math.cos(self.current_continuous_pose.theta)))
-                #rospy.loginfo('y component is ' + str(scan.scan.median * math.sin(self.current_continuous_pose.theta)))
+
             # Right now use default quaternion since we can't figure out orientation from our scans
             pose.pose.pose.orientation.x = 0
             pose.pose.pose.orientation.y = 0
@@ -216,9 +223,13 @@ class TurtleBot:
 
     def external_pose_cb(self, goal):
         if not rospy.is_shutdown():
-            self.external_pose_publisher.publish(goal.pose)
-            self.external_pose_count += 1
-            self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
+            try:
+                self.external_pose_publisher.publish(goal.pose)
+                self.external_pose_count += 1
+                self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
+            except rospy.ROSException as e:
+                rospy.logwarn('Unable to publish most recent external pose')
+                rospy.logwarn(e.message)
 
         result = ExternalPoseResult()
         result.success = True
@@ -229,7 +240,7 @@ class TurtleBot:
         complete = False
         while not rospy.is_shutdown() and not complete:
             if num_clients - 1 != len(self.existing_clients):
-                rospy.loginfo('Waiting for other robots to come online...')  # + str(num_clients) + '!=' + str(len(self.existing_clients) - 1))
+                rospy.logdebug('Waiting for other robots to come online...')  # + str(num_clients) + '!=' + str(len(self.existing_clients) - 1))
                 self.rate.sleep()
             else:
                 complete = True
@@ -252,7 +263,7 @@ class TurtleBot:
 
     @staticmethod
     def reset_filters():
-        rospy.loginfo('Resetting filters...')
+        rospy.logdebug('Resetting filters...')
         error = False
         # First reset the continuous filter
         rospy.wait_for_service('set_pose_continuous')
@@ -261,7 +272,7 @@ class TurtleBot:
             request = SetPoseRequest()
             continuous_service(request)
         except rospy.ServiceException, e:
-            rospy.loginfo("Service call failed: %s", e)
+            rospy.logwarn("Service call failed: %s", e)
             error = True
 
         # Next reset the discrete filter
@@ -271,10 +282,10 @@ class TurtleBot:
             request = SetPoseRequest()
             continuous_service(request)
         except rospy.ServiceException, e:
-            rospy.loginfo("Service call failed: %s", e)
+            rospy.logwarn("Service call failed: %s", e)
             error = True
 
         if not error:
-            rospy.loginfo('Filter reset complete')
+            rospy.logdebug('Filter reset complete')
         else:
-            rospy.loginfo('Filter reset encountered errors')
+            rospy.logwarn('Filter reset encountered errors')

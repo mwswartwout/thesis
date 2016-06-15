@@ -44,10 +44,12 @@ class TurtleBot2D(TurtleBot, object):
             self.rotate(yaw)
 
             # Next translate to desired location
-            self.translate(distance)
+            if not self.lidar_alarm:
+                self.translate(distance)
+            else:
+                rospy.logwarn('Not executing translation because lidar alarm is triggered')
         else:
-            rospy.loginfo('Goal received out of bounds' + str(goal_x) + ',' + str(goal_y))
-            rospy.loginfo('Current pose is ' + str(self.current_continuous_pose.x) + ',' + str(self.current_continuous_pose.y))
+            rospy.logdebug('Goal received out of bounds' + str(goal_x) + ',' + str(goal_y))
 
     def rotate(self, yaw):
         yaw = self.correct_angle(yaw)
@@ -61,9 +63,14 @@ class TurtleBot2D(TurtleBot, object):
         move_time = distance_to_goal / self.angular_speed
         move_steps = move_time * self.rate_frequency
         while move_steps > 0 and not rospy.is_shutdown():
-            self.cmd_vel_pub.publish(move_cmd)
-            self.rate.sleep()
-            move_steps -= 1
+            try:
+                self.cmd_vel_pub.publish(move_cmd)
+                self.rate.sleep()
+                move_steps -= 1
+            except rospy.ROSException as e:
+                rospy.logwarn('Unable to publish rotation command')
+                rospy.logwarn(e.message)
+        self.stop()  # Stop once move is complete
 
     def translate(self, distance):
         move_cmd = Twist()
@@ -74,16 +81,23 @@ class TurtleBot2D(TurtleBot, object):
 
             move_time = distance / self.linear_speed
             move_steps = move_time * self.rate_frequency
-            while move_steps > 0 and not rospy.is_shutdown():
-                self.cmd_vel_pub.publish(move_cmd)
-                self.rate.sleep()
-                # decrease and update distance to goal
-                move_steps -= 1
+            while move_steps > 0 and not rospy.is_shutdown() and not self.lidar_alarm:
+                try:
+                    self.cmd_vel_pub.publish(move_cmd)
+                    self.rate.sleep()
+                    # decrease and update distance to goal
+                    move_steps -= 1
+                except rospy.ROSException as e:
+                    rospy.logwarn('Unable to publish translation command')
+                    rospy.logwarn(e.message)
+            self.stop()  # Stop once move is complete
 
     def stop(self):
-        rospy.logdebug('%s has stopped', self.namespace)
-        self.cmd_vel_pub.publish(Twist())
-        rospy.sleep(1)
+        try:
+            self.cmd_vel_pub.publish(Twist())
+        except rospy.ROSException as e:
+            rospy.logwarn('Unable to publish stop command')
+            rospy.logwarn(e.message)
 
     @staticmethod
     def check_move_bounds(val, lower, upper):
