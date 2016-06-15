@@ -117,14 +117,19 @@ def main():
     # because they could have gotten erroneous readings
     robot.reset_filters()
 
+    x_upper = rospy.get_param('/x_upper')
+    x_lower = rospy.get_param('/x_lower')
+    y_upper = rospy.get_param('/y_upper')
+    y_lower = rospy.get_param('/y_lower')
+
     # move the robot back and forth randomly until process killed with ctrl-c
     while not rospy.is_shutdown():
         robot.move(distance=random.uniform(0, 2),
                    yaw=random.uniform(0, 2*math.pi),
-                   x_lower_bound=-10,
-                   x_upper_bound=10,
-                   y_lower_bound=-10,
-                   y_upper_bound=10)
+                   x_lower_bound=x_lower,
+                   x_upper_bound=x_upper,
+                   y_lower_bound=y_lower,
+                   y_upper_bound=y_upper)
 
 if __name__ == '__main__':
     # run program and gracefully handle exit
