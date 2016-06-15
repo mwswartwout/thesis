@@ -13,10 +13,10 @@
     <param name="number_of_robots" type="int" value="2"/>
     <param name="save_file_prefix" type="string" value="$(arg save_file_prefix)"/>
     <param name="sim_time" type="double" value="$(arg sim_time)"/>
-    <param name="x_upper" type="double" value="5"/>
-    <param name="x_lower" type="double" value="-5"/>
-    <param name="y_upper" type="double" value="5"/>
-    <param name="y_lower" type="double" value="-5"/>
+    <param name="x_upper" type="double" value="2"/>
+    <param name="x_lower" type="double" value="-2"/>
+    <param name="y_upper" type="double" value="2"/>
+    <param name="y_lower" type="double" value="-2"/>
 
     <node pkg="cwru_turtlebot" type="simulation_timer.py" name="simulation_timer" required="true"/>
 
