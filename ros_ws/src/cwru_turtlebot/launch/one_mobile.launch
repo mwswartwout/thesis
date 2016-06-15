@@ -27,7 +27,7 @@
     </include>
 
     <group ns="turtlebot1">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_stationary.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot1"/>
             <arg name="x_pos" value="0"/>
             <arg name="y_pos" value="0"/>

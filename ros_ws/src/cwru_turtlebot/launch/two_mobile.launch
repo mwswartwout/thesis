@@ -10,7 +10,7 @@
     <arg name="save_file_prefix" default="/home/matt/"/>
     <arg name="sim_time" default="60"/>
 
-    <param name="number_of_robots" type="int" value="1"/>
+    <param name="number_of_robots" type="int" value="2"/>
     <param name="save_file_prefix" type="string" value="$(arg save_file_prefix)"/>
     <param name="sim_time" type="double" value="$(arg sim_time)"/>
     <param name="x_upper" type="double" value="10"/>
@@ -27,10 +27,20 @@
     </include>
 
     <group ns="turtlebot1">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_stationary.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot1"/>
             <arg name="x_pos" value="0"/>
             <arg name="y_pos" value="0"/>
+            <arg name="sensor_record" value="$(arg sensor_record)"/>
+        </include>
+    </group>
+
+    <group ns="turtlebot2">
+        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
+            <arg name="model_name" value="turtlebot2"/>
+            <arg name="x_pos" value="0"/>
+            <arg name="y_pos" value="2"/>
+            <arg name="yaw" value="3.14159"/>
             <arg name="sensor_record" value="$(arg sensor_record)"/>
         </include>
     </group>
