@@ -15,6 +15,7 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose2D, PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 from cwru_turtlebot.msg import ScanWithVariance, ScanWithVarianceStamped
+from std_msgs.msg import UInt64
 
 # Service type imports
 from robot_localization.srv import SetPose, SetPoseRequest
@@ -53,6 +54,8 @@ class TurtleBot:
 
         self.client_list = []  # List to hold all of our action clients
         self.existing_clients = []  # List to hold names of all action clients in the client_list
+        self.external_pose_count = 0  # Number of external poses received
+
         self.initialize_action_clients()
 
     def initialize_subscribers(self):
@@ -80,6 +83,10 @@ class TurtleBot:
         self.external_pose_publisher = rospy.Publisher('external_poses',
                                                        PoseWithCovarianceStamped,
                                                        queue_size=10)
+
+        self.external_pose_count_publisher = rospy.Publisher('external_poses_count',
+                                                             UInt64,
+                                                             queue_size=1)
 
     def initialize_action_servers(self):
         self.external_pose_as = actionlib.SimpleActionServer('external_pose_action',
@@ -210,6 +217,8 @@ class TurtleBot:
     def external_pose_cb(self, goal):
         if not rospy.is_shutdown():
             self.external_pose_publisher.publish(goal.pose)
+            self.external_pose_count += 1
+            self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
 
         result = ExternalPoseResult()
         result.success = True
