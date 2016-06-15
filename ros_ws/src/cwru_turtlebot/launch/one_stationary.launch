@@ -7,8 +7,10 @@
     <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons --> 
     <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro -->
     <arg name="sensor_record" default="true"/>
+    <arg name="save_file_prefix" default="/home/matt/"/>
 
-    <param name="number_of_robots" type="int" value="6"/>
+    <param name="number_of_robots" type="int" value="1"/>
+    <param name="save_file_prefix" type="string" value="$(arg save_file_prefix)"/>
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="use_sim_time" value="true"/>
