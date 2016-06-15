@@ -16,17 +16,22 @@ def imu_remap(imu_msg):
     # remap imu message to base_link_self and publish the new message
     remapped_msg = imu_msg
     remapped_msg.header.frame_id = namespace + 'base_link_filter'
-    try:
-        imu_publisher.publish(remapped_msg)
-    except rospy.ROSException as e:
-        print("%s", e.message)
+    if not rospy.is_shutdown():
+        try:
+            imu_publisher.publish(remapped_msg)
+        except rospy.ROSException as e:
+            rospy.logwarn(e.message)
 
 
 def odom_remap(odom_msg):
     # remap odom message to base_footprint_self and publish the new message
     remapped_msg = odom_msg
     remapped_msg.child_frame_id = namespace + 'base_footprint_filter'
-    odom_publisher.publish(remapped_msg)
+    if not rospy.is_shutdown():
+        try:
+            odom_publisher.publish(remapped_msg)
+        except rospy.ROSException as e:
+            rospy.logwarn(e.message)
 
 
 def main():
