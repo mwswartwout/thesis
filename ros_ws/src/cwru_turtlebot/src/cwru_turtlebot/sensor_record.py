@@ -2,6 +2,8 @@
 
 import rospy
 import csv
+import os
+import errno
 from nav_msgs.msg import Odometry
 from std_msgs.msg import UInt64
 
@@ -10,6 +12,7 @@ discrete_data = None
 gazebo_data = None
 external_count = None
 namespace = None
+# TODO add protections so that a lack of starting or trailing slashes does not affect prefix and file writing
 prefix = None
 
 
@@ -48,9 +51,20 @@ def external_pose_count_callback(count):
     external_count = [count.data]
 
 
+def make_sure_path_exists(path):
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+
 def write_headers():
     global namespace
     global prefix
+
+    # Make sure our path exists before creating our files
+    make_sure_path_exists(prefix)
 
     if None not in (prefix, namespace):
         filename = prefix + namespace + '_continuous_odometry_filtered.csv'
