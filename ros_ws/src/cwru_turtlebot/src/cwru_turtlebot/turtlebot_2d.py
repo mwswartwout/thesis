@@ -3,6 +3,7 @@
 import rospy
 import math
 import random
+import tf
 
 from geometry_msgs.msg import Twist
 from turtlebot import TurtleBot
@@ -33,8 +34,8 @@ class TurtleBot2D(TurtleBot, object):
         # Employs dead-reckoning to move TurtleBot via a desired heading and move distance
 
         # First check if desired location is within our set bounds
-        goal_x = self.current_continuous_pose.x + math.cos(yaw)*distance
-        goal_y = self.current_continuous_pose.y + math.sin(yaw)*distance
+        goal_x = self.current_continuous_pose.pose.pose.position.x + math.cos(yaw)*distance
+        goal_y = self.current_continuous_pose.pose.pose.position.y + math.sin(yaw)*distance
 
         within_bounds_x = self.check_move_bounds(goal_x, x_lower_bound, x_upper_bound)
         within_bounds_y = self.check_move_bounds(goal_y, y_lower_bound, y_upper_bound)
@@ -54,12 +55,13 @@ class TurtleBot2D(TurtleBot, object):
     def rotate(self, yaw):
         yaw = self.correct_angle(yaw)
         move_cmd = Twist()
-        if self.current_continuous_pose.theta < yaw:  # Positive rotation needed
+        current_yaw = self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation)
+        if current_yaw < yaw:  # Positive rotation needed
             move_cmd.angular.z = self.angular_speed
         else:  # Negative rotation needed
             move_cmd.angular.z = -self.angular_speed
 
-        distance_to_goal = math.fabs(self.current_continuous_pose.theta - yaw)
+        distance_to_goal = math.fabs(current_yaw - yaw)
         move_time = distance_to_goal / self.angular_speed
         move_steps = move_time * self.rate_frequency
         while move_steps > 0 and not rospy.is_shutdown():

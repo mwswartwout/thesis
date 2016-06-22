@@ -44,6 +44,9 @@
     <depend>message_generation</depend>
     <depend>std_msgs</depend>
     <depend>sensor_msgs</depend>
+    <depend>geometry_msgs</depend>
+    <depend>actionlib_msgs</depend>
+    <depend>tf</depend>
     <!-- The export tag contains other, unspecified, tags -->
     <export>
         <!-- Other tools can request additional information be placed here -->
