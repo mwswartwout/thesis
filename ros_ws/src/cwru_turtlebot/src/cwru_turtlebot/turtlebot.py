@@ -8,11 +8,12 @@ import copy
 # TODO need to switch from SimpleActionServer to ActionServer so that new goals don't preempt old ones
 
 import actionlib
+import tf
 from cwru_turtlebot.msg import ExternalPoseAction, ExternalPoseGoal, ExternalPoseResult
 
 # Publish/Subscribe type imports
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Pose2D, PoseWithCovarianceStamped
+from geometry_msgs.msg import Pose2D, PoseWithCovarianceStamped, Quaternion
 from nav_msgs.msg import Odometry
 from cwru_turtlebot.msg import ScanWithVariance, ScanWithVarianceStamped
 from std_msgs.msg import UInt64
@@ -28,16 +29,18 @@ class TurtleBot:
         rospy.init_node('robot')
 
         # Create initial pose object from parameter server
-        self.initial_pose = Pose2D()
-        self.initial_pose.x = rospy.get_param('x_pos')
-        self.initial_pose.y = rospy.get_param('y_pos')
-        self.initial_pose.theta = rospy.get_param('yaw')
+        self.initial_pose = PoseWithCovarianceStamped()
+        self.initial_pose.pose.pose.position.x = rospy.get_param('x_pos')
+        self.initial_pose.pose.pose.position.y = rospy.get_param('y_pos')
+        self.initial_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(rospy.get_param('yaw'))
+        self.initial_pose.header.frame_id = 'map'
 
         self.current_continuous_pose = copy.deepcopy(self.initial_pose)
 
         self.initialize_subscribers()
         self.initialize_publishers()
 
+        self.external_pose_publisher.publish()
         rospy.set_param('server_started', False)
 
         self.initialize_action_servers()
@@ -76,7 +79,7 @@ class TurtleBot:
 
         # TODO do we really need this anymore?
         self.position_publisher = rospy.Publisher('position',
-                                                  Pose2D,
+                                                  PoseWithCovarianceStamped,
                                                   queue_size=1,
                                                   latch=True)
 
@@ -184,9 +187,12 @@ class TurtleBot:
 
     def continuous_odom_callback(self, odom):
         # TODO convert this to using a map to generate a map -> odom transform rather than just consulting initial pose
-        self.current_continuous_pose.x = odom.pose.pose.position.x + self.initial_pose.x
-        self.current_continuous_pose.y = odom.pose.pose.position.y + self.initial_pose.y
-        self.current_continuous_pose.theta = self.convert_quaternion_to_yaw(odom.pose.pose.orientation) + self.initial_pose.theta
+        self.current_continuous_pose.pose.pose.position.x = odom.pose.pose.position.x + self.initial_pose.pose.pose.position.x
+        self.current_continuous_pose.pose.pose.position.y = odom.pose.pose.position.y + self.initial_pose.pose.pose.position.y
+        odom_yaw = self.convert_quaternion_to_yaw(odom.pose.pose.orientation)
+        initial_yaw = self.convert_quaternion_to_yaw(odom.pose.pose.orientation)
+        current_yaw = odom_yaw + initial_yaw
+        self.current_continuous_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
 
     def send_scan_to_clients(self, scan):
         pose = self.convert_scan_to_pose(scan)
@@ -207,8 +213,8 @@ class TurtleBot:
         if scan.scan.valid is True:
             # Scan is valid so we can create a pose from it
             pose = PoseWithCovarianceStamped()
-            pose.pose.pose.position.x = self.current_continuous_pose.x + scan.scan.median * math.cos(self.current_continuous_pose.theta)
-            pose.pose.pose.position.y = self.current_continuous_pose.y + scan.scan.median * math.sin(self.current_continuous_pose.theta)
+            pose.pose.pose.position.x = self.current_continuous_pose.x + scan.scan.median * math.cos(self.convert_quaternion_to_yaw(self.current_continuous_pose.theta))
+            pose.pose.pose.position.y = self.current_continuous_pose.y + scan.scan.median * math.sin(self.convert_quaternion_to_yaw(self.current_continuous_pose.theta))
 
             # Right now use default quaternion since we can't figure out orientation from our scans
             pose.pose.pose.orientation.x = 0
@@ -262,6 +268,15 @@ class TurtleBot:
         w = quaternion.w
         yaw = 2 * math.atan2(z, w)
         return yaw
+
+    @staticmethod
+    def convert_yaw_to_quaternion(yaw):
+        quaternion = Quaternion()
+        quaternion.x = math.cos(yaw / 2)
+        quaternion.y = math.sin(yaw / 2) * 2
+        quaternion.z = 0
+        quaternion.w = 0
+        return quaternion
 
     @staticmethod
     def reset_filters():
