@@ -16,25 +16,25 @@
         <param name="world_frame" value="$(arg model_name)/odom"/>
         <param name="transform_time_offset" value="0.0"/>
         <param name="odom0" value="odom_remapped"/> <!-- internal odom-->
-        <rosparam param="odom0_config">[false,  false,  false, <!-- x y z -->
-                                        false,  false,  false, <!-- roll pitch yaw -->
-                                        true,   true,   false, <!-- x_vel y_vel z_vel -->
-                                        false,  false,  true, <!-- roll_vel pitch_vel yaw_vel -->
+        <rosparam param="odom0_config">[true,   true,  false, <!-- x y z -->
+                                        false,  false,  true, <!-- roll pitch yaw -->
+                                        false,  false,   false, <!-- x_vel y_vel z_vel -->
+                                        false,  false,  false, <!-- roll_vel pitch_vel yaw_vel -->
                                         false,  false,  false] <!-- x_acc y_acc z_acc -->
         </rosparam>
-        <param name="imu0" value="imu_data_remapped"/>
+        <!--param name="imu0" value="imu_data_remapped"/-->
         <!-- TODO reinclude x_acc once using real turtlebot and see if it has a better IMU than Gazebo -->
         <!-- Because Gazebo produces constant x_acc of .2-.3 -->
-        <rosparam param="imu0_config">[false,   false,  false, <!-- x y z -->
-                                    false,   false,  true, <!-- roll pitch yaw -->
-                                    false,   false,  false, <!-- x_vel y_vel z_vel -->
-                                    false,   false,  true, <!-- roll_vel pitch_vel yaw_vel -->
-                                    false,    false,  false] <!-- x_acc y_acc z_acc -->
-        </rosparam>
+        <!--rosparam param="imu0_config">[false,   false,  false, --><!-- x y z -->
+                                    <!--false,   false,  true, --><!-- roll pitch yaw -->
+                                    <!--false,   false,  false, --><!-- x_vel y_vel z_vel -->
+                                    <!--false,   false,  true, --><!-- roll_vel pitch_vel yaw_vel -->
+                                    <!--false,    false,  false] --><!-- x_acc y_acc z_acc -->
+        <!--/rosparam-->
         <param name="odom0_differential" value="false"/>
-        <param name="imu0_differential" value="false"/>
+        <!--param name="imu0_differential" value="false"/-->
         <param name="odom0_relative" value="false"/>
-        <param name="imu0_relative" value="false"/>
+        <!--param name="imu0_relative" value="false"/-->
         <param name="print_diagnostics" value="true"/>
     </node>
 
@@ -53,23 +53,24 @@
         <param name="transform_time_offset" value="0.0"/>
         <param name="odom0" value="odometry/filtered_continuous"/> <!-- odom output from continuous filter-->
         <!-- TODO adjust these -->
-        <rosparam param="odom0_config">[false,   false,   false, <!-- x y z -->
+        <rosparam param="odom0_config">[true,   true,   false, <!-- x y z -->
                                         false,  false,  true, <!-- roll pitch yaw -->
-                                        true,   true,  false, <!-- x_vel y_vel z_vel -->
-                                        false,  false,  true, <!-- roll_vel pitch_vel yaw_vel -->
-                                        true,  false,  false] <!-- x_acc y_acc z_acc -->
+                                        false,   false,  false, <!-- x_vel y_vel z_vel -->
+                                        false,  false,  false, <!-- roll_vel pitch_vel yaw_vel -->
+                                        false,  false,  false] <!-- x_acc y_acc z_acc -->
         </rosparam>
-        <param name="pose0" value="external_poses"/>
-        <rosparam param="pose0_config">[true,   true,  false, <!-- x y z -->
-                                    false,   false,  false, <!-- roll pitch yaw -->
-                                    false,   false,  false, <!-- x_vel y_vel z_vel -->
-                                    false,   false,  false, <!-- roll_vel pitch_vel yaw_vel -->
-                                    false,    false,  false] <!-- x_acc y_acc z_acc -->
-        </rosparam>
+
+        <!--param name="pose0" value="external_poses"/-->
+        <!--rosparam param="pose0_config">[true,   true,  false,--> <!-- x y z -->
+        <!-- false,   false,  false,--> <!-- roll pitch yaw -->
+        <!-- false,   false,  false,--> <!-- x_vel y_vel z_vel -->
+        <!-- false,   false,  false,--> <!-- roll_vel pitch_vel yaw_vel -->
+        <!-- false,    false,  false]--> <!-- x_acc y_acc z_acc -->
+        <!--/rosparam-->
         <param name="odom0_differential" value="false"/>
-        <param name="pose0_differential" value="false"/>
+        <!--param name="pose0_differential" value="false"/-->
         <param name="odom0_relative" value="false"/>
-        <param name="pose0_relative" value="false"/>
+        <!--param name="pose0_relative" value="false"/-->
         <param name="print_diagnostics" value="true"/>
     </node>
 

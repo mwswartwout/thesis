@@ -191,14 +191,16 @@ class TurtleBot:
     def send_scan_to_clients(self, scan):
         pose = self.convert_scan_to_pose(scan)
         self.update_client_list()
-        for client in self.client_list:
-            client.wait_for_server()
-            goal = ExternalPoseGoal(pose)
-            client.send_goal(goal)
-            client.wait_for_result()
-            success = client.get_result()
-            if not success:
-                rospy.logwarn("A client returned unsucessfully when sent a pose measurement")
+
+        while not rospy.is_shutdown():
+            for client in self.client_list:
+                client.wait_for_server()
+                goal = ExternalPoseGoal(pose)
+                client.send_goal(goal)
+                client.wait_for_result()
+                success = client.get_result()
+                if not success:
+                    rospy.logwarn("A client returned unsucessfully when sent a pose measurement")
 
     def convert_scan_to_pose(self, scan):
         pose = None

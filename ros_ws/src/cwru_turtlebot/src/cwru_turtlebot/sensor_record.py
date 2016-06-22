@@ -54,22 +54,22 @@ def write_headers():
 
     if None not in (prefix, namespace):
         filename = prefix + namespace + '_continuous_odometry_filtered.csv'
-        with open(filename, 'a+') as pose_file:
+        with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
             writer.writerow(['x_position', 'y_position', 'pose_covariance', 'twist_covariance'])
 
         filename = prefix + namespace + '_discrete_odometry_filtered.csv'
-        with open(filename, 'a+') as pose_file:
+        with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
             writer.writerow(['x_position', 'y_position', 'pose_covariance', 'twist_covariance'])
 
         filename = prefix + namespace + '_gazebo_odometry_filtered.csv'
-        with open(filename, 'a+') as pose_file:
+        with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
             writer.writerow(['x_position', 'y_position', 'pose_covariance', 'twist_covariance'])
 
         filename = prefix + namespace + '_external_pose_count.csv'
-        with open(filename, 'a+') as count_file:
+        with open(filename, 'w+') as count_file:
             writer = csv.writer(count_file)
             writer.writerow(['count'])
 
