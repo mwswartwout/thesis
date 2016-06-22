@@ -18,20 +18,20 @@ t1_continuous$x_error <- t1_gazebo$x_position - t1_continuous$x_position
 t1_continuous$y_error <- t1_gazebo$y_position - t1_continuous$y_position
 t1_continuous$dist_error <- sqrt(t1_continuous$x_error ^ 2 + t1_continuous$y_error ^ 2)
 
-pdf(paste0(params$experiment_name, "_ground_truth_locations.pdf"))
+#pdf(paste0(params$experiment_name, "_ground_truth_locations.pdf"))
 plot(t1_gazebo$x_position, t1_gazebo$y_position)
 title("Ground truth visited locations of robot")
-dev.off()
+#dev.off()
 
-pdf(paste0(params$experiment_name, "_dist_from_origin.pdf"))
+#pdf(paste0(params$experiment_name, "_dist_from_origin.pdf"))
 plot(t1_gazebo$dist_from_origin)
 title("Distance from origin vs. time")
-dev.off()
-
-summary(t1_discrete$x_error)
-summary(t1_discrete$y_error)
-summary(t1_discrete$dist_error)
+#dev.off()
 
 summary(t1_continuous$x_error)
 summary(t1_continuous$y_error)
 summary(t1_continuous$dist_error)
+
+summary(t1_discrete$x_error)
+summary(t1_discrete$y_error)
+summary(t1_discrete$dist_error)
