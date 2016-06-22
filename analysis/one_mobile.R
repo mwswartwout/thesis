@@ -28,6 +28,24 @@ plot(t1_gazebo$dist_from_origin)
 title("Distance from origin vs. time")
 #dev.off()
 
+plot(t1_continuous$x_error)
+title("Continuous x_error over time")
+
+plot(t1_continuous$y_error)
+title("Continuous y_error over time")
+
+plot(t1_continuous$dist_error)
+title("Continuous total distance error over time")
+
+plot(t1_discrete$x_error)
+title("Discrete x_error over time")
+
+plot(t1_discrete$y_error)
+title("Discrete y_error over time")
+
+plot (t1_discrete$dist_error)
+title("Discrete total distance error over time")
+
 summary(t1_continuous$x_error)
 summary(t1_continuous$y_error)
 summary(t1_continuous$dist_error)
