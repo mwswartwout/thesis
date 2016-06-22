@@ -1,11 +1,8 @@
 params <- data.frame(data_dir="", experiment_name="")
 
 params$data_dir <- "/home/matt/thesis/experiment_data"
-params$experiment_name <- "one_mobile_testing"
+params$experiment_name <- "one_mobile"
 
-
-print(paste0("data_dir = ", params$data_dir))
-print(paste0("experiment_name = ", params$experiment_name))
 t1_gazebo <- read.csv(paste(params$data_dir, params$experiment_name, "turtlebot1_gazebo_odometry_filtered.csv", sep="/"))
 t1_continuous <- read.csv(paste(params$data_dir, params$experiment_name, "turtlebot1_continuous_odometry_filtered.csv", sep="/"))
 t1_discrete <- read.csv(paste(params$data_dir, params$experiment_name, "turtlebot1_discrete_odometry_filtered.csv", sep="/"))
