@@ -98,7 +98,6 @@ def write_to_files(event):
     global prefix
 
     if None not in (continuous_data, discrete_data, gazebo_data, external_count, namespace, prefix):
-        rospy.loginfo("Writing to files")
         filename = prefix + namespace + '_continuous_odometry_filtered.csv'
         with open(filename, 'a+') as pose_file:
             writer = csv.writer(pose_file)
