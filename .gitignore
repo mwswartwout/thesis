@@ -121,3 +121,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+analysis/
+experiment_data/
