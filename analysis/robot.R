@@ -1,6 +1,6 @@
-if (!require("data.table")){
+if (!require(data.table)){
     install.packages("data.table", repos="http://cran.rstudio.com/")
-    library("data.table")
+    library(data.table)
 }
 
 ## ---- read_data

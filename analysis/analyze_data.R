@@ -1,9 +1,14 @@
+if (!require(data.table)) {
+    install.packages("data.table", repos="http://cran.rstudio.com/")
+    library(data.table)
+}
+
 data_dir <- "/home/matt/thesis/experiment_data"
-dirs <- list.dirs(path=data_dir)
+dirs <- list.dirs(path=data_dir, recursive=FALSE)
 report_dir <- paste0(data_dir, "/reports")
 
 # First let's delete any previous reports, as having those around seems to cause errors
-unlink(paste(report_dir, "*", sep="/"), recursive=TRUE)
+#unlink(paste(report_dir, "*", sep="/"), recursive=TRUE)
 
 for (directory in 2:length(dirs)){
     experiment_name = substr(dirs[directory], nchar(data_dir)+2, nchar(dirs[directory]))

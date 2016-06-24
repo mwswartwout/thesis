@@ -27,5 +27,5 @@ Shown below is the summary of the error of all robots combined for both x and y 
 
 Shown below are plots representing the robot's motion and error over time.
 
-```{r, plot, echo=FALSE}
+```{r, plot}
 ```
