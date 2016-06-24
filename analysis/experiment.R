@@ -53,24 +53,24 @@ plot(continuous$x_error)
 title("Continuous x_error over time")
 
 message("continous y")
-#plot(continuous$y_error)
-#title("Continuous y_error over time")
+plot(continuous$y_error)
+title("Continuous y_error over time")
 
 message("continuous dist")
-#plot(continuous$dist_error)
-#title("Continuous total distance error over time")
+plot(continuous$dist_error)
+title("Continuous total distance error over time")
 
 message("discrete x")
-#plot(discrete$x_error)
-#title("Discrete x_error over time")
+plot(discrete$x_error)
+title("Discrete x_error over time")
 
 message("discrete y")
-#plot(discrete$y_error)
-#title("Discrete y_error over time")
+plot(discrete$y_error)
+title("Discrete y_error over time")
 
 message("discrete dist")
-#plot (discrete$dist_error)
-#title("Discrete total distance error over time")
+plot (discrete$dist_error)
+title("Discrete total distance error over time")
 
 ## ---- summary
 summary(continuous$x_error)
