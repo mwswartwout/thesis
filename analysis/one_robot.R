@@ -65,4 +65,4 @@ partial_time_minutes <- floor((total_time_hours - partial_time_hours) * 60)
 partial_time_seconds <- (total_time_minutes - partial_time_minutes) * 60
 
 ## ---- external_poses
-external_poses <- t1_external_count[length(t1_external_count)]
+external_poses <- t1_external_count$count[length(t1_external_count$count)]

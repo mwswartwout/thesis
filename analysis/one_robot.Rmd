@@ -19,6 +19,9 @@ knitr::read_chunk('one_robot.R')
 ```
 ```{r, time, echo=FALSE}
 ```
+```{r, external_poses, echo=FALSE}
+```
+
 This is a summary of the data from the `r params$experiment` experiment, Turtlebot #`r params$robot`.
 
 The runtime of this experiment was `r partial_time_hours` hours, `r partial_time_minutes` minutes, and `r partial_time_seconds` seconds.
