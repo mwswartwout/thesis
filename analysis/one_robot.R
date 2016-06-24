@@ -1,15 +1,20 @@
+if (!require("data.table")){
+    install.packages("data.table", repos="http://cran.rstudio.com/")
+    library("data.table")
+}
+
 ## ---- read_data
 file_name <- paste0("turtlebot", params$robot, "_gazebo_odometry_filtered.csv")
-t1_gazebo <- read.csv(paste(params$data_dir, params$experiment, file_name, sep="/"))
+t1_gazebo <- fread(paste(params$data_dir, params$experiment, file_name, sep="/"), header=T, sep=",")
 
 file_name <- paste0("turtlebot", params$robot, "_continuous_odometry_filtered.csv")
-t1_continuous <- read.csv(paste(params$data_dir, params$experiment, file_name, sep="/"))
+t1_continuous <- fread(paste(params$data_dir, params$experiment, file_name, sep="/"), header=T, sep=",")
 
 file_name <- paste0("turtlebot", params$robot, "_discrete_odometry_filtered.csv")
-t1_discrete <- read.csv(paste(params$data_dir, params$experiment, file_name, sep="/"))
+t1_discrete <- fread(paste(params$data_dir, params$experiment, file_name, sep="/"), header=T, sep=",")
 
 file_name <- paste0("turtlebot", params$robot, "_external_pose_count.csv")
-t1_external_count <- read.csv(paste(params$data_dir, params$experiment, file_name, sep="/"))
+t1_external_count <- fread(paste(params$data_dir, params$experiment, file_name, sep="/"), header=T, sep=",")
 
 ## ---- calculations
 t1_gazebo$dist_from_origin <- sqrt(t1_gazebo$x_position ^ 2 + t1_gazebo$y_position ^ 2)
