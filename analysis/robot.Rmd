@@ -10,7 +10,7 @@ title: '`r paste(params$experiment, "Turtlebot", params$robot, "Report")`'
 ---
 
 ```{r, echo=FALSE}
-knitr::read_chunk('one_robot.R')
+knitr::read_chunk('robot.R')
 ```
 
 ```{r, read_data, echo=FALSE}

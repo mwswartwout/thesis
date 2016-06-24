@@ -14,7 +14,7 @@ for (directory in 2:length(dirs)){
                 robot_number <- substr(files[file], 10, 11)
             }
 
-            rmarkdown::render("one_robot.Rmd", params=list(experiment=experiment_name, robot=robot_number), output_file=paste0("turtlebot_", robot_number, ".pdf"), output_dir=paste0(data_dir, "/reports/", experiment_name))
+            rmarkdown::render("robot.Rmd", params=list(experiment=experiment_name, robot=robot_number), output_file=paste0("turtlebot_", robot_number, ".pdf"), output_dir=paste0(data_dir, "/reports/", experiment_name))
         }
     }
 }
