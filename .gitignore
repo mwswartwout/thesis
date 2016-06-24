@@ -125,4 +125,5 @@ ENV/
 .Rproj.user
 
 # Ignore experiment data files that are huge
-experiment_data/
+experiment_data/*
+!experiment_data/reports/
