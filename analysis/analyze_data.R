@@ -1,13 +1,20 @@
 data_dir <- "/home/matt/thesis/experiment_data"
 dirs <- list.dirs(path=data_dir)
 
-for (i in 2:length(dirs)){
-    experiment_name = substr(dirs[i], nchar(data_dir)+2, nchar(dirs[i]))
-    if (substr(experiment_name, 1, 4) == "one_") {
-        rmarkdown::render("one_robot.Rmd", params=list(experiment=experiment_name), output_file=paste0(experiment_name, ".pdf"), output_dir=paste0(data_dir, "/reports/"))
-    }
-    else {
-        message("Found a directory which cannot be processed: ", dirs[i])
+for (directory in 2:length(dirs)){
+    experiment_name = substr(dirs[directory], nchar(data_dir)+2, nchar(dirs[directory]))
+    files <- list.files(path=dirs[directory], pattern="turtlebot([0-9]+_gazebo_odometry_filtered.csv")
+
+    if (experiment_name != "reports") {
+        for (file in 1:length(files)) {
+            if (file < 10) {
+                robot_number <- substr(files[file], 10, 10)
+            }
+            else if (file < 100) {
+                robot_number <- substr(files[file], 10, 11)
+            }
+
+            rmarkdown::render("one_robot.Rmd", params=list(experiment=experiment_name, robot=robot_number), output_file=paste0("turtlebot_", robot_number, ".pdf"), output_dir=paste0(data_dir, "/reports/", experiment_name))
+        }
     }
 }
-

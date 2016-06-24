@@ -5,7 +5,8 @@ output: pdf_document
 params:
     data_dir: '/home/matt/thesis/experiment_data'
     experiment: 'one_mobile'
-title: '`r paste(params$experiment, "Experiment Report")`'
+    robot: '1'
+title: '`r paste(params$experiment, "Turtlebot", params$robot, "Report")`'
 ---
 
 ```{r, echo=FALSE}
@@ -18,18 +19,9 @@ knitr::read_chunk('one_robot.R')
 ```
 ```{r, time, echo=FALSE}
 ```
-This is a summary of the data from the `r params$experiment` experiment.
+This is a summary of the data from the `r params$experiment` experiment, Turtlebot #`r params$robot`.
 
 The runtime of this experiment was `r partial_time_hours` hours, `r partial_time_minutes` minutes, and `r partial_time_seconds` seconds.
-
-The filter configuration for this experiment was as follows:
-
-* Continuous filter:
-    + odom: x_vel, y_vel, yaw, yaw_vel
-    + imu: yaw_vel
-* Discrete filter:
-    + odom: x_vel, y_vel, yaw_vel
-    + imu: yaw_vel
 
 Shown below is the summary of each filter's error for both x and y coordinates, and also the error in total distance.
 

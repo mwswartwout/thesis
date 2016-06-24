@@ -1,8 +1,15 @@
 ## ---- read_data
-t1_gazebo <- read.csv(paste(params$data_dir, params$experiment, "turtlebot1_gazebo_odometry_filtered.csv", sep="/"))
-t1_continuous <- read.csv(paste(params$data_dir, params$experiment, "turtlebot1_continuous_odometry_filtered.csv", sep="/"))
-t1_discrete <- read.csv(paste(params$data_dir, params$experiment, "turtlebot1_discrete_odometry_filtered.csv", sep="/"))
-t1_external_count <- read.csv(paste(params$data_dir, params$experiment, "turtlebot1_external_pose_count.csv", sep="/"))
+file_name <- paste0("turtlebot", params$robot, "_gazebo_odometry_filtered.csv")
+t1_gazebo <- read.csv(paste(params$data_dir, params$experiment, file_name, sep="/"))
+
+file_name <- paste0("turtlebot", params$robot, "_continuous_odometry_filtered.csv")
+t1_continuous <- read.csv(paste(params$data_dir, params$experiment, file_name, sep="/"))
+
+file_name <- paste0("turtlebot", params$robot, "_discrete_odometry_filtered.csv")
+t1_discrete <- read.csv(paste(params$data_dir, params$experiment, file_name, sep="/"))
+
+file_name <- paste0("turtlebot", params$robot, "_external_pose_count.csv")
+t1_external_count <- read.csv(paste(params$data_dir, params$experiment, file_name, sep="/"))
 
 ## ---- calculations
 t1_gazebo$dist_from_origin <- sqrt(t1_gazebo$x_position ^ 2 + t1_gazebo$y_position ^ 2)
