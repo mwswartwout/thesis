@@ -23,6 +23,8 @@ This is a summary of the data from the `r params$experiment` experiment, Turtleb
 
 The runtime of this experiment was `r partial_time_hours` hours, `r partial_time_minutes` minutes, and `r partial_time_seconds` seconds.
 
+The total number of external pose measurements recieved by the robot during this time was `r external_poses` which means poses were received at an average of `r external_poses / total_time_seconds` poses per second.
+
 Shown below is the summary of each filter's error for both x and y coordinates, and also the error in total distance.
 
 ```{r, summary}
