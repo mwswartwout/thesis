@@ -4,7 +4,7 @@ date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: pdf_document
 params:
     data_dir: '/home/matt/thesis/experiment_data'
-    experiment: 'one_mobile'
+    experiment: 'one_stationary'
     robot: '1'
 title: '`r paste(params$experiment, "Turtlebot", params$robot, "Report")`'
 ---

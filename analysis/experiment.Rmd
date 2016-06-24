@@ -1,0 +1,31 @@
+---
+author: "Matthew Swartwout"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: pdf_document
+params:
+    data_dir: '/home/matt/thesis/experiment_data'
+    experiment: 'one_stationary'
+    robots: '1'
+title: '`r paste(params$experiment, "Experiment Report")`'
+---
+
+```{r, echo=FALSE}
+knitr::read_chunk('experiment.R')
+```
+
+```{r, read_data, echo=FALSE}
+```
+```{r, calculations, echo=FALSE}
+```
+
+This is a summary of the data from the `r params$experiment` experiment.
+
+Shown below is the summary of the error of all robots combined for both x and y coordinates, and also the error in total distance.
+
+```{r, summary}
+```
+
+Shown below are plots representing the robot's motion and error over time.
+
+```{r, plot, echo=FALSE}
+```
