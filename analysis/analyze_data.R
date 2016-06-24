@@ -16,7 +16,9 @@ for (directory in 2:length(dirs)){
 
             rmarkdown::render("robot.Rmd", params=list(experiment=experiment_name, robot=robot_number), output_file=paste0("turtlebot_", robot_number, ".pdf"), output_dir=paste0(data_dir, "/reports/", experiment_name))
         }
+
+        rmarkdown::render('experiment.Rmd', params=list(experiment=experiment_name, robots=length(files)), output_file=paste0(experiment_name, ".pdf"), output_dir=paste0(data_dir, "/reports/", experiment_name))
     }
 
-    rmarkdown::render('experiment.Rmd', params=list(experiment=experiment_name, robots=length(files)), output_file=paste0(experiment_name, ".pdf"), output_dir=paste0(data_dir, "/reports/", experiment_name))
+
 }
