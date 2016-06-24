@@ -3,7 +3,7 @@ dirs <- list.dirs(path=data_dir)
 
 for (directory in 2:length(dirs)){
     experiment_name = substr(dirs[directory], nchar(data_dir)+2, nchar(dirs[directory]))
-    files <- list.files(path=dirs[directory], pattern="turtlebot([0-9]+_gazebo_odometry_filtered.csv")
+    files <- list.files(path=dirs[directory], pattern="turtlebot([0-9])+_gazebo_odometry_filtered.csv")
 
     if (experiment_name != "reports") {
         for (file in 1:length(files)) {
