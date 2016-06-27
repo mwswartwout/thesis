@@ -213,8 +213,8 @@ class TurtleBot:
         if scan.scan.valid is True:
             # Scan is valid so we can create a pose from it
             pose = PoseWithCovarianceStamped()
-            pose.pose.pose.position.x = self.current_continuous_pose.x + scan.scan.median * math.cos(self.convert_quaternion_to_yaw(self.current_continuous_pose.theta))
-            pose.pose.pose.position.y = self.current_continuous_pose.y + scan.scan.median * math.sin(self.convert_quaternion_to_yaw(self.current_continuous_pose.theta))
+            pose.pose.pose.position.x = self.current_continuous_pose.pose.pose.position.x + scan.scan.median * math.cos(self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation))
+            pose.pose.pose.position.y = self.current_continuous_pose.pose.pose.position.y + scan.scan.median * math.sin(self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation))
 
             # Right now use default quaternion since we can't figure out orientation from our scans
             pose.pose.pose.orientation.x = 0
