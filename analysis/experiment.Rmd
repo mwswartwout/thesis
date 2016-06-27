@@ -9,23 +9,27 @@ params:
 title: '`r paste(params$experiment, "Experiment Report")`'
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(dev='pdf')
+```
+
 ```{r, echo=FALSE}
 knitr::read_chunk('experiment.R')
 ```
 
-```{r, read_data, echo=FALSE}
+```{r read_data, echo=FALSE}
 ```
-```{r, calculations, echo=FALSE}
+```{r calculations, echo=FALSE}
 ```
 
 This is a summary of the data from the `r params$experiment` experiment.
 
 Shown below is the summary of the error of all robots combined for both x and y coordinates, and also the error in total distance.
 
-```{r, summary}
+```{r summary}
 ```
 
 Shown below are plots representing the robot's motion and error over time.
 
-```{r, plot}
+```{r plot}
 ```

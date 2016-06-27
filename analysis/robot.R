@@ -1,3 +1,4 @@
+## ---- dependencies
 if (!require(data.table)){
     install.packages("data.table", repos="http://cran.rstudio.com/")
     library(data.table)
@@ -28,29 +29,32 @@ continuous$y_error <- gazebo$y_position - continuous$y_position
 continuous$dist_error <- sqrt(continuous$x_error ^ 2 + continuous$y_error ^ 2)
 
 ## ---- plot
-plot(gazebo$x_position, gazebo$y_position)
-title("Ground truth visited locations of robot")
+plot(gazebo$x_position,
+     main = "X coordinate of robot over time")
 
-plot(gazebo$dist_from_origin)
-title("Distance from origin vs. time")
+plot(gazebo$y_position,
+     main = "Y coordinate of robot over time")
 
-plot(continuous$x_error)
-title("Continuous x_error over time")
+plot(gazebo$dist_from_origin,
+     main="Distance from origin vs. time")
 
-plot(continuous$y_error)
-title("Continuous y_error over time")
+plot(continuous$x_error,
+     main="Continuous x_error over time")
 
-plot(continuous$dist_error)
-title("Continuous total distance error over time")
+plot(discrete$x_error,
+     main="Discrete x_error over time")
 
-plot(discrete$x_error)
-title("Discrete x_error over time")
+plot(continuous$y_error,
+     main="Continuous y_error over time")
 
-plot(discrete$y_error)
-title("Discrete y_error over time")
+plot(discrete$y_error,
+     main="Discrete y_error over time")
 
-plot (discrete$dist_error)
-title("Discrete total distance error over time")
+plot(continuous$dist_error,
+     main="Continuous total distance error over time")
+
+plot(discrete$dist_error,
+      main="Discrete total distance error over time")
 
 ## ---- summary
 summary(continuous$x_error)
@@ -67,7 +71,7 @@ total_time_minutes <- total_time_seconds / 60
 total_time_hours <- total_time_minutes / 60
 partial_time_hours <- floor(total_time_hours)
 partial_time_minutes <- floor((total_time_hours - partial_time_hours) * 60)
-partial_time_seconds <- (total_time_minutes - partial_time_minutes) * 60
+partial_time_seconds <- ((total_time_hours - partial_time_hours) * 60 - partial_time_minutes) * 60
 
 ## ---- external_poses
 external_poses <- external_count$count[length(external_count$count)]

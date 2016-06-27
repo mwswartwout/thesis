@@ -13,6 +13,8 @@ title: '`r paste(params$experiment, "Turtlebot", params$robot, "Report")`'
 knitr::read_chunk('robot.R')
 ```
 
+```{r, dependencies, echo=FALSE}
+```
 ```{r, read_data, echo=FALSE}
 ```
 ```{r, calculations, echo=FALSE}
@@ -33,9 +35,5 @@ Shown below is the summary of each filter's error for both x and y coordinates, 
 ```{r, summary}
 ```
 
-<!-- Shown below are plots representing the robot's motion and error over time.
-
-{r, plot, echo=FALSE}
--->
-
-
+```{r, plot, echo=FALSE}
+```

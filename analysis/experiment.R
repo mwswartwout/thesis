@@ -27,12 +27,10 @@ for (robot in 1:params$robots) {
 # Now calculate errors
 gazebo$dist_from_origin <- sqrt(gazebo$x_position ^ 2 + gazebo$y_position ^ 2)
 
-#discrete <- data.frame(x_error=c(), y_error=c(), dist_error=c())
 discrete$x_error <- gazebo$x_position - discrete$x_position
 discrete$y_error <- gazebo$y_position - discrete$y_position
 discrete$dist_error <- sqrt(discrete$x_error ^ 2 + discrete$y_error ^ 2)
 
-#continuous <- data.frame(x_error=c(), y_error=c(), dist_error=c())
 continuous$x_error <- gazebo$x_position - continuous$x_position
 continuous$y_error <- gazebo$y_position - continuous$y_position
 continuous$dist_error <- sqrt(continuous$x_error ^ 2 + continuous$y_error ^ 2)
@@ -40,37 +38,29 @@ continuous$dist_error <- sqrt(continuous$x_error ^ 2 + continuous$y_error ^ 2)
 external_data_averages <- lapply(external_data_tables, FUN=function(table){table$count[length(table)]})
 
 ## ---- plot
-message("ground truth")
-plot(gazebo$x_position, gazebo$y_position)
-title("Ground truth visited locations of robot")
+plot(gazebo$x_position, gazebo$y_position,
+     main = "Ground truth visited locations of robot")
 
-message("dist from origin")
-hist(gazebo$dist_from_origin)
-title("Distance from origin vs. time")
+hist(gazebo$dist_from_origin,
+     main = "Distance from origin vs. time")
 
-message("continuous x")
-plot(continuous$x_error)
-title("Continuous x_error over time")
+hist(continuous$x_error,
+     main = "Continuous x_error")
 
-message("continous y")
-plot(continuous$y_error)
-title("Continuous y_error over time")
+hist(continuous$y_error,
+      main = "Continuous y_error")
 
-message("continuous dist")
-plot(continuous$dist_error)
-title("Continuous total distance error over time")
+hist(continuous$dist_error,
+     main = "Continuous total distance error")
 
-message("discrete x")
-plot(discrete$x_error)
-title("Discrete x_error over time")
+hist(discrete$x_error,
+     main = "Discrete x_error")
 
-message("discrete y")
-plot(discrete$y_error)
-title("Discrete y_error over time")
+hist(discrete$y_error,
+     main = "Discrete y_error")
 
-message("discrete dist")
-plot (discrete$dist_error)
-title("Discrete total distance error over time")
+hist (discrete$dist_error,
+      main = "Discrete total distance error")
 
 ## ---- summary
 summary(continuous$x_error)
@@ -81,4 +71,6 @@ summary(discrete$x_error)
 summary(discrete$y_error)
 summary(discrete$dist_error)
 
-summary(external_data_averages)
+if (params$robot >= 2) {
+    summary(external_data_averages)
+}
