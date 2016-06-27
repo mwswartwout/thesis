@@ -5,7 +5,7 @@
     <!-- Continuous UKF -->
     <!-- Used for navigation, provides continuous information -->
     <!-- Transforms from odom to base_link using TurtleBot's self odometry and IMU -->
-    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_continuous" clear_params="true" output="screen">
+    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_continuous" clear_params="true" output="screen"  required="true">
         <remap from="odometry/filtered" to="odometry/filtered_continuous"/>
         <remap from="set_pose" to="set_pose_continuous"/>
         <param name="frequency" value="10"/>
@@ -40,7 +40,7 @@
 
     <!-- Discrete UKF -->
     <!-- Transforms from map to odom using continuous filter output and external pose readings -->
-    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_discrete" clear_params="true" output="screen">
+    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_discrete" clear_params="true" output="screen"  required="true">
         <remap from="odometry/filtered" to="odometry/filtered_discrete"/>
         <remap from="set_pose" to="set_pose_discrete"/>
         <param name="frequency" value="10"/>
@@ -83,7 +83,7 @@
         <param name="print_diagnostics" value="true"/>
     </node>
 
-    <node pkg="tf" type="static_transform_publisher" name="filter_footprint_to_link_tf" args="0 0 0.01 0 0 0 1 $(arg model_name)/base_footprint_filter $(arg model_name)/base_link_filter 50"/>
+    <node pkg="tf" type="static_transform_publisher" name="filter_footprint_to_link_tf" args="0 0 0.01 0 0 0 1 $(arg model_name)/base_footprint_filter $(arg model_name)/base_link_filter 50"  required="true"/>
 
-    <node pkg="cwru_turtlebot" type="sensor_remap.py" name="sensor_remap"/>
+    <node pkg="cwru_turtlebot" type="sensor_remap.py" name="sensor_remap"  required="true"/>
 </launch>

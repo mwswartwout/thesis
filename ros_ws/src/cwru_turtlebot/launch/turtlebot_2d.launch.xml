@@ -13,5 +13,5 @@
         <arg name="sensor_record" value="$(arg sensor_record)"/>
     </include>
 
-    <node pkg="cwru_turtlebot" type="turtlebot_2d.py" name="robot" output="screen"/>
+    <node pkg="cwru_turtlebot" type="turtlebot_2d.py" name="robot" required="true"/>
 </launch>
