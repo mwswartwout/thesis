@@ -14,5 +14,5 @@
     </include>
 
     <!-- Main ROS node for turtlebot logic-->
-    <node pkg="cwru_turtlebot" type="stationary_turtlebot.py" name="robot"/>
+    <node pkg="cwru_turtlebot" type="stationary_turtlebot.py" name="robot" output="screen"/>
 </launch>

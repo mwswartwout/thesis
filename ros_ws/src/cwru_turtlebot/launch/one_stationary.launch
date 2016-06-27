@@ -7,7 +7,7 @@
     <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons --> 
     <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro -->
     <arg name="sensor_record" default="true"/>
-    <arg name="save_file_prefix" default="/home/matt/"/>
+    <arg name="save_file_prefix" default="/home/matt/thesis/experiment_data/one_stationary/"/>
     <arg name="sim_time" default="60"/>
 
     <param name="number_of_robots" type="int" value="1"/>
@@ -18,9 +18,9 @@
     <param name="y_upper" type="double" value="10"/>
     <param name="y_lower" type="double" value="-10"/>
 
-    <node pkg="cwru_turtlebot" type="simulation_timer.py" name="simulation_timer" required="true"/>
+    <node pkg="cwru_turtlebot" type="simulation_timer.py" name="simulation_timer" required="true" output="screen"/>
 
-    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <include file="$(find cwru_turtlebot)/launch/empty_world.launch">
         <arg name="use_sim_time" value="true"/>
         <arg name="debug" value="false"/>
         <arg name="gui" value="$(arg gui)" />
