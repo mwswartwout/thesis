@@ -30,17 +30,27 @@ class TurtleBot2D(TurtleBot, object):
         self.cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/navi', Twist,
                                            queue_size=1)
 
-    def move(self, distance, yaw, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
+    def move(self, goal_x, goal_y, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
         # Employs dead-reckoning to move TurtleBot via a desired heading and move distance
+        current_x = self.current_continuous_pose.pose.pose.position.x
+        current_y = self.current_continuous_pose.pose.pose.position.y
 
-        # First check if desired location is within our set bounds
-        goal_x = self.current_continuous_pose.pose.pose.position.x + math.cos(yaw)*distance
-        goal_y = self.current_continuous_pose.pose.pose.position.y + math.sin(yaw)*distance
+        # To prevent robot getting stuck or drifting towards just one specific area over course of experiment
+        # Randomly send to middle of allowable area with 1% probability
+        rand = random.uniform(0, 100)
+        if rand == 1:
+            goal_x = (x_lower_bound + x_upper_bound) / 2
+            goal_y = (y_lower_bound + y_upper_bound) / 2
 
+        # Check if desired location is within our set bounds
         within_bounds_x = self.check_move_bounds(goal_x, x_lower_bound, x_upper_bound)
         within_bounds_y = self.check_move_bounds(goal_y, y_lower_bound, y_upper_bound)
 
         if within_bounds_x and within_bounds_y:
+            # Calculate required yaw of rotation and distance of translation
+            distance = math.sqrt((goal_x - current_x) ** 2 + (goal_y - current_y) ** 2)
+            yaw = math.atan2(goal_y - current_y, goal_x - current_x)
+
             # First execute rotation to desired heading
             self.rotate(yaw)
 
@@ -115,14 +125,17 @@ class TurtleBot2D(TurtleBot, object):
         while yaw < -2 * math.pi and not rospy.is_shutdown():
             yaw += 2 * math.pi
 
+        # TODO add in calculation to rotate in shortest direction
         # Make sure we're using the shortest rotation
-        if math.fabs(yaw - 2*math.pi) < yaw:
-            yaw -= 2*math.pi
+        #if yaw > math.pi:
+        #    yaw = -1 * (2*math.pi - yaw)
 
         return yaw
 
 
 def main():
+
+
     # create a movable turtle bot object
     robot = TurtleBot2D()
 
@@ -140,8 +153,8 @@ def main():
 
     # move the robot back and forth randomly until process killed with ctrl-c
     while not rospy.is_shutdown():
-        robot.move(distance=random.uniform(0, 2),
-                   yaw=random.uniform(0, 2*math.pi),
+        robot.move(goal_x=random.uniform(x_lower, x_upper),
+                   goal_y=random.uniform(y_lower, y_upper),
                    x_lower_bound=x_lower,
                    x_upper_bound=x_upper,
                    y_lower_bound=y_lower,
