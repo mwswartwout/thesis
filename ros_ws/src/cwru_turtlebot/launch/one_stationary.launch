@@ -9,6 +9,8 @@
     <arg name="sensor_record" default="true"/>
     <arg name="save_file_prefix" default="/home/matt/thesis/experiment_data/one_stationary/"/>
     <arg name="sim_time" default="60"/>
+    <arg name="headless" default="false"/>
+    <arg name="debug" default="false"/>
 
     <param name="number_of_robots" type="int" value="1"/>
     <param name="save_file_prefix" type="string" value="$(arg save_file_prefix)"/>
@@ -17,6 +19,7 @@
     <param name="x_lower" type="double" value="-10"/>
     <param name="y_upper" type="double" value="10"/>
     <param name="y_lower" type="double" value="-10"/>
+    <param name="debug" type="bool" value="$(arg debug)"/>
 
     <node pkg="cwru_turtlebot" type="simulation_timer.py" name="simulation_timer" required="true" output="screen"/>
 

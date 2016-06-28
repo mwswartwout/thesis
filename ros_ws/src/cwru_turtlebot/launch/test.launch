@@ -9,8 +9,6 @@
     <arg name="sensor_record" default="true"/>
     <arg name="save_file_prefix" default="/home/matt/thesis/experiment_data/two_stationary/"/>
     <arg name="sim_time" default="60"/>
-    <arg name="headless" default="false"/>
-    <arg name="debug" default="false"/>
 
     <param name="number_of_robots" type="int" value="2"/>
     <param name="save_file_prefix" type="string" value="$(arg save_file_prefix)"/>
@@ -19,7 +17,6 @@
     <param name="x_lower" type="double" value="-10"/>
     <param name="y_upper" type="double" value="10"/>
     <param name="y_lower" type="double" value="-10"/>
-    <param name="debug" type="bool" value="$(arg debug)"/>
 
     <node pkg="cwru_turtlebot" type="simulation_timer.py" name="simulation_timer" required="true" output="screen"/>
 
@@ -34,6 +31,7 @@
             <arg name="model_name" value="turtlebot1"/>
             <arg name="x_pos" value="0"/>
             <arg name="y_pos" value="0"/>
+            <arg name="yaw" value="1.5"/>
             <arg name="sensor_record" value="$(arg sensor_record)"/>
         </include>
     </group>
@@ -43,7 +41,17 @@
             <arg name="model_name" value="turtlebot2"/>
             <arg name="x_pos" value="2"/>
             <arg name="y_pos" value="0"/>
-            <arg name="yaw" value="3.14159"/>
+            <arg name="yaw" value="0"/>
+            <arg name="sensor_record" value="$(arg sensor_record)"/>
+        </include>
+    </group>
+
+    <group ns="turtlebot3">
+        <include file="$(find cwru_turtlebot)/launch/turtlebot_stationary.launch.xml">
+            <arg name="model_name" value="turtlebot3"/>
+            <arg name="x_pos" value="-0.5"/>
+            <arg name="y_pos" value="0"/>
+            <arg name="yaw" value="0"/>
             <arg name="sensor_record" value="$(arg sensor_record)"/>
         </include>
     </group>
