@@ -26,7 +26,11 @@ from robot_localization.srv import SetPose, SetPoseRequest
 class TurtleBot:
 
     def __init__(self, rate=10):
-        rospy.init_node('robot')
+        debug = rospy.get_param('/debug')
+        if debug:
+            rospy.init_node('robot', log_level=rospy.DEBUG)
+        else:
+            rospy.init_node('robot')
 
         # Create initial pose object from parameter server
         self.initial_pose = PoseWithCovarianceStamped()
@@ -189,8 +193,9 @@ class TurtleBot:
         # TODO convert this to using a map to generate a map -> odom transform rather than just consulting initial pose
         self.current_continuous_pose.pose.pose.position.x = odom.pose.pose.position.x + self.initial_pose.pose.pose.position.x
         self.current_continuous_pose.pose.pose.position.y = odom.pose.pose.position.y + self.initial_pose.pose.pose.position.y
+
         odom_yaw = self.convert_quaternion_to_yaw(odom.pose.pose.orientation)
-        initial_yaw = self.convert_quaternion_to_yaw(odom.pose.pose.orientation)
+        initial_yaw = self.convert_quaternion_to_yaw(self.initial_pose.pose.pose.orientation)
         current_yaw = odom_yaw + initial_yaw
         self.current_continuous_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
 
@@ -248,7 +253,7 @@ class TurtleBot:
         complete = False
         while not rospy.is_shutdown() and not complete:
             if num_clients - 1 != len(self.existing_clients):
-                rospy.logdebug('Waiting for other robots to come online...')  # + str(num_clients) + '!=' + str(len(self.existing_clients) - 1))
+                rospy.logdebug('Waiting for other robots to come online...')  # + str(num_clients) + ' - 1 != ' + str(len(self.existing_clients)))
                 self.rate.sleep()
             else:
                 complete = True
@@ -264,18 +269,22 @@ class TurtleBot:
 
     @staticmethod
     def convert_quaternion_to_yaw(quaternion):
+        x = quaternion.x
+        y = quaternion.y
         z = quaternion.z
         w = quaternion.w
-        yaw = 2 * math.atan2(z, w)
+        yaw = math.atan2(2*(x*y + z*w), w**2 - z**2 - y**2 + x**2)
         return yaw
 
     @staticmethod
     def convert_yaw_to_quaternion(yaw):
+        # Assumes roll/pitch = 0 always
         quaternion = Quaternion()
-        quaternion.x = math.cos(yaw / 2)
-        quaternion.y = math.sin(yaw / 2) * 2
-        quaternion.z = 0
-        quaternion.w = 0
+        quaternion.x = 0
+        quaternion.y = 0
+        quaternion.z = math.sin(yaw / 2)
+        quaternion.w = math.cos(yaw / 2)
+
         return quaternion
 
     @staticmethod
