@@ -32,6 +32,7 @@ class TurtleBot:
             rospy.init_node('robot')
 
         # Create initial pose object from parameter server
+        # This pose is in the map frame
         self.initial_pose = PoseWithCovarianceStamped()
         self.initial_pose.pose.pose.position.x = rospy.get_param('x_pos')
         self.initial_pose.pose.pose.position.y = rospy.get_param('y_pos')
@@ -48,7 +49,7 @@ class TurtleBot:
 
         self.initialize_action_servers()
 
-        self.position_publisher.publish(self.initial_pose)
+        self.initial_position_publisher.publish(self.initial_pose)
 
         self.scan_received = False  # We haven't received a valid LaserScan yet
         self.most_recent_scan = None
@@ -80,8 +81,7 @@ class TurtleBot:
                                                         ScanWithVarianceStamped,
                                                         queue_size=1)
 
-        # TODO do we really need this anymore?
-        self.position_publisher = rospy.Publisher('position',
+        self.initial_position_publisher = rospy.Publisher('initial_position',
                                                   PoseWithCovarianceStamped,
                                                   queue_size=1,
                                                   latch=True)
@@ -229,10 +229,13 @@ class TurtleBot:
         if scan.scan.valid is True:
             # Scan is valid so we can create a pose from it
             pose = PoseWithCovarianceStamped()
+
+            # Determine our current pose (which is already in the map frame)
             current_x = self.current_continuous_pose.pose.pose.position.x
             current_y = self.current_continuous_pose.pose.pose.position.y
             current_yaw = self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation)
 
+            # Determine what pose (in the map frame) we believe we are seeing the other robot at
             pose.pose.pose.position.x = current_x + scan.scan.median * math.cos(current_yaw)
             pose.pose.pose.position.y = current_y + scan.scan.median * math.sin(current_yaw)
 
@@ -245,7 +248,7 @@ class TurtleBot:
             pose.pose.pose.orientation.y = 0
             pose.pose.pose.orientation.z = 0
             pose.pose.pose.orientation.w = 1
-            pose.header.frame_id = "map"
+            pose.header.frame_id = 'map'
             pose.header.stamp = scan.header.stamp
 
             # TODO figure out covariances for these poses
