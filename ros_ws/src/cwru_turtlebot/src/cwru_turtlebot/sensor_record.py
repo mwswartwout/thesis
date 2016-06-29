@@ -32,6 +32,7 @@ def continuous_odom_callback(new_odom):
     global continuous_data
     global initial_x
     global initial_y
+    global namespace
 
     if None not in (initial_x, initial_y):
         # Must add in the initial pose values to convert from odom frame to map frame
@@ -41,12 +42,14 @@ def continuous_odom_callback(new_odom):
         # twist_covariance = new_odom.twist.covariance
         # TODO see if we can split covariance values into their own items
         continuous_data = [pose_x, pose_y]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        rospy.logdebug(namespace + ': sensor_record received new continuous data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
 def discrete_odom_callback(new_odom):
     global discrete_data
     global initial_x
     global initial_y
+    global namespace
 
     if None not in (initial_x, initial_y):
         # Measurement is already in map frame so no need to convert by adding initial position
@@ -55,12 +58,14 @@ def discrete_odom_callback(new_odom):
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
         discrete_data = [pose_x, pose_y]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        rospy.logdebug(namespace + ': sensor_record received new discrete data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
 def gazebo_odom_callback(new_odom):
     global gazebo_data
     global initial_x
     global initial_y
+    global namespace
 
     if None not in (initial_x, initial_y):
         # Must add in the initial pose values to convert from odom frame to map frame
@@ -69,10 +74,14 @@ def gazebo_odom_callback(new_odom):
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
         gazebo_data = [pose_x, pose_y]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        rospy.logdebug(namespace + ': sensor_record received new gazebo data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
 def external_pose_count_callback(count):
     global external_count
+    global namespace
+
+    rospy.logdebug(namespace + ': sensor_record received new external_count value of ' + str(count.data))
     external_count = [count.data]
 
 
@@ -94,6 +103,7 @@ def write_headers():
     make_sure_path_exists(prefix)
 
     if None not in (prefix, namespace):
+        rospy.logdebug(namespace + ': Writing headers to data files')
         filename = prefix + namespace + '_continuous_odometry_filtered.csv'
         with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
@@ -113,6 +123,12 @@ def write_headers():
         with open(filename, 'w+') as count_file:
             writer = csv.writer(count_file)
             writer.writerow(['count'])
+    else:
+        if namespace is None:
+            rospy.logdebug('Could not write headers because namespace was not initialized')
+        else:
+            if prefix is None:
+                rospy.logdebug(namespace + ': Could not write headers because file prefix was not initialized')
 
 
 # Must accept event as argument due to use with timer
@@ -125,6 +141,8 @@ def write_to_files(event):
     global prefix
 
     if None not in (continuous_data, discrete_data, gazebo_data, external_count, namespace, prefix):
+        rospy.logdebug(namespace + ': Writing to sensor data to files')
+
         filename = prefix + namespace + '_continuous_odometry_filtered.csv'
         with open(filename, 'a+') as pose_file:
             writer = csv.writer(pose_file)
@@ -144,10 +162,28 @@ def write_to_files(event):
         with open(filename, 'a+') as count_file:
             writer = csv.writer(count_file)
             writer.writerow(external_count)
+    else:
+        if namespace is None:
+            rospy.logdebug('Could not write data because namespace was not initialized')
+        else:
+            if continuous_data is None:
+                rospy.logdebug(namespace + ': Could not write data because continuous data was not initialized')
+            if discrete_data is None:
+                rospy.logdebug(namespace + ': Could not write data because discrete data was not initialized')
+            if gazebo_data is None:
+                rospy.logdebug(namespace + ': Could not write data because gazebo data was not initialized')
+            if external_count is None:
+                rospy.logdebug(namespace + ': Could not write data because external count was not initialized')
+            if prefix is None:
+                rospy.logdebug(namespace + ': Could not write data because file prefix was not initialized')
 
 
 def main():
-    rospy.init_node('sensor_record')
+    debug = rospy.get_param('/debug')
+    if debug:
+        rospy.init_node('sensor_record', log_level=rospy.DEBUG)
+    else:
+        rospy.init_node('sensor_record')
 
     global namespace
     namespace = rospy.get_namespace()[1:-1]
@@ -170,7 +206,8 @@ def main():
 
     timer = rospy.Timer(rospy.Duration(.1), write_to_files)
 
-    rospy.spin()
+    while not rospy.is_shutdown():
+        rospy.spin()
 
 if __name__ == '__main__':
     try:
