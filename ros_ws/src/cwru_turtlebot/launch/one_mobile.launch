@@ -23,7 +23,7 @@
 
     <node pkg="cwru_turtlebot" type="simulation_timer.py" name="simulation_timer" required="true"  output="screen"/>
 
-    <include file="$(find cwru_turtlebot)/launch/empty_world.launch">
+    <include file="$(find cwru_turtlebot)/launch/empty_world.launch.xml">
         <arg name="use_sim_time" value="true"/>
         <arg name="debug" value="false"/>
         <arg name="gui" value="$(arg gui)" />
