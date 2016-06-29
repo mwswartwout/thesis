@@ -36,7 +36,12 @@ def odom_remap(odom_msg):
 
 def main():
     # initialize ros node for the imu remap process
-    rospy.init_node('sensor_remap')
+    debug = rospy.get_param('/debug')
+    if debug:
+        rospy.init_node('sensor_remap', log_level=rospy.DEBUG)
+    else:
+        rospy.init_node('sensor_remap')
+        
     # subscribe to imu and odom from the robot
     imu_subscriber = rospy.Subscriber('mobile_base/sensors/imu_data', Imu, imu_remap)
     odom_subscriber = rospy.Subscriber('odom', Odometry, odom_remap)

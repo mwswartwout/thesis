@@ -4,7 +4,12 @@ import rospy
 
 # Use this node (with required attribute set to true) to control the simulation runtime
 def main():
-    rospy.init_node('simulation_timer')
+    debug = rospy.get_param('/debug')
+    if debug:
+        rospy.init_node('simulation_timer', log_level=rospy.DEBUG)
+    else:
+        rospy.init_node('simulation_timer')
+
     sim_time = rospy.get_param('sim_time')
     interval = float(sim_time) / 10
     timer = rospy.Duration(interval)
