@@ -21,12 +21,9 @@
     <param name="y_lower" type="double" value="-10"/>
     <param name="debug" type="bool" value="$(arg debug)"/>
 
-    <node pkg="cwru_turtlebot" type="simulation_timer.py" name="simulation_timer" required="true" output="screen"/>
-
-    <include file="$(find cwru_turtlebot)/launch/empty_world.launch.xml">
-        <arg name="use_sim_time" value="true"/>
-        <arg name="debug" value="false"/>
-        <arg name="gui" value="$(arg gui)" />
+    <include file="$(find cwru_turtlebot)/launch/world_common.launch.xml">
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="gui" value="$(arg gui)"/>
     </include>
 
     <group ns="turtlebot1">
