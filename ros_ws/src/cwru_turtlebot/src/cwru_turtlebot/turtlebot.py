@@ -63,7 +63,8 @@ class TurtleBot:
         self.client_list = []  # List to hold all of our action clients
         self.existing_clients = []  # List to hold names of all action clients in the client_list
         self.external_pose_count = 0  # Number of external poses received
-
+        self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
+        self.external_pose_publisher.publish(self.initial_pose)  # Publish so that we start out knowing where we are
         self.initialize_action_clients()
 
     def initialize_subscribers(self):
@@ -93,7 +94,8 @@ class TurtleBot:
 
         self.external_pose_count_publisher = rospy.Publisher('external_poses_count',
                                                              UInt64,
-                                                             queue_size=1)
+                                                             queue_size=1,
+                                                             latch=True)
 
     def initialize_action_servers(self):
         self.external_pose_as = actionlib.SimpleActionServer('external_pose_action',
@@ -165,32 +167,26 @@ class TurtleBot:
             scan.valid = True
             rospy.logdebug(self.namespace + ': Received valid scan')
         else:
-            # otherwise if there are no valid particles, set all values to 0
-            scan.min = 0
-            scan.max = 0
-            scan.mean = 0
-            scan.variance = 0
-            scan.std_dev = 0
-            scan.median = 0
-            scan.std_error = 0
+            # otherwise scan is not valid
             scan.valid = False
             rospy.logdebug(self.namespace + ': Received invalid scan')
 
-        # Check whether we need to activate lidar alarm
-        if 0 < scan.median < 0.5:
-            self.lidar_alarm = True
-        else:
-            self.lidar_alarm = False
+        if scan.valid:
+            # Check whether we need to activate lidar alarm
+            if 0 < scan.median < 0.5:
+                self.lidar_alarm = True
+            else:
+                self.lidar_alarm = False
 
-        processed_scan = self.stamp_scan_w_variance(scan)
+            processed_scan = self.stamp_scan_w_variance(scan)
 
-        try:
-            self.processed_scan_publisher.publish(processed_scan)
-        except rospy.ROSException as e:
-            rospy.logwarn(self.namespace + ': Unable to publish most recent processed scan - ' + e.message)
+            try:
+                self.processed_scan_publisher.publish(processed_scan)
+            except rospy.ROSException as e:
+                rospy.logwarn(self.namespace + ': Unable to publish most recent processed scan - ' + e.message)
 
-        self.most_recent_scan = processed_scan
-        self.send_scan_to_clients(processed_scan)
+            self.most_recent_scan = processed_scan
+            self.send_scan_to_clients(processed_scan)
         rospy.logdebug(self.namespace + ': Exiting scan callback')
 
     def continuous_odom_callback(self, odom):
@@ -277,13 +273,16 @@ class TurtleBot:
         rospy.logdebug(self.namespace + ': Exiting external pose callback')
 
     def wait_for_clients(self):
-        num_clients = rospy.get_param('/number_of_robots')
+        self.update_client_list()
+        num_robots = rospy.get_param('/number_of_robots')
         complete = False
         while not rospy.is_shutdown() and not complete:
-            if num_clients - 1 != len(self.existing_clients):
-                rospy.logdebug(self.namespace + ': Waiting for other robots to come online...')
-                # + str(num_clients) + ' - 1 != ' + str(len(self.existing_clients)))
+            if num_robots - 1 != len(self.existing_clients):
+                rospy.logdebug(self.namespace + ': Waiting for other robots to come online...' +
+                               'expecting ' + str(num_robots - 1) + ' other robots in world, and currently have ' +
+                               str(len(self.existing_clients)) + ' in client list.')
                 self.rate.sleep()
+                self.update_client_list()
             else:
                 complete = True
 
