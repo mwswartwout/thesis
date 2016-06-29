@@ -45,8 +45,10 @@ class TurtleBot2D(TurtleBot, object):
         # Check if desired location is within our set bounds
         within_bounds_x = self.check_move_bounds(goal_x, x_lower_bound, x_upper_bound)
         within_bounds_y = self.check_move_bounds(goal_y, y_lower_bound, y_upper_bound)
-
+        rospy.logdebug(self.namespace + ': Requesting move from (' + str(current_x) + ', ' + str(current_y) +') to (' +
+                       str(goal_x) + ', ' + str(goal_y) + ')')
         if within_bounds_x and within_bounds_y:
+            rospy.logdebug(self.namespace + ': Move was in bounds and accepted')
             # Calculate required yaw of rotation and distance of translation
             distance = math.sqrt((goal_x - current_x) ** 2 + (goal_y - current_y) ** 2)
             yaw = math.atan2(goal_y - current_y, goal_x - current_x)
@@ -57,15 +59,21 @@ class TurtleBot2D(TurtleBot, object):
             # Next translate to desired location
             if not self.lidar_alarm:
                 self.translate(distance)
+                current_x = self.current_continuous_pose.pose.pose.position.x
+                current_y = self.current_continuous_pose.pose.pose.position.y
+                rospy.logdebug('Final location after move is (' + str(current_x) + ', ' + str(current_y) + ')' +
+                               'requested location was (' + str(goal_x) + ', ' + str(goal_y) + ')')
             else:
                 rospy.logwarn('Not executing translation because lidar alarm is triggered')
         else:
-            rospy.logdebug('Goal received out of bounds' + str(goal_x) + ',' + str(goal_y))
+            rospy.logdebug('Move rejected because goal is out of bounds' + str(goal_x) + ',' + str(goal_y))
 
     def rotate(self, yaw):
         yaw = self.correct_angle(yaw)
         move_cmd = Twist()
         current_yaw = self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation)
+        rospy.logdebug(self.namespace + ': Rotation requested to yaw of ' + str(yaw) +
+                       ', current yaw is ' + str(current_yaw))
         if current_yaw < yaw:  # Positive rotation needed
             move_cmd.angular.z = self.angular_speed
         else:  # Negative rotation needed
@@ -83,12 +91,16 @@ class TurtleBot2D(TurtleBot, object):
                 rospy.logwarn('Unable to publish rotation command')
                 rospy.logwarn(e.message)
         self.stop()  # Stop once move is complete
+        current_yaw = self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation)
+        rospy.logdebug(self.namespace + ': Yaw after rotation is ' + str(current_yaw) +
+                       ', requested yaw was ' + str(yaw))
 
     def translate(self, distance):
         move_cmd = Twist()
         if distance < 0:
             rospy.logwarn("Distance for movement should not be negative! Aborting translation...")
         else:
+            rospy.logdebug(self.namespace + ': Translation requested of distance ' + str(distance) + ' meters')
             move_cmd.linear.x = self.linear_speed
 
             move_time = distance / self.linear_speed
@@ -100,16 +112,14 @@ class TurtleBot2D(TurtleBot, object):
                     # decrease and update distance to goal
                     move_steps -= 1
                 except rospy.ROSException as e:
-                    rospy.logwarn('Unable to publish translation command')
-                    rospy.logwarn(e.message)
+                    rospy.logwarn(self.namespace + ': Unable to publish translation command - ' + e.message)
             self.stop()  # Stop once move is complete
 
     def stop(self):
         try:
             self.cmd_vel_pub.publish(Twist())
         except rospy.ROSException as e:
-            rospy.logwarn('Unable to publish stop command')
-            rospy.logwarn(e.message)
+            rospy.logwarn(self.namespace + ': Unable to publish stop command - ' + e.message)
 
     @staticmethod
     def check_move_bounds(val, lower, upper):
@@ -134,7 +144,8 @@ class TurtleBot2D(TurtleBot, object):
 
 
 def main():
-
+    # Wait for gazebo to be fully initialized before starting our robot
+    rospy.wait_for_service('/gazebo/set_physics_properties')
 
     # create a movable turtle bot object
     robot = TurtleBot2D()
