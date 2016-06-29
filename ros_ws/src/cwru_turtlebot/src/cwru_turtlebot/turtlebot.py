@@ -8,7 +8,6 @@ import copy
 # TODO need to switch from SimpleActionServer to ActionServer so that new goals don't preempt old ones
 
 import actionlib
-import tf
 from cwru_turtlebot.msg import ExternalPoseAction, ExternalPoseGoal, ExternalPoseResult
 
 # Publish/Subscribe type imports
@@ -108,6 +107,7 @@ class TurtleBot:
         self.update_client_list()
 
     def update_client_list(self):
+        rospy.logdebug(self.namespace + ': Updating client list...')
         param_list = rospy.get_param_names()  # Get list of strings with all parameter names on the parameter server
         for param in param_list:
             if (param.endswith("server_started") and
@@ -115,11 +115,13 @@ class TurtleBot:
                     rospy.get_param(param) is True):
                 # Parameter indicates action server exists, is a different robot, and has been started
                 server_name = param.replace("server_started", "external_pose_action")
+                rospy.logdebug(self.namespace + ': Found server with name: ' + server_name)
                 if server_name not in self.existing_clients:
                     # This server has not previously been added so let's make a new client for it
                     new_client = actionlib.SimpleActionClient(server_name, ExternalPoseAction)
                     self.client_list.append(new_client)
                     self.existing_clients.append(server_name)
+                    rospy.logdebug(self.namespace + ': Added server with name ' + server_name + ' to client list.')
 
         rospy.logdebug("Updated client list, it now contains %d robots", len(self.existing_clients))
 
@@ -137,6 +139,7 @@ class TurtleBot:
         self.scan_received = True
 
     def scan_callback(self, scan_msg):
+        rospy.logdebug(self.namespace + ': Entering scan callback')
         # initialize scanner properties for this robot
         if not self.scan_received:
             self.initialize_scanner(scan_msg)
@@ -160,6 +163,7 @@ class TurtleBot:
             scan.std_dev = math.sqrt(scan.variance)  # standard deviation is square root of variance
             scan.std_error = scan.std_dev / math.sqrt(len(valid_particles))
             scan.valid = True
+            rospy.logdebug(self.namespace + ': Received valid scan')
         else:
             # otherwise if there are no valid particles, set all values to 0
             scan.min = 0
@@ -170,6 +174,7 @@ class TurtleBot:
             scan.median = 0
             scan.std_error = 0
             scan.valid = False
+            rospy.logdebug(self.namespace + ': Received invalid scan')
 
         # Check whether we need to activate lidar alarm
         if 0 < scan.median < 0.5:
@@ -179,15 +184,14 @@ class TurtleBot:
 
         processed_scan = self.stamp_scan_w_variance(scan)
 
-        if not rospy.is_shutdown():
-            try:
-                self.processed_scan_publisher.publish(processed_scan)
-            except rospy.ROSException as e:
-                rospy.logwarn('Unable to publish most recent processed scan')
-                rospy.logwarn(e.message)
+        try:
+            self.processed_scan_publisher.publish(processed_scan)
+        except rospy.ROSException as e:
+            rospy.logwarn(self.namespace + ': Unable to publish most recent processed scan - ' + e.message)
 
         self.most_recent_scan = processed_scan
         self.send_scan_to_clients(processed_scan)
+        rospy.logdebug(self.namespace + ': Exiting scan callback')
 
     def continuous_odom_callback(self, odom):
         # TODO convert this to using a map to generate a map -> odom transform rather than just consulting initial pose
@@ -200,27 +204,42 @@ class TurtleBot:
         self.current_continuous_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
 
     def send_scan_to_clients(self, scan):
+        rospy.logdebug(self.namespace + ': Sending scan to clients')
         pose = self.convert_scan_to_pose(scan)
         self.update_client_list()
 
-        while not rospy.is_shutdown():
-            for client in self.client_list:
+        rospy.logdebug(self.namespace + ': There are ' + str(len(self.client_list)) + ' clients in the list')
+        for client in self.client_list:
+            try:
+                rospy.logdebug(self.namespace + ': Waiting for client server')
                 client.wait_for_server()
                 goal = ExternalPoseGoal(pose)
                 client.send_goal(goal)
                 client.wait_for_result()
                 success = client.get_result()
                 if not success:
-                    rospy.logwarn("A client returned unsucessfully when sent a pose measurement")
+                    rospy.logwarn(self.namespace + ': A client returned unsucessfully when sent a pose measurement')
+            except rospy.ROSException as e:
+                rospy.logwarn(self.namespace + ': Sending scan to clients caught exception: ' + e.message)
+        rospy.logdebug(self.namespace + ': Finished sending scan to clients')
 
     def convert_scan_to_pose(self, scan):
+        rospy.logdebug(self.namespace + ': Converting scan to pose')
         pose = None
         if scan.scan.valid is True:
             # Scan is valid so we can create a pose from it
             pose = PoseWithCovarianceStamped()
-            pose.pose.pose.position.x = self.current_continuous_pose.pose.pose.position.x + scan.scan.median * math.cos(self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation))
-            pose.pose.pose.position.y = self.current_continuous_pose.pose.pose.position.y + scan.scan.median * math.sin(self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation))
+            current_x = self.current_continuous_pose.pose.pose.position.x
+            current_y = self.current_continuous_pose.pose.pose.position.y
+            current_yaw = self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation)
 
+            pose.pose.pose.position.x = current_x + scan.scan.median * math.cos(current_yaw)
+            pose.pose.pose.position.y = current_y + scan.scan.median * math.sin(current_yaw)
+
+            rospy.logdebug(self.namespace + ': Current position is (' + str(current_x) + ', ' + str(current_y) +
+                           '), with yaw of ' + str(current_yaw) + ' got scan with median ' + str(scan.scan.median) +
+                           ' and calculated pose of other robot at (' + str(pose.pose.pose.position.x) + ', ' +
+                           str(pose.pose.pose.position.y) + ').')
             # Right now use default quaternion since we can't figure out orientation from our scans
             pose.pose.pose.orientation.x = 0
             pose.pose.pose.orientation.y = 0
@@ -232,28 +251,35 @@ class TurtleBot:
             # TODO figure out covariances for these poses
             pose.pose.covariance[0] = scan.scan.variance
             pose.pose.covariance[7] = scan.scan.variance
+        else:
+            rospy.logdebug(self.namespace + ': Scan received for conversion to pose was not valid')
+
+        rospy.logdebug(self.namespace + ': Finished converting scan to pose')
         return pose
 
     def external_pose_cb(self, goal):
-        if not rospy.is_shutdown():
-            try:
-                self.external_pose_publisher.publish(goal.pose)
-                self.external_pose_count += 1
-                self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
-            except rospy.ROSException as e:
-                rospy.logwarn('Unable to publish most recent external pose')
-                rospy.logwarn(e.message)
+        rospy.logdebug(self.namespace + ': Entering external pose callback')
+        try:
+            rospy.logdebug(self.namespace + ': Received external pose indicating position (' +
+                           str(goal.pose.pose.pose.position.x) + ', ' + str(goal.pose.pose.pose.position.y) + ')')
+            self.external_pose_publisher.publish(goal.pose)
+            self.external_pose_count += 1
+            self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
+        except rospy.ROSException as e:
+            rospy.logwarn(self.namespace + ': Unable to publish most recent external pose - ' + e.message)
 
         result = ExternalPoseResult()
         result.success = True
         self.external_pose_as.set_succeeded(result)
+        rospy.logdebug(self.namespace + ': Exiting external pose callback')
 
     def wait_for_clients(self):
         num_clients = rospy.get_param('/number_of_robots')
         complete = False
         while not rospy.is_shutdown() and not complete:
             if num_clients - 1 != len(self.existing_clients):
-                rospy.logdebug('Waiting for other robots to come online...')  # + str(num_clients) + ' - 1 != ' + str(len(self.existing_clients)))
+                rospy.logdebug(self.namespace + ': Waiting for other robots to come online...')
+                # + str(num_clients) + ' - 1 != ' + str(len(self.existing_clients)))
                 self.rate.sleep()
             else:
                 complete = True
@@ -287,9 +313,8 @@ class TurtleBot:
 
         return quaternion
 
-    @staticmethod
-    def reset_filters():
-        rospy.logdebug('Resetting filters...')
+    def reset_filters(self):
+        rospy.logdebug(self.namespace + ': Resetting filters...')
         error = False
         # First reset the continuous filter
         rospy.wait_for_service('set_pose_continuous')
@@ -297,8 +322,8 @@ class TurtleBot:
             continuous_service = rospy.ServiceProxy('set_pose_continuous', SetPose)
             request = SetPoseRequest()
             continuous_service(request)
-        except rospy.ServiceException, e:
-            rospy.logwarn("Service call failed: %s", e)
+        except rospy.ROSException as e:
+            rospy.logwarn(self.namespace + ': Service call failed - ' + e.message)
             error = True
 
         # Next reset the discrete filter
@@ -307,11 +332,11 @@ class TurtleBot:
             continuous_service = rospy.ServiceProxy('set_pose_discrete', SetPose)
             request = SetPoseRequest()
             continuous_service(request)
-        except rospy.ServiceException, e:
-            rospy.logwarn("Service call failed: %s", e)
+        except rospy.ROSException as e:
+            rospy.logwarn(self.namespace + ': Service call failed - ' + e.message)
             error = True
 
         if not error:
-            rospy.logdebug('Filter reset complete')
+            rospy.logdebug(self.namespace + ': Filter reset complete')
         else:
-            rospy.logwarn('Filter reset encountered errors')
+            rospy.logwarn(self.namespace + ': Filter reset encountered errors')
