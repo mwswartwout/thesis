@@ -4,11 +4,14 @@ import math
 import numpy
 import rospy
 import copy
+from helpers import convert_quaternion_to_yaw
+
 # Action server imports
 # TODO need to switch from SimpleActionServer to ActionServer so that new goals don't preempt old ones
 
 import actionlib
 from cwru_turtlebot.msg import ExternalPoseAction, ExternalPoseGoal, ExternalPoseResult
+from move_base_msgs.msg import MoveBaseAction
 
 # Publish/Subscribe type imports
 from sensor_msgs.msg import LaserScan
@@ -40,6 +43,8 @@ class TurtleBot:
         self.initial_pose.header.frame_id = 'map'
 
         self.current_continuous_pose = copy.deepcopy(self.initial_pose)
+        self.current_discrete_pose = copy.deepcopy(self.initial_pose)
+        self.current_gazebo_pose = copy.deepcopy(self.initial_pose)
 
         self.initialize_subscribers()
         self.initialize_publishers()
@@ -72,9 +77,17 @@ class TurtleBot:
                                                  LaserScan,
                                                  self.scan_callback)
 
-        self.odom_subscriber = rospy.Subscriber('odometry/filtered_continuous',
-                                                Odometry,
-                                                self.continuous_odom_callback)
+        self.continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous',
+                                                           Odometry,
+                                                           self.continuous_odom_callback)
+
+        self.discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete',
+                                                         Odometry,
+                                                         self.discrete_odom_callback)
+
+        self.gazebo_odom_subscriber = rospy.Subscriber('odom',
+                                                       Odometry,
+                                                       self.gazebo_odom_callback)
 
     def initialize_publishers(self):
         # TODO do we really need this anymore?
@@ -107,6 +120,8 @@ class TurtleBot:
 
     def initialize_action_clients(self):
         self.update_client_list()
+
+        self.move_base_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 
     def update_client_list(self):
         rospy.logdebug(self.namespace + ': Updating client list...')
@@ -141,7 +156,7 @@ class TurtleBot:
         self.scan_received = True
 
     def scan_callback(self, scan_msg):
-        rospy.logdebug(self.namespace + ': Entering scan callback')
+        # rospy.logdebug(self.namespace + ': Entering scan callback')
         # initialize scanner properties for this robot
         if not self.scan_received:
             self.initialize_scanner(scan_msg)
@@ -165,11 +180,11 @@ class TurtleBot:
             scan.std_dev = math.sqrt(scan.variance)  # standard deviation is square root of variance
             scan.std_error = scan.std_dev / math.sqrt(len(valid_particles))
             scan.valid = True
-            rospy.logdebug(self.namespace + ': Received valid scan')
+            # rospy.logdebug(self.namespace + ': Received valid scan with median distance ' + str(scan.median))
         else:
             # otherwise scan is not valid
             scan.valid = False
-            rospy.logdebug(self.namespace + ': Received invalid scan')
+            # rospy.logdebug(self.namespace + ': Received invalid scan')
 
         if scan.valid:
             # Check whether we need to activate lidar alarm
@@ -187,20 +202,36 @@ class TurtleBot:
 
             self.most_recent_scan = processed_scan
             self.send_scan_to_clients(processed_scan)
-        rospy.logdebug(self.namespace + ': Exiting scan callback')
+        # rospy.logdebug(self.namespace + ': Exiting scan callback')
 
     def continuous_odom_callback(self, odom):
-        # TODO convert this to using a map to generate a map -> odom transform rather than just consulting initial pose
+        # Must add initial pose value to convert from odom frame to map frame
         self.current_continuous_pose.pose.pose.position.x = odom.pose.pose.position.x + self.initial_pose.pose.pose.position.x
         self.current_continuous_pose.pose.pose.position.y = odom.pose.pose.position.y + self.initial_pose.pose.pose.position.y
 
-        odom_yaw = self.convert_quaternion_to_yaw(odom.pose.pose.orientation)
-        initial_yaw = self.convert_quaternion_to_yaw(self.initial_pose.pose.pose.orientation)
+        odom_yaw = convert_quaternion_to_yaw(odom.pose.pose.orientation)
+        initial_yaw = convert_quaternion_to_yaw(self.initial_pose.pose.pose.orientation)
         current_yaw = odom_yaw + initial_yaw
         self.current_continuous_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
 
+    def discrete_odom_callback(self, odom):
+        # Already in map frame so no need to convert
+        self.current_discrete_pose.pose.pose.position.x = odom.pose.pose.position.x
+        self.current_discrete_pose.pose.pose.position.y = odom.pose.pose.position.y
+        self.current_discrete_pose.pose.pose.orientation = odom.pose.pose.orientation
+
+    def gazebo_odom_callback(self, odom):
+        # Must add initial pose value to convert from odom frame to map frame
+        self.current_gazebo_pose.pose.pose.position.x = odom.pose.pose.position.x + self.initial_pose.pose.pose.position.x
+        self.current_gazebo_pose.pose.pose.position.y = odom.pose.pose.position.y + self.initial_pose.pose.pose.position.y
+
+        odom_yaw = convert_quaternion_to_yaw(odom.pose.pose.orientation)
+        initial_yaw = convert_quaternion_to_yaw(self.initial_pose.pose.pose.orientation)
+        current_yaw = odom_yaw + initial_yaw
+        self.current_gazebo_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
+        
     def send_scan_to_clients(self, scan):
-        rospy.logdebug(self.namespace + ': Sending scan to clients')
+        # rospy.logdebug(self.namespace + ': Sending scan to clients')
         pose = self.convert_scan_to_pose(scan)
         self.update_client_list()
 
@@ -217,21 +248,22 @@ class TurtleBot:
                     rospy.logwarn(self.namespace + ': A client returned unsucessfully when sent a pose measurement')
             except rospy.ROSException as e:
                 rospy.logwarn(self.namespace + ': Sending scan to clients caught exception: ' + e.message)
-        rospy.logdebug(self.namespace + ': Finished sending scan to clients')
+        # rospy.logdebug(self.namespace + ': Finished sending scan to clients')
 
     def convert_scan_to_pose(self, scan):
-        rospy.logdebug(self.namespace + ': Converting scan to pose')
+        # rospy.logdebug(self.namespace + ': Converting scan to pose')
         pose = None
         if scan.scan.valid is True:
             # Scan is valid so we can create a pose from it
             pose = PoseWithCovarianceStamped()
 
             # Determine our current pose (which is already in the map frame)
-            current_x = self.current_continuous_pose.pose.pose.position.x
-            current_y = self.current_continuous_pose.pose.pose.position.y
-            current_yaw = self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation)
+            current_x = self.current_gazebo_pose.pose.pose.position.x
+            current_y = self.current_gazebo_pose.pose.pose.position.y
+            current_yaw = convert_quaternion_to_yaw(self.current_gazebo_pose.pose.pose.orientation)
 
             # Determine what pose (in the map frame) we believe we are seeing the other robot at
+            # Subtract 0.2 to account for location of Kinect and point of detection relative to TurtleBot base_footprint
             pose.pose.pose.position.x = current_x + scan.scan.median * math.cos(current_yaw)
             pose.pose.pose.position.y = current_y + scan.scan.median * math.sin(current_yaw)
 
@@ -253,14 +285,23 @@ class TurtleBot:
         else:
             rospy.logdebug(self.namespace + ': Scan received for conversion to pose was not valid')
 
-        rospy.logdebug(self.namespace + ': Finished converting scan to pose')
+        # rospy.logdebug(self.namespace + ': Finished converting scan to pose')
         return pose
 
     def external_pose_cb(self, goal):
-        rospy.logdebug(self.namespace + ': Entering external pose callback')
+        # rospy.logdebug(self.namespace + ': Entering external pose callback')
         try:
+            continuous_x = self.current_continuous_pose.pose.pose.position.x
+            continuous_y = self.current_continuous_pose.pose.pose.position.y
+            discrete_x = self.current_discrete_pose.pose.pose.position.x
+            discrete_y = self.current_discrete_pose.pose.pose.position.y
+            gazebo_x = self.current_gazebo_pose.pose.pose.position.x
+            gazebo_y = self.current_gazebo_pose.pose.pose.position.y
             rospy.logdebug(self.namespace + ': Received external pose indicating position (' +
-                           str(goal.pose.pose.pose.position.x) + ', ' + str(goal.pose.pose.pose.position.y) + ')')
+                           str(goal.pose.pose.pose.position.x) + ', ' + str(goal.pose.pose.pose.position.y) + '). ' +
+                           'Current gazebo odom pose is (' + str(gazebo_x) + ', ' + str(gazebo_y) + '). ' +
+                           'Current continuous odom pose is (' + str(continuous_x) + ', ' + str(continuous_y) + '). ' +
+                           'Current discrete odom pose is (' + str(discrete_x) + ', ' + str(discrete_y) + '). ')
             self.external_pose_publisher.publish(goal.pose)
             self.external_pose_count += 1
             self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
@@ -294,15 +335,6 @@ class TurtleBot:
         stamped_scan_w_variance.header.stamp = rospy.get_rostime()
 
         return stamped_scan_w_variance
-
-    @staticmethod
-    def convert_quaternion_to_yaw(quaternion):
-        x = quaternion.x
-        y = quaternion.y
-        z = quaternion.z
-        w = quaternion.w
-        yaw = math.atan2(2*(x*y + z*w), w**2 - z**2 - y**2 + x**2)
-        return yaw
 
     @staticmethod
     def convert_yaw_to_quaternion(yaw):

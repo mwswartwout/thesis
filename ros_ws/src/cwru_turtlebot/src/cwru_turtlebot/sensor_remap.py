@@ -35,6 +35,8 @@ def odom_remap(odom_msg):
 
 
 def main():
+    rospy.wait_for_service('/gazebo/set_physics_properties')
+
     # initialize ros node for the imu remap process
     debug = rospy.get_param('/debug')
     if debug:

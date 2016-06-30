@@ -4,6 +4,8 @@ import rospy
 
 # Use this node (with required attribute set to true) to control the simulation runtime
 def main():
+    rospy.wait_for_service('/gazebo/set_physics_properties')
+
     debug = rospy.get_param('/debug')
     if debug:
         rospy.init_node('simulation_timer', log_level=rospy.DEBUG)

@@ -19,6 +19,8 @@ class StationaryTurtleBot(TurtleBot, object):
 
 
 def main():
+    rospy.wait_for_service('/gazebo/set_physics_properties')
+
     robot = StationaryTurtleBot()
 
     while not rospy.is_shutdown():

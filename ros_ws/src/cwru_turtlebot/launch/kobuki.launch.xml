@@ -1,10 +1,10 @@
 <!-- A combination of turtlebot_gazebo and turtlebot_bringup launch files for the Kobuki base-->
 
 <launch>
-    <arg name="base"/>
-    <arg name="stacks"/>
-    <arg name="3d_sensor"/>
-    <arg name="model_name" default="mobile_base"/>
+    <arg name="base" value="kobuki"/>
+    <arg name="stacks" value="hexagons"/>
+    <arg name="3d_sensor" value="kinect"/>
+    <arg name="model_name"/>
     <arg name="x_pos" default="0"/>
     <arg name="y_pos" default="0"/>
     <arg name="z_pos" default="0"/>
@@ -30,7 +30,7 @@
     <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"  required="true"/>
     <node pkg="nodelet" type="nodelet" name="cmd_vel_mux"
         args="load yocs_cmd_vel_mux/CmdVelMuxNodelet mobile_base_nodelet_manager"  required="true">
-        <param name="yaml_cfg_file" value="$(find turtlebot_bringup)/param/mux.yaml" />
+        <param name="yaml_cfg_file" value="$(find cwru_turtlebot)/param/mux.yaml" />
         <remap from="cmd_vel_mux/output" to="mobile_base/commands/velocity"/>
     </node>
 
@@ -47,9 +47,9 @@
     <param name="robot/type" value="turtlebot"/-->
 
     <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator"  required="true">
-        <rosparam command="load" file="$(find turtlebot_bringup)/param/$(arg base)/diagnostics.yaml"/>
+        <rosparam command="load" file="$(find cwru_turtlebot)/param/diagnostics.yaml"/>
     </node>
 
   <!-- Bumper/cliff to pointcloud (not working, as it needs sensors/core messages) -->
-  <include file="$(find turtlebot_bringup)/launch/includes/kobuki/bumper2pc.launch.xml"/>
+  <include file="$(find cwru_turtlebot)/launch/bumper2pc.launch.xml"/>
 </launch>

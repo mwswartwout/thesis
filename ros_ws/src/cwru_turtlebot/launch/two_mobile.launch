@@ -1,15 +1,11 @@
 <!-- TODO Simplify launch files with a turtlebot_common file -->
 <launch>
     <arg name="world_file"  default="$(env TURTLEBOT_GAZEBO_WORLD_FILE)"/>
-    <arg name="base"      value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
     <arg name="battery"   value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 --> 
     <arg name="gui" default="false"/>
-    <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons --> 
-    <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro -->
     <arg name="sensor_record" default="true"/>
     <arg name="save_file_prefix" default="/home/matt/thesis/experiment_data/two_mobile/"/>
     <arg name="sim_time" default="60"/>
-    <arg name="headless" default="false"/>
     <arg name="debug" default="false"/>
 
     <param name="number_of_robots" type="int" value="2"/>

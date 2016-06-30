@@ -4,12 +4,15 @@ import rospy
 import csv
 import os
 import errno
+from helpers import convert_quaternion_to_yaw
+
 from nav_msgs.msg import Odometry
 from std_msgs.msg import UInt64
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
 initial_x = None
 initial_y = None
+initial_yaw = None
 continuous_data = None
 discrete_data = None
 gazebo_data = None
@@ -24,8 +27,11 @@ def initial_position_callback(position):
     # to the map frame
     global initial_x
     global initial_y
+    global initial_yaw
+
     initial_x = position.pose.pose.position.x
     initial_y = position.pose.pose.position.y
+    initial_yaw = convert_quaternion_to_yaw(position.pose.pose.orientation)
 
 
 def continuous_odom_callback(new_odom):
@@ -34,15 +40,16 @@ def continuous_odom_callback(new_odom):
     global initial_y
     global namespace
 
-    if None not in (initial_x, initial_y):
+    if None not in (initial_x, initial_y, initial_yaw):
         # Must add in the initial pose values to convert from odom frame to map frame
         pose_x = new_odom.pose.pose.position.x + initial_x
         pose_y = new_odom.pose.pose.position.y + initial_y
+        pose_yaw = convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
         # TODO see if we can split covariance values into their own items
-        continuous_data = [pose_x, pose_y]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
-        rospy.logdebug(namespace + ': sensor_record received new continuous data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
+        continuous_data = [pose_x, pose_y, pose_yaw]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        # rospy.logdebug(namespace + ': sensor_record received new continuous data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
 def discrete_odom_callback(new_odom):
@@ -51,14 +58,15 @@ def discrete_odom_callback(new_odom):
     global initial_y
     global namespace
 
-    if None not in (initial_x, initial_y):
+    if None not in (initial_x, initial_y, initial_yaw):
         # Measurement is already in map frame so no need to convert by adding initial position
         pose_x = new_odom.pose.pose.position.x
         pose_y = new_odom.pose.pose.position.y
+        pose_yaw = convert_quaternion_to_yaw(new_odom.pose.pose.orientation)
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
-        discrete_data = [pose_x, pose_y]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
-        rospy.logdebug(namespace + ': sensor_record received new discrete data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
+        discrete_data = [pose_x, pose_y, pose_yaw]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        # rospy.logdebug(namespace + ': sensor_record received new discrete data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
 def gazebo_odom_callback(new_odom):
@@ -67,14 +75,15 @@ def gazebo_odom_callback(new_odom):
     global initial_y
     global namespace
 
-    if None not in (initial_x, initial_y):
+    if None not in (initial_x, initial_y, initial_yaw):
         # Must add in the initial pose values to convert from odom frame to map frame
         pose_x = new_odom.pose.pose.position.x + initial_x
         pose_y = new_odom.pose.pose.position.y + initial_y
+        pose_yaw = convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
-        gazebo_data = [pose_x, pose_y]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
-        rospy.logdebug(namespace + ': sensor_record received new gazebo data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
+        gazebo_data = [pose_x, pose_y, pose_yaw]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        # rospy.logdebug(namespace + ': sensor_record received new gazebo data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
 def external_pose_count_callback(count):
@@ -103,21 +112,21 @@ def write_headers():
     make_sure_path_exists(prefix)
 
     if None not in (prefix, namespace):
-        rospy.logdebug(namespace + ': Writing headers to data files')
+        # rospy.logdebug(namespace + ': Writing headers to data files')
         filename = prefix + namespace + '_continuous_odometry_filtered.csv'
         with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
-            writer.writerow(['x_position', 'y_position'])  # , 'pose_covariance', 'twist_covariance'])
+            writer.writerow(['x_position', 'y_position', 'yaw'])  # , 'pose_covariance', 'twist_covariance'])
 
         filename = prefix + namespace + '_discrete_odometry_filtered.csv'
         with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
-            writer.writerow(['x_position', 'y_position'])  # , 'pose_covariance', 'twist_covariance'])
+            writer.writerow(['x_position', 'y_position', 'yaw'])  # , 'pose_covariance', 'twist_covariance'])
 
         filename = prefix + namespace + '_gazebo_odometry_filtered.csv'
         with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
-            writer.writerow(['x_position', 'y_position'])  # , 'pose_covariance', 'twist_covariance'])
+            writer.writerow(['x_position', 'y_position', 'yaw'])  # , 'pose_covariance', 'twist_covariance'])
 
         filename = prefix + namespace + '_external_pose_count.csv'
         with open(filename, 'w+') as count_file:
@@ -141,7 +150,7 @@ def write_to_files(event):
     global prefix
 
     if None not in (continuous_data, discrete_data, gazebo_data, external_count, namespace, prefix):
-        rospy.logdebug(namespace + ': Writing to sensor data to files')
+        # rospy.logdebug(namespace + ': Writing to sensor data to files')
 
         filename = prefix + namespace + '_continuous_odometry_filtered.csv'
         with open(filename, 'a+') as pose_file:
@@ -179,6 +188,8 @@ def write_to_files(event):
 
 
 def main():
+    rospy.wait_for_service('/gazebo/set_physics_properties')
+
     debug = rospy.get_param('/debug')
     if debug:
         rospy.init_node('sensor_record', log_level=rospy.DEBUG)
