@@ -295,13 +295,16 @@ bool GazeboRosKobuki::prepareIMU()
     return false;
   }
   
-    if (node_name_ == "mobile_base") {  
+   /** if (node_name_ == "mobile_base") {  
         imu_ = boost::dynamic_pointer_cast<sensors::ImuSensor>(
             sensors::get_sensor(world_->GetName()+"::"+node_name_+"::base_footprint::"+imu_name));
     } else {
   imu_ = boost::dynamic_pointer_cast<sensors::ImuSensor>(
             sensors::get_sensor(world_->GetName()+"::"+node_name_+"::"+node_name_+"/base_footprint::"+imu_name));
-    }
+    }*/
+    imu_ = boost::dynamic_pointer_cast<sensors::ImuSensor>(
+            sensors::SensorManager::Instance()->GetSensor(imu_name));
+
   if (!imu_)
   {
     ROS_ERROR_STREAM("Couldn't find the IMU in the model! [" << node_name_ <<"]");
