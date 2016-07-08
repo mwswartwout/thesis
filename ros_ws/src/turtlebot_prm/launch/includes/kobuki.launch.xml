@@ -3,13 +3,15 @@
     <arg name="stacks" value="hexagons"/>
     <arg name="3d_sensor" value="kinect"/>
     <arg name="model_name"/>
+    <arg name="x_pos" default="0"/>
+    <arg name="y_pos" default="0"/>
 
     <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find cwru_turtlebot)/urdf/kobuki_hexagons_kinect.urdf.xacro' model_name:=$(arg model_name)" />
     <param name="robot_description" command="$(arg urdf_file)" />
 
     <!-- Gazebo model spawner -->
     <node name="spawn_turtlebot_model" pkg="gazebo_ros" type="spawn_model"
-          args="$(optenv ROBOT_INITIAL_POSE) -unpause -urdf -param robot_description -model mobile_base"/>
+          args="$(optenv ROBOT_INITIAL_POSE) -unpause -urdf -param robot_description -model $(arg model_name) -x $(arg x_pos) -y $(arg y_pos)"/>
 
     <!-- Velocity muxer -->
     <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>
