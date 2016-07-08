@@ -10,12 +10,12 @@ from helpers import convert_quaternion_to_yaw
 # TODO need to switch from SimpleActionServer to ActionServer so that new goals don't preempt old ones
 
 import actionlib
-from cwru_turtlebot.msg import ExternalPoseAction, ExternalPoseGoal, ExternalPoseResult
+from cwru_turtlebot.msg import ExternalPoseAction, ExternalPoseGoal
 from move_base_msgs.msg import MoveBaseAction
 
 # Publish/Subscribe type imports
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Pose2D, PoseWithCovarianceStamped, Quaternion
+from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
 from nav_msgs.msg import Odometry
 from cwru_turtlebot.msg import ScanWithVariance, ScanWithVarianceStamped
 from std_msgs.msg import UInt64
@@ -34,6 +34,9 @@ class TurtleBot:
         else:
             rospy.init_node('robot')
 
+        # Wait for things to initialize before starting robot
+        self.wait_for_services()
+
         # Create initial pose object from parameter server
         # This pose is in the map frame
         self.initial_pose = PoseWithCovarianceStamped()
@@ -42,9 +45,9 @@ class TurtleBot:
         self.initial_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(rospy.get_param('yaw'))
         self.initial_pose.header.frame_id = 'map'
 
-        self.current_continuous_pose = copy.deepcopy(self.initial_pose)
-        self.current_discrete_pose = copy.deepcopy(self.initial_pose)
-        self.current_gazebo_pose = copy.deepcopy(self.initial_pose)
+        self.continuous_pose_wrt_map = copy.deepcopy(self.initial_pose)
+        self.discrete_pose_wrt_map = copy.deepcopy(self.initial_pose)
+        self.gazebo_pose_wrt_map = copy.deepcopy(self.initial_pose)
 
         self.initialize_subscribers()
         self.initialize_publishers()
@@ -71,6 +74,15 @@ class TurtleBot:
         self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
         self.external_pose_publisher.publish(self.initial_pose)  # Publish so that we start out knowing where we are
         self.initialize_action_clients()
+
+        timer = rospy.Timer(rospy.Duration(1), self.fake_gps)  # Publish fake gps every second
+
+        # Wait for everything else in Gazebo world to be ready
+        self.wait_for_clients()
+
+        # Once everything is ready we need to reset our filters
+        # because they could have gotten erroneous readings
+        self.reset_filters()
 
     def initialize_subscribers(self):
         self.lidar_subscriber = rospy.Subscriber('scan',
@@ -109,6 +121,10 @@ class TurtleBot:
                                                              UInt64,
                                                              queue_size=1,
                                                              latch=True)
+
+        self.fake_gps_publisher = rospy.Publisher('fake_gps',
+                                                  PoseWithCovarianceStamped,
+                                                  queue_size=1)
 
     def initialize_action_servers(self):
         self.external_pose_as = actionlib.SimpleActionServer('external_pose_action',
@@ -163,10 +179,17 @@ class TurtleBot:
 
         # First throw out invalid particles
         valid_particles = []
+        min_angle = self.angle_max
+        max_angle = self.angle_min
         # ranges = numpy.array(scan_msg.ranges)
-        for particle in scan_msg.ranges:
+        for index, particle in enumerate(scan_msg.ranges):
             if self.range_min <= particle <= self.range_max:
                 valid_particles.append(particle)
+                angle = self.angle_min + index * self.angle_increment  # Calculate the yaw offset of this particle
+                if angle > max_angle:
+                    max_angle = angle
+                if angle < min_angle:
+                    min_angle = angle
 
         scan = ScanWithVariance()
 
@@ -179,6 +202,7 @@ class TurtleBot:
             scan.variance = numpy.var(valid_particles)
             scan.std_dev = math.sqrt(scan.variance)  # standard deviation is square root of variance
             scan.std_error = scan.std_dev / math.sqrt(len(valid_particles))
+            scan.yaw_offset = (max_angle + min_angle) / 2  # average yaw of the valid particles
             scan.valid = True
             # rospy.logdebug(self.namespace + ': Received valid scan with median distance ' + str(scan.median))
         else:
@@ -201,35 +225,39 @@ class TurtleBot:
                 rospy.logwarn(self.namespace + ': Unable to publish most recent processed scan - ' + e.message)
 
             self.most_recent_scan = processed_scan
-            self.send_scan_to_clients(processed_scan)
+            #self.send_scan_to_clients(processed_scan)
         # rospy.logdebug(self.namespace + ': Exiting scan callback')
 
     def continuous_odom_callback(self, odom):
         # Must add initial pose value to convert from odom frame to map frame
-        self.current_continuous_pose.pose.pose.position.x = odom.pose.pose.position.x + self.initial_pose.pose.pose.position.x
-        self.current_continuous_pose.pose.pose.position.y = odom.pose.pose.position.y + self.initial_pose.pose.pose.position.y
+        # -20 is because our map is currently 40x40 with o
+        self.continuous_pose_wrt_map.pose.pose.position.x = odom.pose.pose.position.x + self.initial_pose.pose.pose.position.x
+        self.continuous_pose_wrt_map.pose.pose.position.y = odom.pose.pose.position.y + self.initial_pose.pose.pose.position.y
 
         odom_yaw = convert_quaternion_to_yaw(odom.pose.pose.orientation)
         initial_yaw = convert_quaternion_to_yaw(self.initial_pose.pose.pose.orientation)
         current_yaw = odom_yaw + initial_yaw
-        self.current_continuous_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
+        self.continuous_pose_wrt_map.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
+        self.continuous_pose_wrt_map.header.stamp = odom.header.stamp
 
     def discrete_odom_callback(self, odom):
         # Already in map frame so no need to convert
-        self.current_discrete_pose.pose.pose.position.x = odom.pose.pose.position.x
-        self.current_discrete_pose.pose.pose.position.y = odom.pose.pose.position.y
-        self.current_discrete_pose.pose.pose.orientation = odom.pose.pose.orientation
+        self.discrete_pose_wrt_map.pose.pose.position.x = odom.pose.pose.position.x
+        self.discrete_pose_wrt_map.pose.pose.position.y = odom.pose.pose.position.y
+        self.discrete_pose_wrt_map.pose.pose.orientation = odom.pose.pose.orientation
+        self.discrete_pose_wrt_map.header.stamp = odom.header.stamp
 
     def gazebo_odom_callback(self, odom):
         # Must add initial pose value to convert from odom frame to map frame
-        self.current_gazebo_pose.pose.pose.position.x = odom.pose.pose.position.x + self.initial_pose.pose.pose.position.x
-        self.current_gazebo_pose.pose.pose.position.y = odom.pose.pose.position.y + self.initial_pose.pose.pose.position.y
+        self.gazebo_pose_wrt_map.pose.pose.position.x = odom.pose.pose.position.x + self.initial_pose.pose.pose.position.x
+        self.gazebo_pose_wrt_map.pose.pose.position.y = odom.pose.pose.position.y + self.initial_pose.pose.pose.position.y
 
         odom_yaw = convert_quaternion_to_yaw(odom.pose.pose.orientation)
         initial_yaw = convert_quaternion_to_yaw(self.initial_pose.pose.pose.orientation)
         current_yaw = odom_yaw + initial_yaw
-        self.current_gazebo_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
-        
+        self.gazebo_pose_wrt_map.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
+        self.gazebo_pose_wrt_map.header.stamp = odom.header.stamp
+
     def send_scan_to_clients(self, scan):
         # rospy.logdebug(self.namespace + ': Sending scan to clients')
         pose = self.convert_scan_to_pose(scan)
@@ -258,9 +286,9 @@ class TurtleBot:
             pose = PoseWithCovarianceStamped()
 
             # Determine our current pose (which is already in the map frame)
-            current_x = self.current_gazebo_pose.pose.pose.position.x
-            current_y = self.current_gazebo_pose.pose.pose.position.y
-            current_yaw = convert_quaternion_to_yaw(self.current_gazebo_pose.pose.pose.orientation)
+            current_x = self.gazebo_pose_wrt_map.pose.pose.position.x
+            current_y = self.gazebo_pose_wrt_map.pose.pose.position.y
+            current_yaw = convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation) + scan.scan.yaw_offset
 
             # Determine what pose (in the map frame) we believe we are seeing the other robot at
             # Subtract 0.2 to account for location of Kinect and point of detection relative to TurtleBot base_footprint
@@ -290,13 +318,15 @@ class TurtleBot:
 
     def external_pose_cb(self, goal):
         # rospy.logdebug(self.namespace + ': Entering external pose callback')
+
+        success = False
         try:
-            continuous_x = self.current_continuous_pose.pose.pose.position.x
-            continuous_y = self.current_continuous_pose.pose.pose.position.y
-            discrete_x = self.current_discrete_pose.pose.pose.position.x
-            discrete_y = self.current_discrete_pose.pose.pose.position.y
-            gazebo_x = self.current_gazebo_pose.pose.pose.position.x
-            gazebo_y = self.current_gazebo_pose.pose.pose.position.y
+            continuous_x = self.continuous_pose_wrt_map.pose.pose.position.x
+            continuous_y = self.continuous_pose_wrt_map.pose.pose.position.y
+            discrete_x = self.discrete_pose_wrt_map.pose.pose.position.x
+            discrete_y = self.discrete_pose_wrt_map.pose.pose.position.y
+            gazebo_x = self.gazebo_pose_wrt_map.pose.pose.position.x
+            gazebo_y = self.gazebo_pose_wrt_map.pose.pose.position.y
             rospy.logdebug(self.namespace + ': Received external pose indicating position (' +
                            str(goal.pose.pose.pose.position.x) + ', ' + str(goal.pose.pose.pose.position.y) + '). ' +
                            'Current gazebo odom pose is (' + str(gazebo_x) + ', ' + str(gazebo_y) + '). ' +
@@ -305,12 +335,12 @@ class TurtleBot:
             self.external_pose_publisher.publish(goal.pose)
             self.external_pose_count += 1
             self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
+            success = True
         except rospy.ROSException as e:
             rospy.logwarn(self.namespace + ': Unable to publish most recent external pose - ' + e.message)
 
-        result = ExternalPoseResult()
-        result.success = True
-        self.external_pose_as.set_succeeded(result)
+        if success:
+            self.external_pose_as.set_succeeded()
         rospy.logdebug(self.namespace + ': Exiting external pose callback')
 
     def wait_for_clients(self):
@@ -374,3 +404,15 @@ class TurtleBot:
             rospy.logdebug(self.namespace + ': Filter reset complete')
         else:
             rospy.logwarn(self.namespace + ': Filter reset encountered errors')
+
+    # Must accept event argument because of use with rospy.Timer
+    def fake_gps(self, event):
+        # Use this so discrete filter can localize w/o external measurements
+        self.fake_gps_publisher.publish(self.gazebo_pose_wrt_map)
+
+    @staticmethod
+    def wait_for_services():
+        # Wait for gazebo and filters to be fully initialized before starting our robot
+        rospy.wait_for_service('/gazebo/set_physics_properties')
+        rospy.wait_for_service('set_pose_continuous')
+        rospy.wait_for_service('set_pose_discrete')

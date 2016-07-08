@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 import rospy
-import math
 import random
+import math
 
 from geometry_msgs.msg import Twist, PoseStamped
 from turtlebot import TurtleBot
 from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseGoal
-from helpers import convert_quaternion_to_yaw
+from helpers import convert_quaternion_to_yaw, correct_angle
+
 
 # TODO add ROS debug statements
 # TODO add something to correct odom drift
@@ -23,7 +24,7 @@ class TurtleBot2D(TurtleBot, object):
         self.linear_speed = linear_speed  # expressed in m/s
         self.angular_speed = angular_speed  # expressed in rad/s
 
-    def move(self, goal_x, goal_y, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
+    def move(self, goal_x=0, goal_y=0, goal_yaw=0, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
         # To prevent robot getting stuck or drifting towards just one specific area over course of experiment
         # Randomly send to middle of allowable area with 1% probability
         rand = random.uniform(0, 100)
@@ -31,12 +32,29 @@ class TurtleBot2D(TurtleBot, object):
             goal_x = (x_lower_bound + x_upper_bound) / 2
             goal_y = (y_lower_bound + y_upper_bound) / 2
 
+        tx = math.cos(goal_yaw)
+        ty = math.sin(goal_y)
+        nx = -1*ty
+        ny = tx
+
+        dx = goal_x - self.gazebo_pose_wrt_map.pose.pose.position.x
+        dy = goal_y - self.gazebo_pose_wrt_map.pose.pose.position.y
+
+        lateral_err = dx*nx + dy*ny
+        trip_dist_err = dx*tx + dy*ty
+        heading_err = correct_angle(goal_yaw - convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation))
+
+        yaw_gain = 0
+        translation_gain = 0
+
+
+        """"
         goal_pose = PoseStamped()
         goal_pose.header.stamp = rospy.Time.now()
-        goal_pose.header.frame_id = 'map'
+        goal_pose.header.frame_id = '/map'
         goal_pose.pose.position.x = goal_x
         goal_pose.pose.position.y = goal_y
-        goal_pose.pose.orientation = self.current_continuous_pose.pose.pose.orientation  # Always keep our orientation the same
+        goal_pose.pose.orientation = self.continuous_pose_wrt_map.pose.pose.orientation  # Always keep our orientation the same
 
         goal = MoveBaseGoal()
         goal.target_pose = goal_pose
@@ -49,13 +67,19 @@ class TurtleBot2D(TurtleBot, object):
             if not success:
                 rospy.logwarn(self.namespace + ': move_base was not able to successfully complete the request action')
             else:
-                current_x = self.current_continuous_pose.pose.pose.position.x
-                current_y = self.current_continuous_pose.pose.pose.position.y
-                rospy.logdebug(self.namespace + ': requested move to (' + str(goal_x) + ', ' + str(goal_y) + ') ' +
-                              'completed, current position according to continuous odom is (' + str(current_x) + ', ' +
-                              str(current_y) + ')')
+                continuous_x = self.continuous_pose_wrt_map.pose.pose.position.x
+                continuous_y = self.continuous_pose_wrt_map.pose.pose.position.y
+                discrete_x = self.discrete_pose_wrt_map.pose.pose.position.x
+                discrete_y = self.discrete_pose_wrt_map.pose.pose.position.y
+                gazebo_x = self.gazebo_pose_wrt_map.pose.pose.position.x
+                gazebo_y = self.gazebo_pose_wrt_map.pose.pose.position.y
+                rospy.loginfo(self.namespace + ': requested move to (' + str(goal_x) + ', ' + str(goal_y) + ') ' +
+                               'completed. Current gazebo odom pose is (' + str(gazebo_x) + ', ' + str(gazebo_y) + '). ' +
+                               'Current continuous odom pose is (' + str(continuous_x) + ', ' + str(continuous_y) + '). ' +
+                               'Current discrete odom pose is (' + str(discrete_x) + ', ' + str(discrete_y) + '). ')
         except rospy.ROSException as e:
             rospy.logwarn(self.namespace + ': caught exception while sending move_base a movement goal - ' + e.message)
+    """
 
     def stop(self):
         try:
@@ -70,7 +94,7 @@ class TurtleBot2D(TurtleBot, object):
         command.angular.z = 0.1
         while not rospy.is_shutdown():
             cmd_vel_pub.publish(command)
-            rospy.loginfo(self.namespace + ': Current yaw is ' + str(convert_quaternion_to_yaw(self.current_gazebo_pose.pose.pose.orientation)))
+            rospy.loginfo(self.namespace + ': Current yaw is ' + str(convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation)))
             rospy.sleep(0.1)
 
     @staticmethod
@@ -78,36 +102,10 @@ class TurtleBot2D(TurtleBot, object):
         # check that the val is between lower and upper values
         return lower < val < upper
 
-    @staticmethod
-    def correct_angle(yaw):
-        # Correct yaws to smallest possible value, accounting for periodicity
-        while yaw > 2 * math.pi and not rospy.is_shutdown():
-            yaw -= 2 * math.pi
-
-        while yaw < -2 * math.pi and not rospy.is_shutdown():
-            yaw += 2 * math.pi
-
-        # TODO add in calculation to rotate in shortest direction
-        # Make sure we're using the shortest rotation
-        #if yaw > math.pi:
-        #    yaw = -1 * (2*math.pi - yaw)
-
-        return yaw
-
 
 def main():
-    # Wait for gazebo to be fully initialized before starting our robot
-    rospy.wait_for_service('/gazebo/set_physics_properties')
-
     # create a movable turtle bot object
     robot = TurtleBot2D()
-
-    # Wait for everything else in Gazebo world to be ready
-    robot.wait_for_clients()
-
-    # Once everything is ready we need to reset our filters
-    # because they could have gotten erroneous readings
-    robot.reset_filters()
 
     x_upper = rospy.get_param('/x_upper')
     x_lower = rospy.get_param('/x_lower')
@@ -116,8 +114,10 @@ def main():
 
     # move the robot back and forth randomly until process killed with ctrl-c
     while not rospy.is_shutdown():
-        robot.move(goal_x=random.uniform(x_lower, x_upper),
-                   goal_y=random.uniform(y_lower, y_upper),
+        robot.move(#goal_x=random.uniform(x_lower, x_upper),
+                   #goal_y=random.uniform(y_lower, y_upper),
+                   goal_x = 0,
+                   goal_y = 0,
                    x_lower_bound=x_lower,
                    x_upper_bound=x_upper,
                    y_lower_bound=y_lower,

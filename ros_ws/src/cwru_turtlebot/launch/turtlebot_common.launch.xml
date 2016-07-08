@@ -27,7 +27,6 @@
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"
           required="true" output="screen">
         <param name="publish_frequency" type="double" value="30.0" />
-        <param name="tf_prefix" type="string" value="$(arg model_name)"/>
     </node>
 
     <!-- Fake laser -->
@@ -49,11 +48,6 @@
     <!-- Node to record sensor data to files -->
     <node if="$(arg sensor_record)" pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record"
           required="true" output="screen"/>
-
-    <!-- move_base for navigation -->
-    <include file="$(find cwru_turtlebot)/launch/move_base.launch.xml">
-        <arg name="model_name" value="$(arg model_name)"/>
-    </include>
 
     <!--include file="$(find cwru_turtlebot)/launch/amcl.launch.xml">
         <arg name="model_name" value="$(arg model_name)"/>

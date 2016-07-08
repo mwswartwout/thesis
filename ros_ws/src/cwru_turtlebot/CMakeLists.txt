@@ -11,7 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     geometry_msgs
     actionlib_msgs
-    tf)
+    tf
+    move_base_msgs)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

@@ -4,7 +4,7 @@ import rospy
 import csv
 import os
 import errno
-from helpers import convert_quaternion_to_yaw
+from helpers import convert_quaternion_to_yaw, correct_angle
 
 from nav_msgs.msg import Odometry
 from std_msgs.msg import UInt64
@@ -44,7 +44,7 @@ def continuous_odom_callback(new_odom):
         # Must add in the initial pose values to convert from odom frame to map frame
         pose_x = new_odom.pose.pose.position.x + initial_x
         pose_y = new_odom.pose.pose.position.y + initial_y
-        pose_yaw = convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw
+        pose_yaw = correct_angle(convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw)
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
         # TODO see if we can split covariance values into their own items
@@ -62,7 +62,7 @@ def discrete_odom_callback(new_odom):
         # Measurement is already in map frame so no need to convert by adding initial position
         pose_x = new_odom.pose.pose.position.x
         pose_y = new_odom.pose.pose.position.y
-        pose_yaw = convert_quaternion_to_yaw(new_odom.pose.pose.orientation)
+        pose_yaw = correct_angle(convert_quaternion_to_yaw(new_odom.pose.pose.orientation))
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
         discrete_data = [pose_x, pose_y, pose_yaw]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
@@ -79,7 +79,7 @@ def gazebo_odom_callback(new_odom):
         # Must add in the initial pose values to convert from odom frame to map frame
         pose_x = new_odom.pose.pose.position.x + initial_x
         pose_y = new_odom.pose.pose.position.y + initial_y
-        pose_yaw = convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw
+        pose_yaw = correct_angle(convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw)
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
         gazebo_data = [pose_x, pose_y, pose_yaw]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
@@ -214,6 +214,8 @@ def main():
     global external_count
     if rospy.get_param('/number_of_robots') == 1:
         external_count = [0]
+
+    rospy.sleep(rospy.Duration(2))  # Wait 2 seconds for filters to successfully localize before recording
 
     timer = rospy.Timer(rospy.Duration(.1), write_to_files)
 

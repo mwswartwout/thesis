@@ -13,5 +13,10 @@
         <arg name="sensor_record" value="$(arg sensor_record)"/>
     </include>
 
+    <!-- move_base for navigation -->
+    <include file="$(find cwru_turtlebot)/launch/move_base.launch.xml">
+        <arg name="model_name" value="$(arg model_name)"/>
+    </include>
+
     <node pkg="cwru_turtlebot" type="turtlebot_2d.py" name="robot" required="true" output="screen"/>
 </launch>
