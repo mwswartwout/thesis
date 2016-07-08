@@ -13,13 +13,13 @@
     <arg name="laser_topic" default="scan" />
 
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-        <rosparam file="$(find turtlebot_prm)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
-        <rosparam file="$(find turtlebot_prm)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
-        <rosparam file="$(find turtlebot_prm)/param/local_costmap_params.yaml" command="load" />
-        <rosparam file="$(find turtlebot_prm)/param/global_costmap_params.yaml" command="load" />
-        <rosparam file="$(find turtlebot_prm)/param/dwa_local_planner_params.yaml" command="load" />
-        <rosparam file="$(find turtlebot_prm)/param/move_base_params.yaml" command="load" />
-        <rosparam file="$(find turtlebot_prm)/param/global_planner_params.yaml" command="load" />
+        <rosparam file="$(find turtlebot_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find turtlebot_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find turtlebot_navigation)/param/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find turtlebot_navigation)/param/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find turtlebot_navigation)/param/dwa_local_planner_params.yaml" command="load" />
+        <rosparam file="$(find turtlebot_navigation)/param/move_base_params.yaml" command="load" />
+        <rosparam file="$(find turtlebot_navigation)/param/global_planner_params.yaml" command="load" />
 
         <!-- reset frame_id parameters using user input data -->
         <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>

@@ -1,7 +1,4 @@
 <launch>
-    <arg name="world_file"  default="$(env TURTLEBOT_GAZEBO_WORLD_FILE)"/>
-    <arg name="battery"   value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 -->
-    <arg name="gui" default="false"/>
     <arg name="model_name"/>
     <arg name="x_pos" default="0"/>
     <arg name="y_pos" default="0"/>
@@ -16,7 +13,7 @@
     <param name="yaw" type="double" value="$(arg yaw)"/>
 
     <!-- Launch the necessary Kobuki nodes for turtlebot operation-->
-    <include file="$(find cwru_turtlebot)/launch/kobuki.launch.xml">
+    <include file="$(find cwru_turtlebot)/launch/kobuki/kobuki.launch.xml">
         <arg name="model_name" value="$(arg model_name)"/>
         <arg name="x_pos" value="$(arg x_pos)"/>
         <arg name="y_pos" value="$(arg y_pos)"/>
@@ -41,20 +38,18 @@
     </node>
 
     <!-- Kalman filters responsible from robot_localization package -->
-    <include file="$(find cwru_turtlebot)/launch/turtlebot_filters.launch.xml">
+    <include file="$(find cwru_turtlebot)/launch/includes/turtlebot_filters.launch.xml">
         <arg name="model_name" value="$(arg model_name)"/>
     </include>
 
     <!-- Node to record sensor data to files -->
-    <node if="$(arg sensor_record)" pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record"
-          required="true" output="screen"/>
+    <node if="$(arg sensor_record)"
+          pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record" required="true" output="screen"/>
 
     <!--include file="$(find cwru_turtlebot)/launch/amcl.launch.xml">
         <arg name="model_name" value="$(arg model_name)"/>
         <arg name="initial_pose_x" value="$(arg x_pos)"/>
         <arg name="initial_pose_y" value="$(arg y_pos)"/>
         <arg name="initial_pose_a" value="$(arg yaw)"/>
-    </include>
-
-    <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"/-->
+    </include-->
 </launch>
