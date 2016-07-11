@@ -4,7 +4,7 @@ import math
 import numpy
 import rospy
 import copy
-from helpers import convert_quaternion_to_yaw
+from helpers import convert_quaternion_to_yaw, convert_yaw_to_quaternion
 
 # Action server imports
 # TODO need to switch from SimpleActionServer to ActionServer so that new goals don't preempt old ones
@@ -43,7 +43,7 @@ class TurtleBot:
         self.initial_pose = PoseWithCovarianceStamped()
         self.initial_pose.pose.pose.position.x = rospy.get_param('x_pos')
         self.initial_pose.pose.pose.position.y = rospy.get_param('y_pos')
-        self.initial_pose.pose.pose.orientation = self.convert_yaw_to_quaternion(rospy.get_param('yaw'))
+        self.initial_pose.pose.pose.orientation = convert_yaw_to_quaternion(rospy.get_param('yaw'))
         self.initial_pose.header.frame_id = 'map'
 
         self.continuous_pose_wrt_map = copy.deepcopy(self.initial_pose)
@@ -84,7 +84,8 @@ class TurtleBot:
         # Once everything is ready we need to reset our filters
         # because they could have gotten erroneous readings
         self.reset_filters()
-        rospy.logwarn('Finished turtlebot constructor')
+        rospy.loginfo('Finished base TurtleBot initialization')
+
     def initialize_subscribers(self):
         self.lidar_subscriber = rospy.Subscriber('scan',
                                                  LaserScan,
@@ -238,7 +239,7 @@ class TurtleBot:
         odom_yaw = convert_quaternion_to_yaw(odom.pose.pose.orientation)
         initial_yaw = convert_quaternion_to_yaw(self.initial_pose.pose.pose.orientation)
         current_yaw = odom_yaw + initial_yaw
-        self.continuous_pose_wrt_map.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
+        self.continuous_pose_wrt_map.pose.pose.orientation = convert_yaw_to_quaternion(current_yaw)
         self.continuous_pose_wrt_map.header.stamp = odom.header.stamp
 
     def discrete_odom_callback(self, odom):
@@ -256,7 +257,7 @@ class TurtleBot:
         odom_yaw = convert_quaternion_to_yaw(odom.pose.pose.orientation)
         initial_yaw = convert_quaternion_to_yaw(self.initial_pose.pose.pose.orientation)
         current_yaw = odom_yaw + initial_yaw
-        self.gazebo_pose_wrt_map.pose.pose.orientation = self.convert_yaw_to_quaternion(current_yaw)
+        self.gazebo_pose_wrt_map.pose.pose.orientation = convert_yaw_to_quaternion(current_yaw)
         self.gazebo_pose_wrt_map.header.stamp = odom.header.stamp
 
     def send_scan_to_clients(self, scan):
@@ -367,22 +368,12 @@ class TurtleBot:
 
         return stamped_scan_w_variance
 
-    @staticmethod
-    def convert_yaw_to_quaternion(yaw):
-        # Assumes roll/pitch = 0 always
-        quaternion = Quaternion()
-        quaternion.x = 0
-        quaternion.y = 0
-        quaternion.z = math.sin(yaw / 2)
-        quaternion.w = math.cos(yaw / 2)
-
-        return quaternion
-
     def reset_filters(self):
-        rospy.logdebug(self.namespace + ': Resetting filters...')
+        rospy.loginfo(self.namespace + ': Resetting filters...')
         error = False
+        #TODO add logic here to timeout while waiting and raise an error
         # First reset the continuous filter
-        rospy.wait_for_service('set_pose_continuous')
+        """rospy.wait_for_service('set_pose_continuous')
         try:
             continuous_service = rospy.ServiceProxy('set_pose_continuous', SetPose)
             request = SetPoseRequest()
@@ -390,6 +381,7 @@ class TurtleBot:
         except rospy.ROSException as e:
             rospy.logwarn(self.namespace + ': Service call failed - ' + e.message)
             error = True
+        """
 
         # Next reset the discrete filter
         rospy.wait_for_service('set_pose_discrete')
@@ -413,7 +405,10 @@ class TurtleBot:
 
     @staticmethod
     def wait_for_services():
+        # TODO add logic here to timeout and raise an error while waiting
+        rospy.loginfo('Waiting for services for TurtleBot initialization...')
         # Wait for gazebo and filters to be fully initialized before starting our robot
         rospy.wait_for_service('/gazebo/set_physics_properties')
         #rospy.wait_for_service('set_pose_continuous')
         rospy.wait_for_service('set_pose_discrete')
+        rospy.loginfo('All required services are active')

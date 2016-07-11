@@ -1,5 +1,6 @@
 import rospy
 import math
+from geometry_msgs.msg import Quaternion
 
 
 def get_curr_time():
@@ -22,6 +23,17 @@ def convert_quaternion_to_yaw(quaternion):
     w = quaternion.w
     yaw = math.atan2(2*(x*y + z*w), w**2 - z**2 - y**2 + x**2)
     return yaw
+
+
+def convert_yaw_to_quaternion(yaw):
+    # Assumes roll/pitch = 0 always since we're operating in 2D
+    quaternion = Quaternion()
+    quaternion.x = 0
+    quaternion.y = 0
+    quaternion.z = math.sin(yaw / 2)
+    quaternion.w = math.cos(yaw / 2)
+
+    return quaternion
 
 
 def correct_angle(yaw):

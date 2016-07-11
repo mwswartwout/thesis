@@ -23,6 +23,7 @@ class TurtleBot2D(TurtleBot, object):
 
         self.linear_speed = linear_speed  # expressed in m/s
         self.angular_speed = angular_speed  # expressed in rad/s
+        rospy.loginfo("Completed TurtleBot2D initialization")
 
     def move(self, goal_x=0, goal_y=0, goal_yaw=0, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
         # To prevent robot getting stuck or drifting towards just one specific area over course of experiment
@@ -99,15 +100,13 @@ def main():
 
     # move the robot back and forth randomly until process killed with ctrl-c
     while not rospy.is_shutdown():
-        robot.move(#goal_x=random.uniform(x_lower, x_upper),
-                   #goal_y=random.uniform(y_lower, y_upper),
-                   goal_x = 0,
-                   goal_y = 0,
+        robot.move(goal_x=random.uniform(x_lower, x_upper),
+                   goal_y=random.uniform(y_lower, y_upper),
                    x_lower_bound=x_lower,
                    x_upper_bound=x_upper,
                    y_lower_bound=y_lower,
                    y_upper_bound=y_upper)
-
+        rospy.sleep(5)
 
 if __name__ == '__main__':
     # run program and gracefully handle exit
