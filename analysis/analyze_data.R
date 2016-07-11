@@ -5,7 +5,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 renderAll <- function() {
     message("No args received, rendering all experiments")
-    for (directory in 2:length(dirs)){ # First result of list.dirs is always the data_dir, so iterate from 2 instead of 1
+    for (directory in 1:length(dirs)){ # First result of list.dirs is always the data_dir, so iterate from 2 instead of 1
         experiment_name = substr(dirs[directory], nchar(data_dir)+2, nchar(dirs[directory]))
         files <- list.files(path=dirs[directory], pattern="turtlebot([0-9])+_gazebo_odometry_filtered.csv")
 
@@ -37,7 +37,7 @@ renderAll <- function() {
 
 renderSome <- function() {
     message("Some args received, only rendering specified experiments")
-    for (directory in 2:length(dirs)){
+    for (directory in 1:length(dirs)){
         experiment_name = substr(dirs[directory], nchar(data_dir)+2, nchar(dirs[directory]))
         files <- list.files(path=dirs[directory], pattern="turtlebot([0-9])+_gazebo_odometry_filtered.csv")
 
