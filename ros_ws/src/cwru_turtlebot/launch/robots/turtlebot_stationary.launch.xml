@@ -5,7 +5,7 @@
     <arg name="yaw" default="0"/>
     <arg name="sensor_record" default="false"/>
 
-    <include file="$(find cwru_turtlebot)/launch/turtlebot_common.launch.xml">
+    <include file="$(find cwru_turtlebot)/launch/includes/turtlebot_common.launch.xml">
         <arg name="model_name" value="$(arg model_name)"/>
         <arg name="x_pos" value="$(arg x_pos)"/>
         <arg name="y_pos" value="$(arg y_pos)"/>

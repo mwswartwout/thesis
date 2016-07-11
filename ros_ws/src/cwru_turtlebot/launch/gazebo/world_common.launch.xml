@@ -12,8 +12,8 @@
 
     <node if="$(arg debug)" pkg="rqt_console" type="rqt_console" name="rqt_console"/>
 
-    <arg name="map_file" default="$(env TURTLEBOT_GAZEBO_MAP_FILE)"/>
-    <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"/>
+    <!--<arg name="map_file" default="$(env TURTLEBOT_GAZEBO_MAP_FILE)"/>-->
+    <!--<node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"/>-->
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d /home/matt/turtlebot_navigation.rviz" required="true"/>
+    <node if="$(arg gui)" name="rviz" pkg="rviz" type="rviz" args="-d /home/matt/turtlebot_navigation.rviz" required="true"/>
 </launch>

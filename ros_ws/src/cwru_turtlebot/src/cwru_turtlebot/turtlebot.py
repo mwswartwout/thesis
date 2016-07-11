@@ -28,6 +28,7 @@ from robot_localization.srv import SetPose, SetPoseRequest
 class TurtleBot:
 
     def __init__(self, rate=10):
+        rospy.loginfo('Starting turtlebot constructor')
         debug = rospy.get_param('/debug')
         if debug:
             rospy.init_node('robot', log_level=rospy.DEBUG)
@@ -83,15 +84,15 @@ class TurtleBot:
         # Once everything is ready we need to reset our filters
         # because they could have gotten erroneous readings
         self.reset_filters()
-
+        rospy.logwarn('Finished turtlebot constructor')
     def initialize_subscribers(self):
         self.lidar_subscriber = rospy.Subscriber('scan',
                                                  LaserScan,
                                                  self.scan_callback)
 
-        self.continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous',
-                                                           Odometry,
-                                                           self.continuous_odom_callback)
+        #self.continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous',
+        #                                                   Odometry,
+        #                                                   self.continuous_odom_callback)
 
         self.discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete',
                                                          Odometry,
@@ -414,5 +415,5 @@ class TurtleBot:
     def wait_for_services():
         # Wait for gazebo and filters to be fully initialized before starting our robot
         rospy.wait_for_service('/gazebo/set_physics_properties')
-        rospy.wait_for_service('set_pose_continuous')
+        #rospy.wait_for_service('set_pose_continuous')
         rospy.wait_for_service('set_pose_discrete')

@@ -32,26 +32,9 @@ class TurtleBot2D(TurtleBot, object):
             goal_x = (x_lower_bound + x_upper_bound) / 2
             goal_y = (y_lower_bound + y_upper_bound) / 2
 
-        tx = math.cos(goal_yaw)
-        ty = math.sin(goal_y)
-        nx = -1*ty
-        ny = tx
-
-        dx = goal_x - self.gazebo_pose_wrt_map.pose.pose.position.x
-        dy = goal_y - self.gazebo_pose_wrt_map.pose.pose.position.y
-
-        lateral_err = dx*nx + dy*ny
-        trip_dist_err = dx*tx + dy*ty
-        heading_err = correct_angle(goal_yaw - convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation))
-
-        yaw_gain = 0
-        translation_gain = 0
-
-
-        """"
         goal_pose = PoseStamped()
         goal_pose.header.stamp = rospy.Time.now()
-        goal_pose.header.frame_id = '/map'
+        goal_pose.header.frame_id = 'map'
         goal_pose.pose.position.x = goal_x
         goal_pose.pose.position.y = goal_y
         goal_pose.pose.orientation = self.continuous_pose_wrt_map.pose.pose.orientation  # Always keep our orientation the same
@@ -60,8 +43,11 @@ class TurtleBot2D(TurtleBot, object):
         goal.target_pose = goal_pose
 
         try:
+            rospy.loginfo('Waiting for move_base server')
             self.move_base_client.wait_for_server()
+            rospy.loginfo('Sending goal to move_base server')
             self.move_base_client.send_goal(goal)
+            rospy.loginfo('Waiting for goal result from move_base server')
             self.move_base_client.wait_for_result()
             success = self.move_base_client.get_result()
             if not success:
@@ -79,7 +65,6 @@ class TurtleBot2D(TurtleBot, object):
                                'Current discrete odom pose is (' + str(discrete_x) + ', ' + str(discrete_y) + '). ')
         except rospy.ROSException as e:
             rospy.logwarn(self.namespace + ': caught exception while sending move_base a movement goal - ' + e.message)
-    """
 
     def stop(self):
         try:

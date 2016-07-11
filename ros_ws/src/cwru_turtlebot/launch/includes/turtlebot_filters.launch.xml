@@ -5,38 +5,38 @@
     <!-- Continuous UKF -->
     <!-- Used for navigation, provides continuous information -->
     <!-- Transforms from odom to base_link using TurtleBot's self odometry and IMU -->
-    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_continuous" clear_params="true" output="screen" required="true">
-        <remap from="odometry/filtered" to="odometry/filtered_continuous"/>
-        <remap from="set_pose" to="set_pose_continuous"/>
-        <param name="frequency" value="10"/>
-        <param name="sensor_timeout"  value="0.1"/>
-        <param name="two_d_mode" value="true"/>
-        <param name="odom_frame" value="$(arg model_name)/odom"/>
-        <param name="base_link_frame" value="$(arg model_name)/base_footprint_filter"/>
-        <param name="world_frame" value="$(arg model_name)/odom"/>
-        <param name="transform_time_offset" value="0.0"/>
-        <param name="odom0" value="odom_remapped"/> <!-- internal odom-->
-        <rosparam param="odom0_config">[true,  true,  false, <!-- x y z -->
-                                        false,  false,  true, <!-- roll pitch yaw -->
-                                        true,  true,   false, <!-- x_vel y_vel z_vel -->
-                                        false,  false,  true, <!-- roll_vel pitch_vel yaw_vel -->
-                                        false,  false,  false] <!-- x_acc y_acc z_acc -->
-        </rosparam>
-        <param name="imu0" value="imu_data_remapped"/>
-        <!-- TODO reinclude x_acc once using real turtlebot and see if it has a better IMU than Gazebo -->
-        <!-- Because Gazebo produces constant x_acc of .2-.3 -->
-        <rosparam param="imu0_config">[false,   false,  false, <!-- x y z -->
-                                    false,   false,  true, <!--  roll pitch yaw -->
-                                    false,   false,  false, <!--  x_vel y_vel z_vel -->
-                                    false,   false,  true, <!--  roll_vel pitch_vel yaw_vel -->
-                                    false,    false, false] <!--  x_acc y_acc z_acc -->
-        </rosparam>
-        <param name="odom0_differential" value="false"/>
-        <param name="imu0_differential" value="false"/>
-        <param name="odom0_relative" value="false"/>
-        <param name="imu0_relative" value="false"/>
-        <param name="print_diagnostics" value="true"/>
-    </node>
+    <!--<node pkg="robot_localization" type="ukf_localization_node" name="ukf_continuous" clear_params="true" output="screen" required="true">-->
+        <!--<remap from="odometry/filtered" to="odometry/filtered_continuous"/>-->
+        <!--<remap from="set_pose" to="set_pose_continuous"/>-->
+        <!--<param name="frequency" value="10"/>-->
+        <!--<param name="sensor_timeout"  value="0.1"/>-->
+        <!--<param name="two_d_mode" value="true"/>-->
+        <!--<param name="odom_frame" value="$(arg model_name)/odom"/>-->
+        <!--<param name="base_link_frame" value="$(arg model_name)/base_footprint_filter"/>-->
+        <!--<param name="world_frame" value="$(arg model_name)/odom"/>-->
+        <!--<param name="transform_time_offset" value="0.0"/>-->
+        <!--<param name="odom0" value="odom_remapped"/> &lt;!&ndash; internal odom&ndash;&gt;-->
+        <!--<rosparam param="odom0_config">[true,  true,  false, &lt;!&ndash; x y z &ndash;&gt;-->
+                                        <!--false,  false,  true, &lt;!&ndash; roll pitch yaw &ndash;&gt;-->
+                                        <!--true,  true,   false, &lt;!&ndash; x_vel y_vel z_vel &ndash;&gt;-->
+                                        <!--false,  false,  true, &lt;!&ndash; roll_vel pitch_vel yaw_vel &ndash;&gt;-->
+                                        <!--false,  false,  false] &lt;!&ndash; x_acc y_acc z_acc &ndash;&gt;-->
+        <!--</rosparam>-->
+        <!--<param name="imu0" value="imu_data_remapped"/>-->
+        <!--&lt;!&ndash; TODO reinclude x_acc once using real turtlebot and see if it has a better IMU than Gazebo &ndash;&gt;-->
+        <!--&lt;!&ndash; Because Gazebo produces constant x_acc of .2-.3 &ndash;&gt;-->
+        <!--<rosparam param="imu0_config">[false,   false,  false, &lt;!&ndash; x y z &ndash;&gt;-->
+                                    <!--false,   false,  true, &lt;!&ndash;  roll pitch yaw &ndash;&gt;-->
+                                    <!--false,   false,  false, &lt;!&ndash;  x_vel y_vel z_vel &ndash;&gt;-->
+                                    <!--false,   false,  true, &lt;!&ndash;  roll_vel pitch_vel yaw_vel &ndash;&gt;-->
+                                    <!--false,    false, false] &lt;!&ndash;  x_acc y_acc z_acc &ndash;&gt;-->
+        <!--</rosparam>-->
+        <!--<param name="odom0_differential" value="false"/>-->
+        <!--<param name="imu0_differential" value="false"/>-->
+        <!--<param name="odom0_relative" value="false"/>-->
+        <!--<param name="imu0_relative" value="false"/>-->
+        <!--<param name="print_diagnostics" value="true"/>-->
+    <!--</node>-->
 
     <!-- Discrete UKF -->
     <!-- Transforms from map to odom using continuous filter output and external pose readings -->
@@ -47,10 +47,10 @@
         <param name="sensor_timeout"  value="0.1"/>
         <param name="two_d_mode" value="true"/>
         <param name="odom_frame" value="$(arg model_name)/odom"/>
-        <param name="base_link_frame" value="$(arg model_name)/base_footprint_filter"/>
+        <param name="base_link_frame" value="$(arg model_name)/base_footprint"/><!--_filter"/-->
         <param name="world_frame" value="map"/>
         <param name="transform_time_offset" value="0.0"/>
-        <param name="odom0" value="odom_remapped"/>
+        <param name="odom0" value="odom"/> <!--value="odom_remapped"/-->
         <!-- TODO adjust these -->
         <rosparam param="odom0_config">[false,  false,  false, <!-- x y z -->
                                         false,  false,  false, <!-- roll pitch yaw -->
@@ -58,7 +58,7 @@
                                         false,  false,  true, <!-- roll_vel pitch_vel yaw_vel -->
                                         false,  false,  false] <!-- x_acc y_acc z_acc -->
         </rosparam>
-        <param name="imu0" value="imu_data_remapped"/>
+        <param name="imu0" value="mobile_base/sensors/imu_data" /> <!--value="imu_data_remapped"/-->
         <!-- TODO reinclude x_acc once using real turtlebot and see if it has a better IMU than Gazebo -->
         <!-- Because Gazebo produces constant x_acc of .2-.3 -->
         <rosparam param="imu0_config">[ false,   false,  false, <!-- x y z -->
@@ -92,7 +92,7 @@
         <param name="print_diagnostics" value="true"/>
     </node>
 
-    <node pkg="tf" type="static_transform_publisher" name="filter_footprint_to_link_tf" args="0 0 0.01 0 0 0 1 $(arg model_name)/base_footprint_filter $(arg model_name)/base_link_filter 50"  required="true" output="screen"/>
+    <!--<node pkg="tf" type="static_transform_publisher" name="filter_footprint_to_link_tf" args="0 0 0.01 0 0 0 1 $(arg model_name)/base_footprint_filter $(arg model_name)/base_link_filter 50"  required="true" output="screen"/>-->
 
-    <node pkg="cwru_turtlebot" type="sensor_remap.py" name="sensor_remap" required="true" output="screen"/>
+    <!--<node pkg="cwru_turtlebot" type="sensor_remap.py" name="sensor_remap" required="true" output="screen"/>-->
 </launch>
