@@ -22,10 +22,12 @@ gazebo$dist_from_origin <- sqrt(gazebo$x_position ^ 2 + gazebo$y_position ^ 2)
 
 discrete$x_error <- gazebo$x_position - discrete$x_position
 discrete$y_error <- gazebo$y_position - discrete$y_position
+discrete$yaw_error <- gazebo$yaw - discrete$yaw
 discrete$dist_error <- sqrt(discrete$x_error ^ 2 + discrete$y_error ^ 2)
 
 continuous$x_error <- gazebo$x_position - continuous$x_position
 continuous$y_error <- gazebo$y_position - continuous$y_position
+continuous$yaw_error <- gazebo$yaw - continuous$yaw
 continuous$dist_error <- sqrt(continuous$x_error ^ 2 + continuous$y_error ^ 2)
 
 ## ---- plot
@@ -50,6 +52,12 @@ plot(continuous$y_error,
 plot(discrete$y_error,
      main="Discrete y_error over time")
 
+plot(continuous$yaw_error,
+     main="Continuous yaw error over time")
+
+plot(discrete$yaw_error,
+     main="Discrete yaw error over time")
+
 plot(continuous$dist_error,
      main="Continuous total distance error over time")
 
@@ -59,11 +67,16 @@ plot(discrete$dist_error,
 ## ---- summary
 summary(continuous$x_error)
 summary(continuous$y_error)
+summary(continuous$yaw_error)
 summary(continuous$dist_error)
 
 summary(discrete$x_error)
 summary(discrete$y_error)
+summary(discrete$yaw_error)
 summary(discrete$dist_error)
+
+#sum(continuous$dist_error <= 0.25) / length(continuous$dist_error)
+#sum(discrete$dist_error <= 0.25) / length(discrete$dist_error)
 
 ## ---- time
 total_time_seconds <- (length(gazebo$x_position) / 10)

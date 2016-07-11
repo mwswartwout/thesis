@@ -39,7 +39,7 @@ external_data_averages <- lapply(external_data_tables, FUN=function(table){table
 
 ## ---- plot
 plot(gazebo$x_position, gazebo$y_position,
-     main = "Ground truth visited locations of robot")
+     main = "Ground truth visited locations of robots")
 
 hist(gazebo$dist_from_origin,
      main = "Distance from origin vs. time")
