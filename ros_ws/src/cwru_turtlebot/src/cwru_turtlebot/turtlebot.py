@@ -373,7 +373,7 @@ class TurtleBot:
         error = False
         #TODO add logic here to timeout while waiting and raise an error
         # First reset the continuous filter
-        """rospy.wait_for_service('set_pose_continuous')
+        rospy.wait_for_service('set_pose_continuous')
         try:
             continuous_service = rospy.ServiceProxy('set_pose_continuous', SetPose)
             request = SetPoseRequest()
@@ -381,7 +381,6 @@ class TurtleBot:
         except rospy.ROSException as e:
             rospy.logwarn(self.namespace + ': Service call failed - ' + e.message)
             error = True
-        """
 
         # Next reset the discrete filter
         rospy.wait_for_service('set_pose_discrete')
@@ -409,6 +408,6 @@ class TurtleBot:
         rospy.loginfo('Waiting for services for TurtleBot initialization...')
         # Wait for gazebo and filters to be fully initialized before starting our robot
         rospy.wait_for_service('/gazebo/set_physics_properties')
-        #rospy.wait_for_service('set_pose_continuous')
+        rospy.wait_for_service('set_pose_continuous')
         rospy.wait_for_service('set_pose_discrete')
         rospy.loginfo('All required services are active')

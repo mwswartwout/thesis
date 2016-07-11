@@ -149,8 +149,6 @@ def write_to_files(event):
     global namespace
     global prefix
 
-    continuous_data = [0, 0, 0]
-
     if None not in (continuous_data, discrete_data, gazebo_data, external_count, namespace, prefix):
         # rospy.logdebug(namespace + ': Writing to sensor data to files')
 
