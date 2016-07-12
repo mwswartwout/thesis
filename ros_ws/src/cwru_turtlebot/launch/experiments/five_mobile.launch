@@ -14,16 +14,13 @@
     <param name="y_upper" type="double" value="10"/>
     <param name="y_lower" type="double" value="-10"/>
 
-    <node pkg="cwru_turtlebot" type="simulation_timer.py" name="simulation_timer" required="true" output="screen"/>
-
-    <include file="$(find cwru_turtlebot)/launch/empty_world.launch.xml">
-        <arg name="use_sim_time" value="true"/>
-        <arg name="debug" value="false"/>
-        <arg name="gui" value="$(arg gui)" />
+    <include file="$(find cwru_turtlebot)/launch/gazebo/world_common.launch.xml">
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="gui" value="$(arg gui)"/>
     </include>
 
     <group ns="turtlebot1">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/robots/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot1"/>
             <arg name="x_pos" value="0"/>
             <arg name="y_pos" value="0"/>
@@ -32,7 +29,7 @@
     </group>
 
     <group ns="turtlebot2">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/robots/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot2"/>
             <arg name="x_pos" value="0"/>
             <arg name="y_pos" value="2"/>
@@ -41,7 +38,7 @@
     </group>
 
     <group ns="turtlebot3">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/robots/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot3"/>
             <arg name="x_pos" value="0"/>
             <arg name="y_pos" value="-2"/>
@@ -50,7 +47,7 @@
     </group>
 
     <group ns="turtlebot4">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/robots/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot4"/>
             <arg name="x_pos" value="2"/>
             <arg name="y_pos" value="0"/>
@@ -59,7 +56,7 @@
     </group>
 
     <group ns="turtlebot5">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/robots/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot5"/>
             <arg name="x_pos" value="-2"/>
             <arg name="y_pos" value="0"/>

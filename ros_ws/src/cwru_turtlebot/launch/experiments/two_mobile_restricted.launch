@@ -15,13 +15,13 @@
     <param name="y_lower" type="double" value="-1"/>
     <param name="debug" type="bool" value="$(arg debug)"/>
 
-    <include file="$(find cwru_turtlebot)/launch/world_common.launch.xml">
+    <include file="$(find cwru_turtlebot)/launch/gazebo/world_common.launch.xml">
         <arg name="debug" value="$(arg debug)"/>
         <arg name="gui" value="$(arg gui)"/>
     </include>
 
     <group ns="turtlebot1">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/robots/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot1"/>
             <arg name="x_pos" value="-0.5"/>
             <arg name="y_pos" value="0"/>
@@ -30,7 +30,7 @@
     </group>
 
     <group ns="turtlebot2">
-        <include file="$(find cwru_turtlebot)/launch/turtlebot_2d.launch.xml">
+        <include file="$(find cwru_turtlebot)/launch/robots/turtlebot_2d.launch.xml">
             <arg name="model_name" value="turtlebot2"/>
             <arg name="x_pos" value=".5"/>
             <arg name="y_pos" value="0"/>
