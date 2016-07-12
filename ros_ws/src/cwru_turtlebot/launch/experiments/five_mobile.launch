@@ -1,6 +1,6 @@
 <!-- TODO Simplify launch files with a turtlebot_common file -->
 <launch>
-    <arg name="gui" default="true"/>
+    <arg name="gui" default="false"/>
     <arg name="sensor_record" default="true"/>
     <arg name="save_file_prefix" default="/home/matt/thesis/experiment_data/five_mobile/"/>
     <arg name="sim_time" default="60"/>
@@ -13,6 +13,7 @@
     <param name="x_lower" type="double" value="-10"/>
     <param name="y_upper" type="double" value="10"/>
     <param name="y_lower" type="double" value="-10"/>
+    <param name="debug" type="bool" value="$(arg debug)"/>
 
     <include file="$(find cwru_turtlebot)/launch/gazebo/world_common.launch.xml">
         <arg name="debug" value="$(arg debug)"/>
