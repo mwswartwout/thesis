@@ -76,6 +76,8 @@ class TurtleBot:
         self.external_pose_publisher.publish(self.initial_pose)  # Publish so that we start out knowing where we are
         self.initialize_action_clients()
 
+        # TODO think about making this time out so that once the robot knows its initial position it not longer
+        # receives the gps signal, but might have to still receive orientation data
         timer = rospy.Timer(rospy.Duration(1), self.fake_gps)  # Publish fake gps every second
 
         # Wait for everything else in Gazebo world to be ready
@@ -91,9 +93,9 @@ class TurtleBot:
                                                  LaserScan,
                                                  self.scan_callback)
 
-        #self.continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous',
-        #                                                   Odometry,
-        #                                                   self.continuous_odom_callback)
+        self.continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous',
+                                                           Odometry,
+                                                           self.continuous_odom_callback)
 
         self.discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete',
                                                          Odometry,
@@ -227,7 +229,7 @@ class TurtleBot:
                 rospy.logwarn(self.namespace + ': Unable to publish most recent processed scan - ' + e.message)
 
             self.most_recent_scan = processed_scan
-            #self.send_scan_to_clients(processed_scan)
+            self.send_scan_to_clients(processed_scan)
         # rospy.logdebug(self.namespace + ': Exiting scan callback')
 
     def continuous_odom_callback(self, odom):
@@ -293,7 +295,6 @@ class TurtleBot:
             current_yaw = convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation) + scan.scan.yaw_offset
 
             # Determine what pose (in the map frame) we believe we are seeing the other robot at
-            # Subtract 0.2 to account for location of Kinect and point of detection relative to TurtleBot base_footprint
             pose.pose.pose.position.x = current_x + scan.scan.median * math.cos(current_yaw)
             pose.pose.pose.position.y = current_y + scan.scan.median * math.sin(current_yaw)
 

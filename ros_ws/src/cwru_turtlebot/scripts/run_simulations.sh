@@ -1,15 +1,52 @@
 #!/usr/bin/env bash
 
-#roslaunch cwru_turtlebot one_stationary.launch sim_time:=480
+kill_everything() {
+    echo Killing everything
+    rosnode kill -a
+    killall gzserver
+    killall rosmaster
+}
 
-roslaunch cwru_turtlebot one_mobile.launch sim_time:=480
+# First run noiseless experiments
+roslaunch cwru_turtlebot one_stationary.launch sim_time:=500
+kill_everything
 
-roslaunch cwru_turtlebot two_stationary.launch sim_time:=480
+roslaunch cwru_turtlebot one_mobile.launch sim_time:=500
+kill_everything
 
-roslaunch cwru_turtlebot two_mobile.launch sim_time:=480
+roslaunch cwru_turtlebot two_stationary.launch sim_time:=500
+kill_everything
 
-#roslaunch cwru_turtlebot two_mobile_restricted.launch save_file_prefix:="/home/matt/thesis/experiment_data/two_mobile_restricted/" gui:=false sim_time:=7200
+roslaunch cwru_turtlebot two_mobile.launch sim_time:=500
+kill_everything
 
-#roslaunch cwru_turtlebot five_mobile.launch save_file_prefix:="/home/matt/thesis/experiment_data/five_mobile/" gui:=false sim_time:=7200
+roslaunch cwru_turtlebot two_mobile_restricted.launch sim_time:=500
+kill_everything
 
-#roslaunch cwru_turtlebot five_mobile_restricted.launch save_file_prefix:="/home/matt/thesis/experiment_data/five_mobile_restricted/" gui:=false sim_time:=7200
+roslaunch cwru_turtlebot five_mobile.launch sim_time:=500
+kill_everything
+
+roslaunch cwru_turtlebot five_mobile_restricted.launch sim_time:=500
+kill_everything
+
+# Now run noisy experiments
+roslaunch cwru_turtlebot one_stationary.launch sim_time:=500 noisy:=true
+kill_everything
+
+roslaunch cwru_turtlebot one_mobile.launch sim_time:=500 noisy:=true
+kill_everything
+
+roslaunch cwru_turtlebot two_stationary.launch sim_time:=500 noisy:=true
+kill_everything
+
+roslaunch cwru_turtlebot two_mobile.launch sim_time:=500 noisy:=true
+kill_everything
+
+roslaunch cwru_turtlebot two_mobile_restricted.launch sim_time:=500 noisy:=true
+kill_everything
+
+roslaunch cwru_turtlebot five_mobile.launch sim_time:=500
+kill_everything
+
+roslaunch cwru_turtlebot five_mobile_restricted.launch sim_time:=500
+kill_everything

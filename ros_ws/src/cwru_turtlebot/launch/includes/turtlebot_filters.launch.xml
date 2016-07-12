@@ -2,6 +2,8 @@
     <arg name="model_name"/>
     <!-- Robot Localization nodes-->
 
+    <!-- TODO add another continuous filter to compare noiseless and noisy readings in same experiment -->
+
     <!-- Continuous UKF -->
     <!-- Used for navigation, provides continuous information -->
     <!-- Transforms from odom to base_link using TurtleBot's self odometry and IMU -->
@@ -40,17 +42,17 @@
 
     <!-- Discrete UKF -->
     <!-- Transforms from map to odom using continuous filter output and external pose readings -->
-    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_discrete" clear_params="true" output="screen" required="true">
+    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_discrete_filter" clear_params="true" output="screen" required="true">
         <remap from="odometry/filtered" to="odometry/filtered_discrete"/>
         <remap from="set_pose" to="set_pose_discrete"/>
         <param name="frequency" value="10"/>
         <param name="sensor_timeout"  value="0.1"/>
         <param name="two_d_mode" value="true"/>
         <param name="odom_frame" value="$(arg model_name)/odom"/>
-        <param name="base_link_frame" value="$(arg model_name)/base_footprint"/><!--_filter"/-->
+        <param name="base_link_frame" value="$(arg model_name)/base_footprint_filter"/>
         <param name="world_frame" value="map"/>
         <param name="transform_time_offset" value="0.0"/>
-        <param name="odom0" value="odom"/> <!--value="odom_remapped"/-->
+        <param name="odom0" value="odom_remapped"/>
          <!-- TODO adjust these -->
         <rosparam param="odom0_config">[false,  false,  false, <!-- x y z -->
                                         false,  false,  false, <!-- roll pitch yaw -->
@@ -58,7 +60,7 @@
                                         false,  false,  true, <!-- roll_vel pitch_vel yaw_vel -->
                                         false,  false,  false] <!-- x_acc y_acc z_acc -->
         </rosparam>
-        <param name="imu0" value="mobile_base/sensors/imu_data" /> <!--value="imu_data_remapped"/-->
+        <param name="imu0" value="imu_data_remapped" /> <!--value="imu_data_remapped"/-->
         <!-- TODO reinclude x_acc once using real turtlebot and see if it has a better IMU than Gazebo -->
         <!-- Because Gazebo produces constant x_acc of .2-.3 -->
         <rosparam param="imu0_config">[ false,   false,  false, <!-- x y z -->
@@ -68,6 +70,7 @@
                                         false,   false,  false] <!--  x_acc y_acc z_acc -->
         </rosparam>
         <param name="pose0" value="external_poses"/>
+        <!-- Take only position data because our scans can't determine orientation of robot -->
         <rosparam param="pose0_config">[true,    true,  false, <!-- x y z -->
                                         false,   false, false, <!-- roll pitch yaw -->
                                         false,   false, false, <!-- x_vel y_vel z_vel -->
