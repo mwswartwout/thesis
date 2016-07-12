@@ -2,7 +2,7 @@
     <arg name="model_name"/>
     <arg name="x_pos" default="0"/>
     <arg name="y_pos" default="0"/>
-    <arg name="yaw" default="0"/>
+    <arg name="yaw" value="0"/> <!-- Don't allow overwrite due to bug in current code caused when initial yaw != 0 -->
     <arg name="sensor_record" default="false"/>
 
     <include file="$(find cwru_turtlebot)/launch/includes/turtlebot_common.launch.xml">
