@@ -2,7 +2,6 @@
 <launch>
     <arg name="gui" default="false"/>
     <arg name="sensor_record" default="true"/>
-    <arg name="save_file_prefix" default="/home/matt/thesis/experiment_data/two_mobile_restricted/"/>
     <arg name="sim_time" default="60"/>
     <arg name="debug" default="false"/>
     <arg name="noisy" default="false"/>
