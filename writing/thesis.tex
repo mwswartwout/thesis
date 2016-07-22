@@ -1,9 +1,11 @@
 \documentclass[]{cwru} % Use `singlespaced` option to make the mainmatter text single-spaced
 		       % Use 'proposal option if this is a proposal'
+		       
 \usepackage[backend=biber]{biblatex}
 \addbibresource{library.bib}
-\usepackage[final]{microtype}
-\usepackage{subfiles}
+\usepackage[final]{microtype} % Makes things prettier and fit better
+\usepackage{subfiles} % Use to compartmentalize different chapters in different files
+\usepackage{hyperref}
 \fancyhead[LO,RE]{} % Remove section names from header
 
 % If you're using the `glossaries` package acronyms (see below)
@@ -21,6 +23,7 @@
 % but you can override it
 %\committeechair{Dr.\ Some Otherperson}
 
+\input{glossary} 
 \begin{document}
 
 \advisor{Dr. M. Cenk \c{C}avo\c{s}o\u{g}lu}
@@ -62,25 +65,20 @@
 \addcontentsline{toc}{chapter}{List of Figures}
 \listoffigures
 
-\begin{acknowledgments}
-\end{acknowledgments}
+%\begin{acknowledgments}
+%\end{acknowledgments}
 
 % If you're using `glossaries` package
 
-%\cleardoublepage
-%\phantomsection
-%\addcontentsline{toc}{chapter}{List of Acronyms}
-%\printglossary[type=\acronymtype]
+\cleardoublepage
+\phantomsection
+\printglossary[type=\acronymtype, title=List of Acronyms]
 
-%\cleardoublepage
-%\phantomsection
-%\addcontentsline{toc}{chapter}{Glossary}
-%\printglossary
+\cleardoublepage
+\phantomsection
+\printglossary[title=List of Terms]
 
-\begin{abstract}
-% "Dissertation abstracts must not exceed 350 words, thesis abstracts 150."
 \subfile{abstract}
-\end{abstract}
 
 \mainmatter
 \subfile{introduction}

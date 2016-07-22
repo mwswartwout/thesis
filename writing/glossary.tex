@@ -1,0 +1,12 @@
+\usepackage[xindy, acronyms, toc]{glossaries}
+\makeglossaries
+\newacronym{ros}{ROS}{Robot Operating System}
+\newacronym{ekf}{EKF}{Extended Kalman Filter}
+
+\newglossaryentry{disc_filter}{name={Discrete Filter},description={Extended Kalman Filter that incorporates the robot's odometry, sensor information, GPS, and external pose estimates from other robots. This filter is subject to discrete jumps in position.}}
+
+\newglossaryentry{con_filter}{name={Continuous Filter},description={Extended Kalman Filter that incorporates only the robot's odometry and sensor information. This filter provides continuous data suitable for short-term navigation and control but it subject to drift over time.}}
+
+\newglossaryentry{self_filter}{name={Self Filter}, description={Another name for the Continuous Filter}, see={con_filter}}
+
+\newglossaryentry{dist_filter}{name={Distributed Filter}, description={Another name for the Discrete Filter}, see={disc_filter}}
