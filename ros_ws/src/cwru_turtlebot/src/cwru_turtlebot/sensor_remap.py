@@ -1,18 +1,35 @@
 #!/usr/bin/env python
 
 import rospy
+import math
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
 from numpy.random import randn, normal
 from helpers import convert_quaternion_to_yaw, convert_yaw_to_quaternion
+from geometry_msgs.msg import Pose2D, PoseWithCovarianceStamped
 
 # publisher for imu, odom
 imu_publisher = rospy.Publisher('imu_data_remapped', Imu, queue_size=1)
 odom_publisher = rospy.Publisher('odom_remapped', Odometry, queue_size=1)
+noisy_odom_publisher = rospy.Publisher('noisy_odom_remapped', Odometry, queue_size=1)
 
 # get the current namespace
 namespace = rospy.get_namespace()[1:]
 noisy = False
+previous_pose = None
+previous_odom = None
+initial_pose = None
+
+
+def initial_position_callback(position):
+    # Record the initial position of the robot so that we can convert the odometry values from the robot's odom frame
+    # to the map frame
+    global initial_pose
+
+    initial_pose = Pose2D()
+    initial_pose.x = position.pose.pose.position.x
+    initial_pose.y = position.pose.pose.position.y
+    initial_pose.theta = convert_quaternion_to_yaw(position.pose.pose.orientation)
 
 
 def imu_remap(imu_msg):
@@ -50,39 +67,87 @@ def imu_remap(imu_msg):
 
 def odom_remap(odom_msg):
     global namespace
-    global noisy
 
     # remap odom message to base_footprint_self and publish the new message
     remapped_msg = odom_msg
     remapped_msg.child_frame_id = namespace + 'base_footprint_filter'
-
-    cumulative_x_err = 0
-    cumulative_y_err = 0
-    cumulative_z_err = 0
-    cumulative_yaw_err = 0
-
-    if noisy:
-        noise = normal(0, .01, 4)  # Use very small variance because of how many odometry messages gazebo publishes
-        cumulative_x_err += noise[0]
-        cumulative_y_err += noise[1]
-        cumulative_z_err += noise[2]
-        cumulative_yaw_err += noise[3]
-
-        position = remapped_msg.pose.pose.position
-        orientation = remapped_msg.pose.pose.orientation
-
-        position.x += cumulative_x_err
-        position.y += cumulative_y_err
-        position.z += cumulative_z_err
-
-        noisy_yaw = convert_quaternion_to_yaw(orientation) + cumulative_yaw_err
-        orientation = convert_yaw_to_quaternion(noisy_yaw)
 
     if not rospy.is_shutdown():
         try:
             odom_publisher.publish(remapped_msg)
         except rospy.ROSException as e:
             rospy.logwarn(e.message)
+
+
+def noisy_odom_remap(odom_msg):
+    global namespace
+    global previous_pose
+    global previous_odom
+
+
+
+    # Odometry model taken from Probabilistic Robotics by Thurn et al.
+    # Algorithm used is sample_motion_model_odometry from Table 5.6
+
+    # Robot specific noise parameters
+    alpha_1 = 1
+    alpha_2 = 1
+    alpha_3 = 1
+    alpha_4 = 1
+
+    current_odom = Pose2D()
+    current_odom.x = odom_msg.pose.pose.position.x
+    current_odom.y = odom_msg.pose.pose.position.y
+    current_odom.theta = convert_quaternion_to_yaw(odom_msg.pose.pose.orientation)
+
+    if None not in (previous_pose, previous_odom):
+
+
+        delta_rotation_1 = math.atan2(current_odom.y - previous_odom.y, current_odom.x - previous_odom.x) - previous_odom.theta
+        delta_translation = math.sqrt((previous_odom.x - current_odom.x) ** 2 + (previous_odom.y - current_odom.y) ** 2)
+        delta_rotation_2 = current_odom.theta - previous_odom.theta - delta_rotation_1
+
+        std_dev_1 = alpha_1 * math.abs(delta_rotation_1) + alpha_2 * delta_translation
+        delta_rotation_1_hat = delta_rotation_1 - normal(scale=std_dev_1)
+
+        std_dev_2 = alpha_3 * delta_translation + alpha_4 * (math.abs(delta_rotation_1) + math.abs(delta_rotation_2))
+        delta_translation_hat = delta_translation - normal(scale=std_dev_2)
+
+        std_dev_3 = alpha_1 * math.abs(delta_rotation_2) + alpha_2 * delta_translation
+        delta_rotation_2_hat = delta_rotation_2 - normal(scale=std_dev_3)
+
+        noisy_odom = Odometry()
+        noisy_odom.pose.pose.position.x = previous_pose.x + delta_translation_hat * math.cos(previous_pose.theta + delta_rotation_1_hat)
+        noisy_odom.pose.pose.position.y = previous_pose.y + delta_translation_hat * math.sin(previous_pose.theta + delta_rotation_1_hat)
+        noisy_odom_yaw = convert_quaternion_to_yaw(previous_pose.pose.pose.orientation) + delta_rotation_1_hat + delta_rotation_2_hat
+        noisy_odom.pose.pose.orientation = convert_yaw_to_quaternion(noisy_odom_yaw)
+        noisy_odom.child_frame_id = namespace + 'base_footprint_filter'
+
+        if not rospy.is_shutdown():
+            try:
+                noisy_odom_publisher.publish(noisy_odom)
+            except rospy.ROSException as e:
+                rospy.logwarn(e.message)
+
+        previous_pose.x = noisy_odom.pose.pose.position.x
+        previous_pose.y = noisy_odom.pose.pose.position.y
+        previous_pose.theta = convert_quaternion_to_yaw(noisy_odom.pose.pose.orientation)
+
+        previous_odom.x = current_odom.x
+        previous_odom.y = current_odom.y
+        previous_odom.theta = current_odom.theta
+
+    if previous_odom is None:
+        previous_odom = Pose2D()
+        previous_odom.x = current_odom.x
+        previous_odom.y = current_odom.y
+        previous_odom.theta = current_odom.theta
+
+    if previous_pose is None:
+        previous_pose = Pose2D()
+        previous_pose.x = initial_pose.x
+        previous_pose.y = initial_pose.y
+        previous_pose.theta = initial_pose.theta
 
 
 def main():
@@ -101,6 +166,10 @@ def main():
     # subscribe to imu and odom from the robot
     imu_subscriber = rospy.Subscriber('mobile_base/sensors/imu_data', Imu, imu_remap)
     odom_subscriber = rospy.Subscriber('odom', Odometry, odom_remap)
+    noisy_odom_subscriber = rospy.Subscriber('odom', Odometry, noisy_odom_remap)
+
+    # Get the initial position of the robot
+    initial_position_subscriber = rospy.Subscriber('initial_position', PoseWithCovarianceStamped, initial_position_callback)
 
     # just run this to pub/sub to the robot
     while not rospy.is_shutdown():
