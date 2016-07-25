@@ -1,0 +1,93 @@
+\documentclass[]{cwru} % Use `singlespaced` option to make the mainmatter text single-spaced
+		       % Use 'proposal option if this is a proposal'
+		       
+\usepackage[backend=biber]{biblatex}
+\addbibresource{library.bib}
+\usepackage[final]{microtype} % Makes things prettier and fit better
+\usepackage{subfiles} % Use to compartmentalize different chapters in different files
+\usepackage{hyperref}
+\fancyhead[LO,RE]{} % Remove section names from header
+
+% If you're using the `glossaries` package acronyms (see below)
+%\renewcommand*{\acronymname}{List of Acronyms}
+
+\title{Distributed Secure State Estimation with the TurtleBot Platform}
+\author{Matthew Swartwout}
+\date{January, 2017} % Graduate Date
+\doctype{thesis} % dissertation/thesis
+\degree{Master of Science in Computer Engineering}
+\department{Electrical Engineering and Computer Science}
+
+\defensedate{August 29, 2016}
+% By default, commitee chair is advisor,
+% but you can override it
+%\committeechair{Dr.\ Some Otherperson}
+
+\input{glossary} 
+\begin{document}
+
+\advisor{Dr. M. Cenk \c{C}avo\c{s}o\u{g}lu}
+% Add up to 5 committee members
+\committee{Dr. Wyatt Newman}
+\committee{Dr. Francis Merat}
+
+% The organization of the dissertation must follow the order below:
+% 
+% Title page
+% Committee Approval Sheet
+% Copyright page (only if copyrighting)
+% Dedication page (optional)
+% Table of Contents
+% List of Tables
+% List of Figures
+% Preface (optional)
+% Acknowledgements (optional)
+% List of Abbreviations (optional)
+% Glossary (optional)
+% Abstract
+% --TEXT--
+% Appendix
+% Bibliography
+
+\maketitle
+\makeapprovalsheet
+
+\frontmatter
+\tableofcontents
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+
+%\begin{acknowledgments}
+%\end{acknowledgments}
+
+% If you're using `glossaries` package
+
+\cleardoublepage
+\phantomsection
+\printglossary[type=\acronymtype, title=List of Acronyms]
+
+\cleardoublepage
+\phantomsection
+\printglossary[title=List of Terms]
+
+\subfile{abstract}
+
+\mainmatter
+\subfile{introduction}
+
+\backmatter
+\appendix
+
+% For your references
+%TODO, add a sample Bibliography entry to ensure that this works
+\printbibliography
+
+\end{document}
