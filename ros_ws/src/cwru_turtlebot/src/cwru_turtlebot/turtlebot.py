@@ -296,8 +296,9 @@ class TurtleBot:
             current_yaw = convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation) + scan.scan.yaw_offset
 
             # Determine what pose (in the map frame) we believe we are seeing the other robot at
-            pose.pose.pose.position.x = current_x + scan.scan.median * math.cos(current_yaw)
-            pose.pose.pose.position.y = current_y + scan.scan.median * math.sin(current_yaw)
+            # Add 0.2 (turtlebot radius) to more evenly distribute pose estimates non-deterministically
+            pose.pose.pose.position.x = current_x + (scan.scan.median + 0.2) * math.cos(current_yaw)
+            pose.pose.pose.position.y = current_y + (scan.scan.median + 0.2) * math.sin(current_yaw)
 
             rospy.logdebug(self.namespace + ': Current position is (' + str(current_x) + ', ' + str(current_y) +
                            '), with yaw of ' + str(current_yaw) + ' got scan with median ' + str(scan.scan.median) +
