@@ -1,6 +1,5 @@
 <launch>
     <arg name="model_name"/>
-    <arg name="noisy"/>
     <arg name="x_pos" default="0"/>
     <arg name="y_pos" default="0"/>
     <arg name="yaw" default="0"/>

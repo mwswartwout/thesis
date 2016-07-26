@@ -1,6 +1,5 @@
 <launch>
     <arg name="model_name"/>
-    <arg name="noisy"/>
     <arg name="x_pos" default="0"/>
     <arg name="y_pos" default="0"/>
     <arg name="yaw" default="0"/>
@@ -12,7 +11,6 @@
         <arg name="y_pos" value="$(arg y_pos)"/>
         <arg name="yaw" value="$(arg yaw)"/>
         <arg name="sensor_record" value="$(arg sensor_record)"/>
-        <arg name="noisy" value="$(arg noisy)"/>
     </include>
 
     <!-- Main ROS node for turtlebot logic-->

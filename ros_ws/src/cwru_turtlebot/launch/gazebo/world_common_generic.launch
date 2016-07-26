@@ -5,6 +5,7 @@
     <arg name="number_of_robots"/>
     <arg name="sim_time" default="60"/>
 
+    <!-- TODO switch to YAML file for parameters -->
     <param name="number_of_robots" type="int" value="$(arg number_of_robots)"/>
     <param name="sim_time" type="double" value="$(arg sim_time)"/>
     <param name="x_upper" type="double" value="15"/>
