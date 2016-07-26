@@ -9,6 +9,7 @@ from helpers import convert_quaternion_to_yaw, correct_angle
 from nav_msgs.msg import Odometry
 from std_msgs.msg import UInt64
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from sensor_msgs.msg import Imu
 
 initial_x = None
 initial_y = None
@@ -20,6 +21,7 @@ external_count = None
 namespace = None
 # TODO add protections so that a lack of starting or trailing slashes does not affect prefix and file writing
 prefix = None
+imu_data = None
 
 
 def initial_position_callback(position):
@@ -48,7 +50,7 @@ def continuous_odom_callback(new_odom):
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
         # TODO see if we can split covariance values into their own items
-        continuous_data = [pose_x, pose_y, pose_yaw]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        continuous_data = (pose_x, pose_y, pose_yaw)#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
         # rospy.logdebug(namespace + ': sensor_record received new continuous data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
@@ -65,7 +67,7 @@ def discrete_odom_callback(new_odom):
         pose_yaw = correct_angle(convert_quaternion_to_yaw(new_odom.pose.pose.orientation))
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
-        discrete_data = [pose_x, pose_y, pose_yaw]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        discrete_data = (pose_x, pose_y, pose_yaw)#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
         # rospy.logdebug(namespace + ': sensor_record received new discrete data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
@@ -82,7 +84,7 @@ def gazebo_odom_callback(new_odom):
         pose_yaw = correct_angle(convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw)
         # pose_covariance = new_odom.pose.covariance
         # twist_covariance = new_odom.twist.covariance
-        gazebo_data = [pose_x, pose_y, pose_yaw]#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        gazebo_data = (pose_x, pose_y, pose_yaw)#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
         # rospy.logdebug(namespace + ': sensor_record received new gazebo data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
@@ -92,6 +94,16 @@ def external_pose_count_callback(count):
 
     rospy.logdebug(namespace + ': sensor_record received new external_count value of ' + str(count.data))
     external_count = [count.data]
+
+
+def imu_callback(imu_msg):
+    global imu_data
+
+    yaw = convert_quaternion_to_yaw(imu_msg.orientation)
+    velocity = (imu_msg.angular_velocity.x, imu_msg.angular_velocity.y, imu_msg.angular_velocity.z)
+    acceleration = (imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z)
+
+    imu_data = (yaw, velocity[0], velocity[1], velocity[2], acceleration[0], acceleration[1], acceleration[2])
 
 
 def make_sure_path_exists(path):
@@ -132,6 +144,11 @@ def write_headers():
         with open(filename, 'w+') as count_file:
             writer = csv.writer(count_file)
             writer.writerow(['count'])
+
+        filename = prefix + namespace + '_raw_imu_data.csv'
+        with open(filename, 'w+') as imu_file:
+            writer = csv.writer(imu_file)
+            writer.writerow(['yaw', 'x_vel', 'y_vel', 'z_vel', 'x_acc', 'y_acc', 'z_acc'])
     else:
         if namespace is None:
             rospy.logdebug('Could not write headers because namespace was not initialized')
@@ -146,10 +163,11 @@ def write_to_files(event):
     global discrete_data
     global gazebo_data
     global external_count
+    global imu_data
     global namespace
     global prefix
 
-    if None not in (continuous_data, discrete_data, gazebo_data, external_count, namespace, prefix):
+    if None not in (continuous_data, discrete_data, gazebo_data, external_count, imu_data, namespace, prefix):
         # rospy.logdebug(namespace + ': Writing to sensor data to files')
 
         filename = prefix + namespace + '_continuous_odometry_filtered.csv'
@@ -171,6 +189,11 @@ def write_to_files(event):
         with open(filename, 'a+') as count_file:
             writer = csv.writer(count_file)
             writer.writerow(external_count)
+
+        filename = prefix + namespace + '_raw_imu_data.csv'
+        with open(filename, 'a+') as imu_file:
+            writer = csv.writer(imu_file)
+            writer.writerow(imu_data)
     else:
         if namespace is None:
             rospy.logdebug('Could not write data because namespace was not initialized')
@@ -207,7 +230,7 @@ def main():
     discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete', Odometry, discrete_odom_callback)
     gazebo_odom_subscriber = rospy.Subscriber('odom', Odometry, gazebo_odom_callback)
     external_pose_count_subscriber = rospy.Subscriber('external_poses_count', UInt64, external_pose_count_callback)
-
+    imu_subscriber = rospy.Subscriber('imu_data_remapped', Imu, imu_callback)
     write_headers()
 
     # Must account for single robot simulation where there are no external poses
