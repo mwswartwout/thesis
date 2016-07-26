@@ -4,6 +4,7 @@ import math
 import numpy
 import rospy
 import copy
+import helpers
 from helpers import convert_quaternion_to_yaw, convert_yaw_to_quaternion
 
 # Action server imports
@@ -36,7 +37,7 @@ class TurtleBot:
             rospy.init_node('robot')
 
         # Wait for things to initialize before starting robot
-        self.wait_for_services()
+        helpers.wait_for_services()
 
         # Create initial pose object from parameter server
         # This pose is in the map frame
@@ -402,13 +403,3 @@ class TurtleBot:
     def fake_gps(self, event):
         # Use this so discrete filter can localize w/o external measurements
         self.fake_gps_publisher.publish(self.gazebo_pose_wrt_map)
-
-    @staticmethod
-    def wait_for_services():
-        # TODO add logic here to timeout and raise an error while waiting
-        rospy.loginfo('Waiting for services for TurtleBot initialization...')
-        # Wait for gazebo and filters to be fully initialized before starting our robot
-        rospy.wait_for_service('/gazebo/set_physics_properties')
-        rospy.wait_for_service('set_pose_continuous')
-        rospy.wait_for_service('set_pose_discrete')
-        rospy.loginfo('All required services are active')

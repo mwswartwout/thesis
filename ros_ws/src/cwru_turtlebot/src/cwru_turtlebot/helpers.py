@@ -48,9 +48,21 @@ def correct_angle(yaw):
     if yaw < 0:
         yaw += 2 * math.pi
 
+    assert -1 * math.pi < yaw < math.pi
+
     # TODO add in calculation to rotate in shortest direction
     # Make sure we're using the shortest rotation
     #if yaw > math.pi:
     #    yaw = -1 * (2*math.pi - yaw)
 
     return yaw
+
+
+def wait_for_services():
+    # TODO add logic here to timeout and raise an error while waiting
+    rospy.loginfo('Waiting for services for TurtleBot initialization...')
+    # Wait for gazebo and filters to be fully initialized before starting our robot
+    rospy.wait_for_service('/gazebo/set_physics_properties')
+    rospy.wait_for_service('set_pose_continuous')
+    rospy.wait_for_service('set_pose_discrete')
+    rospy.loginfo('All required services are active')
