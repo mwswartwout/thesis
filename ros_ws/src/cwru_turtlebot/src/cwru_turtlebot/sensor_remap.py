@@ -100,9 +100,9 @@ def noisy_odom_remap(odom_msg):
 
     if None not in (previous_pose, previous_odom):
         # Split movement into three distinct actions, rotate -> translate -> rotate
-        delta_rotation_1 = math.atan2(current_odom.y - previous_odom.y, current_odom.x - previous_odom.x) - previous_odom.theta
+        delta_rotation_1 = helpers.correct_angle(math.atan2(current_odom.y - previous_odom.y, current_odom.x - previous_odom.x) - previous_odom.theta)
         delta_translation = math.sqrt((previous_odom.x - current_odom.x) ** 2 + (previous_odom.y - current_odom.y) ** 2)
-        delta_rotation_2 = current_odom.theta - previous_odom.theta - delta_rotation_1
+        delta_rotation_2 = helpers.correct_angle(current_odom.theta - previous_odom.theta - delta_rotation_1)
 
         # Create random pose from given movements by adding noise
         std_dev_1 = alpha_1 * abs(delta_rotation_1) + alpha_2 * delta_translation

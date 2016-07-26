@@ -45,8 +45,8 @@ def correct_angle(yaw):
         yaw += 2 * math.pi
 
     # Now let's always return a positive yaw just for continuity's sake
-    if yaw < 0:
-        yaw += 2 * math.pi
+    # if yaw < 0:
+    #   yaw += 2 * math.pi
 
     assert -1 * math.pi < yaw < math.pi
 
