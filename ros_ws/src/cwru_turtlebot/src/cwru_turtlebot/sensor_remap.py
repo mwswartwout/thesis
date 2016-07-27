@@ -33,35 +33,34 @@ def initial_position_callback(position):
 
 def imu_remap(imu_msg):
     global namespace
-    global noisy
+    # global noisy
 
     # remap imu message to base_link_self and publish the new message
     remapped_msg = imu_msg
     remapped_msg.header.frame_id = namespace + 'base_link_filter'
 
-    if noisy:
-        # We will add noise to the IMU data
-        noise = randn(7, 1)
+    # if noisy:
+    #     # We will add noise to the IMU data
+    #     noise = randn(7, 1)
+    #
+    #     orientation = remapped_msg.orientation
+    #     noisy_yaw = convert_quaternion_to_yaw(orientation) + noise[0]
+    #     orientation = convert_yaw_to_quaternion(noisy_yaw)
+    #
+    #     angular_velocity = remapped_msg.angular_velocity
+    #     angular_velocity.x += noise[1]
+    #     angular_velocity.y += noise[2]
+    #     angular_velocity.z += noise[3]
+    #
+    #     linear_acceleration = remapped_msg.linear_acceleration
+    #     linear_acceleration.x += noise[4]
+    #     linear_acceleration.y += noise[5]
+    #     linear_acceleration.z += noise[6]
 
-        orientation = remapped_msg.orientation
-        noisy_yaw = convert_quaternion_to_yaw(orientation) + noise[0]
-        orientation = convert_yaw_to_quaternion(noisy_yaw)
-
-        angular_velocity = remapped_msg.angular_velocity
-        angular_velocity.x += noise[1]
-        angular_velocity.y += noise[2]
-        angular_velocity.z += noise[3]
-
-        linear_acceleration = remapped_msg.linear_acceleration
-        linear_acceleration.x += noise[4]
-        linear_acceleration.y += noise[5]
-        linear_acceleration.z += noise[6]
-
-    if not rospy.is_shutdown():
-        try:
-            imu_publisher.publish(remapped_msg)
-        except rospy.ROSException as e:
-            rospy.logwarn(e.message)
+    try:
+        imu_publisher.publish(remapped_msg)
+    except rospy.ROSException as e:
+        rospy.logwarn(e.message)
 
 
 def odom_remap(odom_msg):
