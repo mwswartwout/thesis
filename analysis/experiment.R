@@ -6,15 +6,15 @@ if (!require("data.table")){
 # First we need to get data from each robot and combine into one data set
 ## ---- read_data
 for (robot in 1:params$robots) {
-    gazebo_filenames <- lapply(1:params$robots, FUN=function(robot){paste0("turtlebot", robot, "_gazebo_odometry_filtered.csv")})
+    gazebo_filenames <- lapply(1:params$robots, FUN=function(robot){paste0("turtlebot", robot, "_gazebo_odom.csv")})
     gazebo_full_filenames <- lapply(gazebo_filenames, FUN=function(filename){paste(params$data_dir, params$experiment, filename, sep="/")})
     gazebo <- rbindlist(lapply(gazebo_full_filenames, FUN=function(file){fread(file, header=T, sep=",")}))
 
-    discrete_filenames <- lapply(1:params$robots, FUN=function(robot){paste0("turtlebot", robot, "_discrete_odometry_filtered.csv")})
+    discrete_filenames <- lapply(1:params$robots, FUN=function(robot){paste0("turtlebot", robot, "_discrete_filter_odom.csv")})
     discrete_full_filenames <- lapply(discrete_filenames, FUN=function(filename){paste(params$data_dir, params$experiment, filename, sep="/")})
     discrete <- rbindlist(lapply(discrete_full_filenames, FUN=function(file){fread(file, header=T, sep=",")}))
 
-    continuous_filenames <- lapply(1:params$robots, FUN=function(robot){paste0("turtlebot", robot, "_continuous_odometry_filtered.csv")})
+    continuous_filenames <- lapply(1:params$robots, FUN=function(robot){paste0("turtlebot", robot, "_continuous_filter_odom.csv")})
     continuous_full_filenames <- lapply(continuous_filenames, FUN=function(filename){paste(params$data_dir, params$experiment, filename, sep="/")})
     continuous <- rbindlist(lapply(continuous_full_filenames, FUN=function(file){fread(file, header=T, sep=",")}))
 

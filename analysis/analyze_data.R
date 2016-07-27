@@ -7,7 +7,7 @@ renderAll <- function() {
     message("No args received, rendering all experiments")
     for (directory in 1:length(dirs)){
         experiment_name = substr(dirs[directory], nchar(data_dir)+2, nchar(dirs[directory]))
-        files <- list.files(path=dirs[directory], pattern="turtlebot([0-9])+_gazebo_odometry_filtered.csv")
+        files <- list.files(path=dirs[directory], pattern="turtlebot([0-9])+_gazebo_odom.csv")
 
         if (experiment_name != "reports" && experiment_name != "old") {
             message(paste0("Rendering experiment ", experiment_name))
@@ -39,7 +39,7 @@ renderSome <- function() {
     message("Some args received, only rendering specified experiments")
     for (directory in 1:length(dirs)){
         experiment_name = substr(dirs[directory], nchar(data_dir)+2, nchar(dirs[directory]))
-        files <- list.files(path=dirs[directory], pattern="turtlebot([0-9])+_gazebo_odometry_filtered.csv")
+        files <- list.files(path=dirs[directory], pattern="turtlebot([0-9])+_gazebo_odom.csv")
 
         if (is.element(experiment_name, args)) {
             message(paste0("Rendering experiment ", experiment_name))

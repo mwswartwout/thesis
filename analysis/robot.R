@@ -5,13 +5,13 @@ if (!require(data.table)){
 }
 
 ## ---- read_data
-file_name <- paste0("turtlebot", params$robot, "_gazebo_odometry_filtered.csv")
+file_name <- paste0("turtlebot", params$robot, "_gazebo_odom.csv")
 gazebo <- fread(paste(params$data_dir, params$experiment, file_name, sep="/"), header=T, sep=",")
 
-file_name <- paste0("turtlebot", params$robot, "_continuous_odometry_filtered.csv")
+file_name <- paste0("turtlebot", params$robot, "_continuous_filter_odom.csv")
 continuous <- fread(paste(params$data_dir, params$experiment, file_name, sep="/"), header=T, sep=",")
 
-file_name <- paste0("turtlebot", params$robot, "_discrete_odometry_filtered.csv")
+file_name <- paste0("turtlebot", params$robot, "_discrete_filter_odom.csv")
 discrete <- fread(paste(params$data_dir, params$experiment, file_name, sep="/"), header=T, sep=",")
 
 file_name <- paste0("turtlebot", params$robot, "_external_pose_count.csv")
