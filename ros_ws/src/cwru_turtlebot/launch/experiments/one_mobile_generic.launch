@@ -2,8 +2,7 @@
 <launch>
     <arg name="gui" default="false"/>
     <arg name="sensor_record" default="true"/>
-    <arg name="noisy" default="false"/>
-    <arg name="save_file_prefix" default="/home/matt/thesis/experiment_data/one_mobile_noisy_$(arg noisy)/"/>
+    <arg name="save_file_prefix" default="/home/matt/thesis/experiment_data/one_mobile/"/>
     <arg name="number_of_robots"/>
     <arg name="name"/>
     <arg name="x"/>
