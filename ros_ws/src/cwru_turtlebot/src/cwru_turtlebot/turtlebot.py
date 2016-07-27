@@ -403,4 +403,13 @@ class TurtleBot:
     # Must accept event argument because of use with rospy.Timer
     def fake_gps(self, event):
         # Use this so discrete filter can localize w/o external measurements
+        # FAA 2014 research shows 95% confidence interval of 3.351 meters horizontal accuracy
+        # Assuming this error is Gaussian and normally distributed, we have a mean of 0 and standard deviation of 1.71
+        # Split this into x and y noise, we have a 95% confidence interval of 2.369 meters ( 3.351 / sqrt(2) )
+        # This gives ~N(0, 1.4)
+        noisy_pose = copy.deepcopy(self.gazebo_pose_wrt_map)
+        noise = numpy.random.normal(scale=1.4, size=2)
+        noisy_pose.pose.pose.position.x += noise[0]
+        noisy_pose.pose.pose.position.y += noise[1]
+        # Leave orientation unaffected, TODO maybe add orientation noise later
         self.fake_gps_publisher.publish(self.gazebo_pose_wrt_map)
