@@ -194,6 +194,15 @@ def write_to_files(event):
         with open(filename, 'a+') as imu_file:
             writer = csv.writer(imu_file)
             writer.writerow(imu_data)
+
+        # Invalidate fields so that we don't record duplicate data multiple times in the case of sensor failure
+        continuous_data = None
+        discrete_data = None
+        gazebo_data = None
+        imu_data = None
+        #if external_count is not [0]:
+            # Only invalidate external_count if we have been receiving external sensor measurements
+        #    external_count = None
     else:
         if namespace is None:
             rospy.logdebug('Could not write data because namespace was not initialized')
