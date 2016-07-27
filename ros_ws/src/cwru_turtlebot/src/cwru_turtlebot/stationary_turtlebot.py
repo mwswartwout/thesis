@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import helpers
 from turtlebot import TurtleBot
 
 
@@ -19,7 +20,7 @@ class StationaryTurtleBot(TurtleBot, object):
 
 
 def main():
-    rospy.wait_for_service('/gazebo/set_physics_properties')
+    helpers.wait_for_services()
 
     robot = StationaryTurtleBot()
 
