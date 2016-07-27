@@ -38,17 +38,17 @@ def convert_yaw_to_quaternion(yaw):
 
 def correct_angle(yaw):
     # Correct yaws to smallest possible value, accounting for periodicity
-    while yaw > 2 * math.pi and not rospy.is_shutdown():
+    while yaw > math.pi and not rospy.is_shutdown():
         yaw -= 2 * math.pi
 
-    while yaw < -2 * math.pi and not rospy.is_shutdown():
+    while yaw < -1 * math.pi and not rospy.is_shutdown():
         yaw += 2 * math.pi
 
     # Now let's always return a positive yaw just for continuity's sake
     # if yaw < 0:
     #   yaw += 2 * math.pi
 
-    assert -1 * math.pi < yaw < math.pi
+    assert -1 * math.pi <= yaw <= math.pi, 'Returned yaw was %f' % yaw
 
     # TODO add in calculation to rotate in shortest direction
     # Make sure we're using the shortest rotation
