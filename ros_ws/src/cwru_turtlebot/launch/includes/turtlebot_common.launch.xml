@@ -52,4 +52,7 @@
         <arg name="initial_pose_y" value="$(arg y_pos)"/>
         <arg name="initial_pose_a" value="$(arg yaw)"/>
     </include-->
+
+    <!-- Throttle Gazebo odom so it publishes at 10Hz rather than 100Hz -->
+    <node pkg="topic_tools" type="throttle" name="gazebo_odom_throttle" args="messages odom 10"/>
 </launch>
