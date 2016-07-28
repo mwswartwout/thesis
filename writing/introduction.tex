@@ -1,24 +1,40 @@
 \documentclass[thesis.tex]{subfile}
 \begin{document}
-\chapter{Introduction}
-\section{Mobile Robot Localization}
+\chapter{Introduction} \label{Introduction}
+\section{Mobile Robot Localization} \label{Mobile Robot Localization}
 Robotic navigation can be divided into three questions: "Where am I?", "Where am I going?", and "How should I get there?" \cite{Leonard1991}. The first of these questions, "Where am I?" is the problem of localization. This second and third are problems of goal-setting and path-planning. All three are complex issues, but the focus of this thesis will be on localization. Determining where a robot is in reference to its surroundings is a fundamental precursor to all other robotic motion problems.
 
 The main idea behind localization is combining sensor measurements that assess the state of the robot with measurements that represent the state of the surroundings \cite{Roumeliotis2002}. There are numerous methods for doing this, and new methods and improvements on existing methods are constantly appearing. Most of these methods vary in their chosen estimator and how they filter out inherent noise in the measurements. This thesis will explore some of the existing methods, but the chosen method is the \gls{ukf} \cite{Julier1997}.
 
 How these sensor measurements used for localization are obtained is equally as important as the type of estimator used for localizing the robot. Adding more sensors into the state estimate will generally increase the accuracy. The typical approach has been to add more sensors onto an individual robot in order to increase the accuracy of its location estimate. However this thesis explores a distributed system for sharing information between different robots and examines the possible increase in accuracy that this can bring.
 
-\section{Robotic Security}
-   
+\section{Robotic Security} \label{Robotic Security}
+Today's robots face more problems than just localizing themselves. One of these problems is how they can interact with their environment, specifically the other actor, robotic or human, in that environment. Can these other robots and people be trusted? How can a robot make this decision? There will always be malicious actors present in the world, and the security of a robot's hardware and software is paramount.
 
-\section{Problem Statement}
-Now, I specify the exact localization problem that this thesis addresses. Our system contains the following assumptions and constraints.
+A networked mobile robot is an extension of a wireless sensor network, and these networks are susceptible to a broad variety of attacks \cite{perrig2004security}. Hardware attacks could be the physical destruction of components or sensors of the robot, or the replacement of components with purposefully compromised components. It is hard for a wheeled robot to move when it's wheel axles are broken, and likewise a camera is made unusable when a piece of tape is placed over the lens. Software attacks are much more numerous and can be tailored specifically to a robot's unique software package, or broadly targeted at many different platforms. Two possible attacks that will be discussed in this thesis are false data injection and \gls{DoS} attacks.
 
+\section{Problem Statement} \label{Problem Statement}
+The problem this thesis addresses is that of a distributed, secure localization system for a mobile robot. Our environment follows these constraints:
 \begin{enumerate}
-\item $M$ independent mobile robots operating in a planar environment.
-\item Wireless communication abilities between all robots in the environment.
-\item No known map of environment, but GPS for localization in a world frame is available.
-\item Localization must be able to seamlessly transition between operating with and without pose estimates from other robots.
-\item Minimize complexity and added computations to Extended Kalman Filters used for localization.
+\item $M$ independent mobile robots operating in a planar environment
+\item Wireless communication abilities between all robots in the environment
+\item No known, static map of environment
+\item GPS for localization in a world frame is available
+\item Motion planning and control of other robots is unknown and unpredictable
 \end{enumerate}
+
+
+The localization system itself has the following goals and constraints:
+\begin{enumerate}
+\item Run on the \gls{ros} platform
+\item Seamlessly transition between operating with and without pose estimates from other robots
+\item Minimize complexity and added computations to the \glspl{ukf}
+\item Integrate a static map if one is known
+\end{enumerate}
+
+Thus, this system attempts to provide a continuous localization system that can seamlessly integrate the robot's own sensor measurements with other measurements received via the distributed network. The primary goals of this are to increase the accuracy of the localization estimate while also increasing resilience to attacks, without greatly increasing the computational load on the robot.
+
+\section{Thesis Structure} \label{Thesis Structure}
+Section \ref{Introduction} provided a brief overview of the problems this will address. Section \ref{Literature Review} will explore the existing literature around these problems more in-depth. Section \ref{Hardware Platform} will present the TurtleBot + ZedBoard hardware platform used in conjunction with this project, and Section \ref{Distributed State Estimation} will explain the state estimation system that was developed. Section \ref{Results} showcases the results of this new state estimation system and Section \ref{Discussion} discusses the implications and significance of this work and the possibilities for future research. Finally, Section \ref{Conclusion} concludes this thesis.
+
 \end{document}
