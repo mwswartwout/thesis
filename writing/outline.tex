@@ -8,12 +8,16 @@
 
 \begin{outline}
 \1 Introduction
+    \2 Mobile robot localization problem
+    \2 Mobile robot security concerns
     \2 Problem Statement
+    \2 Brief explanation of solution
+    \2 Thesis Structure
 \1 Literature Review / Previous Work
-    \2 TurtleBot
     \2 Secure State Estimation
     \2 Distributed State Estimation
     \2 Noise Model for Simulated Robots
+    \2 TurtleBot
 \1 Hardware Platform
     \2 TurtleBot
         \3 Basic Features and Overview
@@ -26,14 +30,17 @@
         \3 Xilinx Zynq Features and Overview
 \1 Distributed State Estimation
     \2 Theory
-        \3 Explanation of coordinate frames
-        \3 Explanation of filters
     \2 Methods
+        \3 Filters
+            \4 Coordinate Frames
+            \4 EKF vs UKF
+            \4 Inputs and outputs
         \3 ROS node structure
         \3 Communications logic
         \3 Gazebo simulation details
     \2 Vulnerabilities of Methods
         \3 DoS attack
+        \3 False Data Injection
 \1 Results
 \1 Future Work
 \1 Conclusion
