@@ -79,7 +79,7 @@ class TurtleBot:
 
         # TODO think about making this time out so that once the robot knows its initial position it not longer
         # receives the gps signal, but might have to still receive orientation data
-        timer = rospy.Timer(rospy.Duration(1), self.fake_gps)  # Publish fake gps every second
+        timer = rospy.Timer(rospy.Duration(10), self.fake_gps)  # Publish fake gps every second
 
         # Wait for everything else in Gazebo world to be ready
         self.wait_for_clients()
@@ -407,6 +407,8 @@ class TurtleBot:
         # Assuming this error is Gaussian and normally distributed, we have a mean of 0 and standard deviation of 1.71
         # Split this into x and y noise, we have a 95% confidence interval of 2.369 meters ( 3.351 / sqrt(2) )
         # This gives ~N(0, 1.4)
+        # TODO This math is bad, make it pull from the N(0, 1.71) distribution, then pick a angle (from Uniform(0, 2pi])
+        # And calculate that way
         noisy_pose = copy.deepcopy(self.gazebo_pose_wrt_map)
         noise = numpy.random.normal(scale=1.4, size=2)
         noisy_pose.pose.pose.position.x += noise[0]
