@@ -121,6 +121,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+<<<<<<< HEAD
+.Rproj.user
 
-analysis/
-experiment_data/
+# Ignore experiment data files that are huge
+experiment_data/*
+!experiment_data/reports/

@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
 import rospy
-import math
 import random
-import tf
+import math
 
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, PoseStamped
 from turtlebot import TurtleBot
+from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseGoal
+from helpers import convert_quaternion_to_yaw, correct_angle
 
 
 # TODO add ROS debug statements
 # TODO add something to correct odom drift
-
 class TurtleBot2D(TurtleBot, object):
 
     def __init__(self, linear_speed=.2, angular_speed=.2):
@@ -23,115 +23,75 @@ class TurtleBot2D(TurtleBot, object):
 
         self.linear_speed = linear_speed  # expressed in m/s
         self.angular_speed = angular_speed  # expressed in rad/s
+        rospy.loginfo("Completed TurtleBot2D initialization")
 
-    def initialize_publishers(self):
-        super(TurtleBot2D, self).initialize_publishers()
+    def move(self, goal_x=0, goal_y=0, goal_yaw=0, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
+        # To prevent robot getting stuck or drifting towards just one specific area over course of experiment
+        # Randomly send to middle of allowable area with 1% probability
+        rand = random.uniform(0, 100)
+        if rand == 1:
+            goal_x = (x_lower_bound + x_upper_bound) / 2
+            goal_y = (y_lower_bound + y_upper_bound) / 2
 
-        self.cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/navi', Twist,
-                                           queue_size=1)
+        goal_pose = PoseStamped()
+        goal_pose.header.stamp = rospy.Time.now()
+        goal_pose.header.frame_id = 'map'
+        goal_pose.pose.position.x = goal_x
+        goal_pose.pose.position.y = goal_y
+        goal_pose.pose.orientation = self.continuous_pose_wrt_map.pose.pose.orientation  # Always keep our orientation the same
 
-    def move(self, distance, yaw, x_lower_bound=-1, x_upper_bound=1, y_lower_bound=-1, y_upper_bound=1):
-        # Employs dead-reckoning to move TurtleBot via a desired heading and move distance
+        goal = MoveBaseGoal()
+        goal.target_pose = goal_pose
 
-        # First check if desired location is within our set bounds
-        goal_x = self.current_continuous_pose.pose.pose.position.x + math.cos(yaw)*distance
-        goal_y = self.current_continuous_pose.pose.pose.position.y + math.sin(yaw)*distance
-
-        within_bounds_x = self.check_move_bounds(goal_x, x_lower_bound, x_upper_bound)
-        within_bounds_y = self.check_move_bounds(goal_y, y_lower_bound, y_upper_bound)
-
-        if within_bounds_x and within_bounds_y:
-            # First execute rotation to desired heading
-            self.rotate(yaw)
-
-            # Next translate to desired location
-            if not self.lidar_alarm:
-                self.translate(distance)
+        try:
+            rospy.loginfo('Waiting for move_base server')
+            self.move_base_client.wait_for_server()
+            rospy.loginfo('Sending goal to move_base server')
+            self.move_base_client.send_goal(goal)
+            rospy.loginfo('Waiting for goal result from move_base server')
+            self.move_base_client.wait_for_result()
+            success = self.move_base_client.get_result()
+            if not success:
+                rospy.logwarn(self.namespace + ': move_base was not able to successfully complete the request action')
             else:
-                rospy.logwarn('Not executing translation because lidar alarm is triggered')
-        else:
-            rospy.logdebug('Goal received out of bounds' + str(goal_x) + ',' + str(goal_y))
-
-    def rotate(self, yaw):
-        yaw = self.correct_angle(yaw)
-        move_cmd = Twist()
-        current_yaw = self.convert_quaternion_to_yaw(self.current_continuous_pose.pose.pose.orientation)
-        if current_yaw < yaw:  # Positive rotation needed
-            move_cmd.angular.z = self.angular_speed
-        else:  # Negative rotation needed
-            move_cmd.angular.z = -self.angular_speed
-
-        distance_to_goal = math.fabs(current_yaw - yaw)
-        move_time = distance_to_goal / self.angular_speed
-        move_steps = move_time * self.rate_frequency
-        while move_steps > 0 and not rospy.is_shutdown():
-            try:
-                self.cmd_vel_pub.publish(move_cmd)
-                self.rate.sleep()
-                move_steps -= 1
-            except rospy.ROSException as e:
-                rospy.logwarn('Unable to publish rotation command')
-                rospy.logwarn(e.message)
-        self.stop()  # Stop once move is complete
-
-    def translate(self, distance):
-        move_cmd = Twist()
-        if distance < 0:
-            rospy.logwarn("Distance for movement should not be negative! Aborting translation...")
-        else:
-            move_cmd.linear.x = self.linear_speed
-
-            move_time = distance / self.linear_speed
-            move_steps = move_time * self.rate_frequency
-            while move_steps > 0 and not rospy.is_shutdown() and not self.lidar_alarm:
-                try:
-                    self.cmd_vel_pub.publish(move_cmd)
-                    self.rate.sleep()
-                    # decrease and update distance to goal
-                    move_steps -= 1
-                except rospy.ROSException as e:
-                    rospy.logwarn('Unable to publish translation command')
-                    rospy.logwarn(e.message)
-            self.stop()  # Stop once move is complete
+                continuous_x = self.continuous_pose_wrt_map.pose.pose.position.x
+                continuous_y = self.continuous_pose_wrt_map.pose.pose.position.y
+                discrete_x = self.discrete_pose_wrt_map.pose.pose.position.x
+                discrete_y = self.discrete_pose_wrt_map.pose.pose.position.y
+                gazebo_x = self.gazebo_pose_wrt_map.pose.pose.position.x
+                gazebo_y = self.gazebo_pose_wrt_map.pose.pose.position.y
+                rospy.loginfo(self.namespace + ': requested move to (' + str(goal_x) + ', ' + str(goal_y) + ') ' +
+                               'completed. Current gazebo odom pose is (' + str(gazebo_x) + ', ' + str(gazebo_y) + '). ' +
+                               'Current continuous odom pose is (' + str(continuous_x) + ', ' + str(continuous_y) + '). ' +
+                               'Current discrete odom pose is (' + str(discrete_x) + ', ' + str(discrete_y) + '). ')
+        except rospy.ROSException as e:
+            rospy.logwarn(self.namespace + ': caught exception while sending move_base a movement goal - ' + e.message)
 
     def stop(self):
         try:
-            self.cmd_vel_pub.publish(Twist())
+            self.move_base_client.cancel_all_goals()
         except rospy.ROSException as e:
-            rospy.logwarn('Unable to publish stop command')
-            rospy.logwarn(e.message)
+            rospy.logwarn(self.namespace + ': Unable to send movement goal cancel command - ' + e.message)
+
+    def spin(self):
+        rospy.loginfo("Entering spin mode")
+        cmd_vel_pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=1)
+        command = Twist()
+        command.angular.z = 0.1
+        while not rospy.is_shutdown():
+            cmd_vel_pub.publish(command)
+            rospy.loginfo(self.namespace + ': Current yaw is ' + str(convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation)))
+            rospy.sleep(0.1)
 
     @staticmethod
     def check_move_bounds(val, lower, upper):
         # check that the val is between lower and upper values
         return lower < val < upper
 
-    @staticmethod
-    def correct_angle(yaw):
-        # Correct yaws to smallest possible value, accounting for periodicity
-        while yaw > 2 * math.pi and not rospy.is_shutdown():
-            yaw -= 2 * math.pi
-
-        while yaw < -2 * math.pi and not rospy.is_shutdown():
-            yaw += 2 * math.pi
-
-        # Make sure we're using the shortest rotation
-        if math.fabs(yaw - 2*math.pi) < yaw:
-            yaw -= 2*math.pi
-
-        return yaw
-
 
 def main():
     # create a movable turtle bot object
     robot = TurtleBot2D()
-
-    # Wait for everything else in Gazebo world to be ready
-    robot.wait_for_clients()
-
-    # Once everything is ready we need to reset our filters
-    # because they could have gotten erroneous readings
-    robot.reset_filters()
 
     x_upper = rospy.get_param('/x_upper')
     x_lower = rospy.get_param('/x_lower')
@@ -140,12 +100,13 @@ def main():
 
     # move the robot back and forth randomly until process killed with ctrl-c
     while not rospy.is_shutdown():
-        robot.move(distance=random.uniform(0, 2),
-                   yaw=random.uniform(0, 2*math.pi),
+        robot.move(goal_x=random.uniform(x_lower, x_upper),
+                   goal_y=random.uniform(y_lower, y_upper),
                    x_lower_bound=x_lower,
                    x_upper_bound=x_upper,
                    y_lower_bound=y_lower,
                    y_upper_bound=y_upper)
+        rospy.sleep(5)
 
 if __name__ == '__main__':
     # run program and gracefully handle exit

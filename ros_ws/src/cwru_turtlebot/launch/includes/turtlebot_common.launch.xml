@@ -1,0 +1,58 @@
+<launch>
+    <arg name="model_name"/>
+    <arg name="x_pos" default="0"/>
+    <arg name="y_pos" default="0"/>
+    <arg name="yaw" default="0"/>
+    <arg name="sensor_record" default="false"/>
+    <arg name="map_file" default="$(env TURTLEBOT_MAP_FILE)"/>
+
+    <!-- Load the starting position into the parameter server-->
+    <!-- So that they can be accessed by the turtlebot node on startup-->
+    <param name="x_pos" type="double" value="$(arg x_pos)"/>
+    <param name="y_pos" type="double" value="$(arg y_pos)"/>
+    <param name="yaw" type="double" value="$(arg yaw)"/>
+
+    <!-- Launch the necessary Kobuki nodes for turtlebot operation-->
+    <include file="$(find cwru_turtlebot)/launch/kobuki/kobuki.launch.xml">
+        <arg name="model_name" value="$(arg model_name)"/>
+        <arg name="x_pos" value="$(arg x_pos)"/>
+        <arg name="y_pos" value="$(arg y_pos)"/>
+        <arg name="yaw" value="$(arg yaw)"/>
+    </include>
+
+    <!-- Robot State Publisher for publishing tf status of turtlebot-->
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"
+          required="true" output="screen">
+        <param name="publish_frequency" type="double" value="30.0" />
+    </node>
+
+    <!-- Fake laser -->
+    <node pkg="nodelet" type="nodelet" name="laserscan_nodelet_manager" args="manager"  required="true" output="screen"/>
+    <node pkg="nodelet" type="nodelet" name="depthimage_to_laserscan" required="true" output="screen"
+          args="load depthimage_to_laserscan/DepthImageToLaserScanNodelet laserscan_nodelet_manager">
+        <param name="scan_height" value="10"/>
+        <param name="output_frame_id" value="$(arg model_name)/camera_depth_frame"/>
+        <param name="range_min" value="0.45"/>
+        <remap from="image" to="camera/depth/image_raw"/>
+        <!--remap from="scan" to="scan"/-->
+    </node>
+
+    <!-- Kalman filters responsible from robot_localization package -->
+    <include file="$(find cwru_turtlebot)/launch/includes/turtlebot_filters.launch.xml">
+        <arg name="model_name" value="$(arg model_name)"/>
+    </include>
+
+    <!-- Node to record sensor data to files -->
+    <node if="$(arg sensor_record)"
+          pkg="cwru_turtlebot" type="sensor_record.py" name="sensor_record" required="true" output="screen"/>
+
+    <!--include file="$(find cwru_turtlebot)/launch/amcl.launch.xml">
+        <arg name="model_name" value="$(arg model_name)"/>
+        <arg name="initial_pose_x" value="$(arg x_pos)"/>
+        <arg name="initial_pose_y" value="$(arg y_pos)"/>
+        <arg name="initial_pose_a" value="$(arg yaw)"/>
+    </include-->
+
+    <!-- Throttle Gazebo odom so it publishes at 10Hz rather than 100Hz -->
+    <node pkg="topic_tools" type="throttle" name="gazebo_odom_throttle" args="messages odom 10"/>
+</launch>

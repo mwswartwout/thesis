@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+    - Base      : kobuki
+    - Stacks    : hexagons
+    - 3d Sensor : kinect
+-->    
+<robot name="turtlebot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find cwru_turtlebot)/urdf/turtlebot_library.urdf.xacro"/>
+  
+  <kobuki model_name="$(arg model_name)"/>
+  <stack_hexagons parent="$(arg model_name)/base_link" model_name="$(arg model_name)"/>
+  <sensor_kinect  parent="$(arg model_name)/base_link" model_name="$(arg model_name)"/>
+</robot>

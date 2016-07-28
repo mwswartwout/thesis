@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import helpers
 from turtlebot import TurtleBot
 
 
@@ -19,6 +20,8 @@ class StationaryTurtleBot(TurtleBot, object):
 
 
 def main():
+    helpers.wait_for_services()
+
     robot = StationaryTurtleBot()
 
     while not rospy.is_shutdown():
