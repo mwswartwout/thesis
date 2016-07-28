@@ -243,7 +243,7 @@ def write_to_files(event):
         discrete_data = None
         gazebo_data = None
         imu_data = None
-        gps_data = None
+        # gps_data = None
         noisy_odom_data = None
         #if external_count is not [0]:
             # Only invalidate external_count if we have been receiving external sensor measurements
