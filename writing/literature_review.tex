@@ -1,8 +1,45 @@
 \documentclass[thesis.tex]{subfile}
 \begin{document}
-\chapter{Literature Review} \label{Literature Review}
+\chapter{Background} \label{Background}
+This section discusses the literature surrounding robotic state estimation, secure state estimation, and distributed state estimation systems.
+
+\section{State Estimation}
+As discussed previously, state estimation is a fundamental problem for robotics. Without knowing where it is, a robot cannot be very useful. One common technique for robot localization is to use a \gls{kf}. The \gls{kf} is one of the most studied and most heavily utilized Bayesian filter \cite{ThrunGaussianFilters}. At its core, a \gls{kf} represents the state of a linear system as a multivariate normal distribution. By representing the state of the system as a normal distribution the filter can compactly represent the degree of belief of any possible state of the system.
+
+The actual math of the \gls{kf} is outside the scope of this thesis, as one of the stated goals from section \ref{Problem Statement} was to add as little complication to the base filter as possible. However the application of the \gls{kf} to the task of robot localization has been studied intently, and details of such applications can be found in \cite{Localization2003} and \cite{Mohsin2014}. In \cite{Mohsin2014}, the \gls{kf} is explained to be so popular for three main reasons. First, it is optimal under certain assumptions, second that it is recursive which is memory efficient, and finally that it relies only on having knowledge of noisy sensor data and not being able to measure certain state variables directly.
+
+However, the \gls{kf} is best used for a linear system. Thus, plain \glspl{kf} are not generally used for localization. The two most popular options for real-world localization are the \gls{ekf} and \gls{ukf} which both extend the \gls{kf} to better handle non-linearity. The \gls{ukf} was Julier and Uhlmann, and presented in \cite{Julier1997}. The \gls{ukf} has two primary advantages over the \gls{ekf}. The first is that it is more accurate than the \gls{ekf} and this accuracy difference increases as the system becomes less linear. And second that it is computationally less complex than the \gls{ekf}. Both of these contribute to our stated goals in section \ref{Problem Statement}.
+
+A \gls{ukf} was chosen to be implemented for this thesis, however many of the statements here regarding the filters can be applied to \glspl{ekf} as well. Our chosed software package also makes it trivially easy to switch between a \gls{ukf} and \gls{ukf}. For most of this thesis we use the generic term \glspl{kf}, demonstrating the fact that these statements apply to both \glspl{ukf} and \glspl{ekf}.
+
 \section{Secure State Estimation}
+There are three core goals for the security of any cyber-physical system: integrity, availability, and confidentiality \cite{Cardenas2008}. Those can be thought of as three simple questions: "Can I trust the data?", "Do I have access to the data when I need it?", and "Is the data hidden from those who shouldn't have it?". This thesis focuses on the first two questions. The third, confidentiality, has less to do with the state estimation system and more to do with the security of the computer system as a whole.
+
+\subsection{Integrity}
+The accuracy of a \gls{kf} when the sensors are functioning property is not in question, so we must look at when the sensors are not functioning properly. This leads to two possible scenarios, sensor failure and false data injection.
+
+In a sensor failure scenario one or more of the sensors will stop providing all feedback. Luckily, this is something that \glspl{kf} can handle without problem. The \gls{kf} is always using all available information to generate its state estimate, and if one sensor fails the only result is that the accuracy of the filter will decrease. Obviously, if 100\% of sensors fail, the filter will become non-functional, but as long as at least one sensor remains operational the filter will not have difficulties. It is also worth nothing that, due to the design of the filter, the \gls{kf} does not have issues with sensors going in and out of a failure state. When information is available it is used, and when it is not available the sensor is ignored.
+
+Knowing that sensor failure is not a huge risk for the \gls{kf}, sensor interference is a much more complex problem. If an attacker is somehow able to inject false data into the filter the pose estimate can be skewed. And this is a very real problem. The number of ways that false data could be added to a filter are too numerous to count, ranging from physically blocking a lidar sensor to hijacking the network packets of a wirelessly communicating sensor.
+
+\cite{Mo2010} and \cite{Yang2013} both demonstrate that \glspl{kf} are susceptible to false data injection attacks, and that even with failure detectors a clever adversary can craft their attack to bypass these detectors. \cite{Bezzo_2014} and \cite{Mo2014} both attack this problem by adding extra steps into their \gls{kf} algorithm. Both successfully show that the filter output can be shielded from the effects of the attack.
+
+\subsection{Availability}
+In a distributed system, \gls{DoS} attacks become a real threat. While there are many ways to execute such attacks and also many ways to defeat them (\cite{wood2002denial}, \cite{bellardo2003802}) such systems are outside the scope of this thesis. Rather than showing that the system can defeat \gls{DoS} attacks, we will show that it can function sufficiently while succumbing to one.
+
 \section{Distributed State Estimation}
-\section{Noise Model}
+As wireless networks become more and more omnipresent in our world, and given the increasing number and decreasing costs of mobile robots, the concept of a distributed state estimation system is very desirable. Given the rapid rise of these technologies though, the amount of research done into distributed systems is quite small compared to that for single robots. This was true many years ago (\cite{Parker2000}), and is still true today.
+
+Traditionally, in order to increase the accuracy of state estimation, more sensors are added to a robot. However, increasing the number of sensors on a robot will increase the cost and complexity. And, where a robot operating by itself might need $n$ sensors for a sufficiently accurate state estimate, when operating in an environment surrounded by $m$ other robots that can share sensor data there is the possibility of needing far fewer sensors on each individual robot.
+
+Most research into such distributed systems relies on the concept of cooperative positioning. That is, the robots coordinate their motions in order to use their sensors to determine the state of the other robots. Most often this involves one robot acting as a stationary landmark while the other robot moves. \cite{Kurazume1994}, \cite{Kurazume1996}, \cite{Kurazume1998}, and \cite{Kurazume2000} all explore the idea of cooperative positioning. This is a valuable and effective concept when working with a team of coordinated robots. However many systems will not allow for such close cooperation. For example, autonomous cars on a highway will not be able to start and stop for each other and still get to their destination on time. And in rush hour in a city the processing power needed to coordinate a plan for the thousands of cars on the road would be incredible.
+
+Other work into distributed systems still makes the assumption of a cooperative team. \cite{Sanderson1997} and \cite{Roumeliotis2002} both demonstrate a system where a \gls{kf} is implemented that estimates the state of multiple robots in a system. However these states are computed relative to each other, considering the network of robots to be essentially one large robot with different parts. Continuing the highway example, cars will be moving in and out of communication with each other as some enter the highway and others exit. Thus the group of robots will be constantly changing and evolving, a challenge not tackled by these works.
+
+The previously mentioned works are all examples of a decentralized, rather than distributed \gls{kf} problem. \cite{Olfati-Saber2005} makes clear the distinction between these two, saying:
+\begin{quote}"...[decentralized] methods require a complete network with all-to-all links. This solution is not scalable for large-scale sensor networks... Thus, decentralized Kalman filtering and distributed Kalman filtering are two separate problems. In the latter one, each node only is allowed to communicate with its nieghobrs on a graph $G$ that is connected but rather sparse."
+\end{quote}
+\cite{Olfati-Saber2005} presents a solution to the distributed problem using consensus filters and multiple \glspl{kf}. However this work still requires adaptation of the \glspl{kf} and extra computation, which is something we are trying to avoid.
+
 \section{TurtleBot}
 \end{document}
