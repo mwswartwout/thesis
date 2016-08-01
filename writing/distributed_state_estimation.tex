@@ -20,13 +20,13 @@ The following sections describes how the position estimates $p_l$, $p_g$, $g_l$,
 \subsection{Coordinate Systems}
 First, it is necessary to understand the naming terminology for the coordinate systems used in this discussion. The system used is identical to the \gls{ros} standard, REP-105 \cite{REP_105}. There are three different coordinate frames: $map$, $odom$, and $base_link$.
 
-\subsubsection{base\_link frame}
+\subsubsection{Base\_Link Frame}
 The base\_link frame is the simplest to understand. It is a rigidly fixed frame attached to the base of the mobile robot, often at the center. This frame can be used to describe the position of different parts of the robot in reference to itself. For example, no matter where the robot moves to, the Kinect camera will always be in the same position relative to the base\_link frame. This frame is completely independent of any motion of the robot. On the TurtleBot the base\_link frame defined by REP-105 is called base\_footprint, and there is a separate base\_link frame, however the names base\_footprint and base\_link will be used interchangeably in this thesis. 
 
-\subsubsection{odom frame}
+\subsubsection{Odom Frame}
 The odom frame is a fixed, world frame. It's origin is at the starting point of the robot, and thus the $odom \rightarrow base\_link$ transformation represents the position of the robot relative to its' starting point. This frame is subject to drift over time due to error accumulation. These errors could be systematic or random, and have no bounds. However it is guaranteed to be continuous. Generally the $odom \rightarrow base\_link$ is calculated using wheel encoders and/or an IMU. Because it is continuous it is a good reference frame for short term navigation, however due to drift it is not useful for long-term localization. Other names for the odom frame are local frame and odometry frame.
 
-\subsubsection{map frame}
+\subsubsection{Map Frame}
 The map frame is also a fixed, world frame. What distinguishes it from the odom frame is that it is not continuous but it is also not subject to drift over time. The presence of discrete changes make it a poor choice for navigation and short term planning, but the lack of drift makes it valuable for long-term localization. Other names for the map frame are world frame and global frame.
  
 \subsection{Filters}
@@ -53,15 +53,30 @@ The general inputs of each filter have been listed previously in each filter des
 How to choose which of these inputs to use is robot specific, and will change between simulation and real world testing. We will describe later which values were chosen and why for our simulations.
  
 \subsection{ROS Node Structure}
-
+\autoref{fig:node_graph} shows the basic structure of the ROS nodes running on the TurtleBot. All nodes have the "/turtlebot1/" namespace appended to them to separate out multiple robots during simulation. This way in a 3 robot simulation there would be identical copies of this graph with the "/turtlebot2/" and "/turtlebot3/" namespace. As such, a node with name "/turtlebot1/fake\_node" will be referred to as fake\_node for the sake of brevity.
+ 
 \begin{landscape}
 \begin{figure}
-\includegraphics[width=\paperwidth, keepaspectratio]{rosgraph}
+\includegraphics[width=\paperwidth, keepaspectratio]{simple_rosgraph}
 \caption{ROS Node Structure}
-\label{node graph}
+\label{fig:node_graph}
 \end{figure}
 \end{landscape}
 
+\subsubsection{Robot Node}
+The robot node is where most of the heavy lifting is done for the robot. This node listens to the scan, which is a Lidar scan, and odom topics and calculates the external poses that are sent to other robots. It also sends movement commands to the move\_base node, but this is done via an action server and not a topic so it is not shown in this graph. The robot node also publishes the simulated GPS (fake\_gps) based on the robot's odometry information that is sent to the \gls{dist_filter}.
+
+\subsubsection{Sensor Remap Node}
+The sensor\_remap node subscribes to the odom topic, which is produced by the Gazebo simulator, and adds noise. The noise model is described in \autoref{sec:noise_model}.
+
+\subsubsection{Filter Nodes}
+The \gls{dist_filter} and \gls{con_filter} are both subscribed to the odometry information, adn the \gls{dist_filter} is additionally subscribed to the external poses and GPS.
+
+\subsubsection{Move\_Base Node}
+The move\_base node is the \gls{ros} navigation
+\subsubsection{Unvisualized Nodes}
+There are some unvisualized nodes.
 \subsection{Communications Logic}
 \subsection{Gazebo Simulation Details}
+\subsection{Noise Model} \label{sec:noise_model}
 \end{document}
