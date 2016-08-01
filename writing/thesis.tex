@@ -5,7 +5,11 @@
 \addbibresource{library.bib}
 \usepackage[final]{microtype} % Makes things prettier and fit better
 \usepackage{subfiles} % Use to compartmentalize different chapters in different files
-\usepackage{hyperref}
+\usepackage{graphicx}
+%\usepackage{amsmath}
+\graphicspath{{images/}}
+\usepackage{caption} % So that hyperref links to figures go to the top of the figure and not the caption
+\usepackage{hyperref} % TODO maybe not necesssary, it's included in cwru.cls
 \fancyhead[LO,RE]{} % Remove section names from header
 
 % If you're using the `glossaries` package acronyms (see below)
