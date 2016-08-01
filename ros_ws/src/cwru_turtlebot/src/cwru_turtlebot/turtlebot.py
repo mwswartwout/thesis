@@ -102,7 +102,7 @@ class TurtleBot:
                                                          Odometry,
                                                          self.discrete_odom_callback)
 
-        self.gazebo_odom_subscriber = rospy.Subscriber('odom',
+        self.gazebo_odom_subscriber = rospy.Subscriber('odom_throttle',
                                                        Odometry,
                                                        self.gazebo_odom_callback)
 
