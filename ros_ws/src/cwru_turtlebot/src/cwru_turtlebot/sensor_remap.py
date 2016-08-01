@@ -20,15 +20,15 @@ odom_publisher = None
 noisy_odom_publisher = None
 
 
-def initial_position_callback(position):
-    # Record the initial position of the robot so that we can convert the odometry values from the robot's odom frame
-    # to the map frame
-    global initial_pose
-
-    initial_pose = Pose2D()
-    initial_pose.x = position.pose.pose.position.x
-    initial_pose.y = position.pose.pose.position.y
-    initial_pose.theta = convert_quaternion_to_yaw(position.pose.pose.orientation)
+# def initial_position_callback(position):
+#     # Record the initial position of the robot so that we can convert the odometry values from the robot's odom frame
+#     # to the map frame
+#     global initial_pose
+#
+#     initial_pose = Pose2D()
+#     initial_pose.x = position.pose.pose.position.x
+#     initial_pose.y = position.pose.pose.position.y
+#     initial_pose.theta = convert_quaternion_to_yaw(position.pose.pose.orientation)
 
 
 def imu_remap(imu_msg):
@@ -187,7 +187,7 @@ def main():
     noisy_odom_subscriber = rospy.Subscriber('odom_throttle', Odometry, noisy_odom_remap)
 
     # Get the initial position of the robot
-    initial_position_subscriber = rospy.Subscriber('initial_position', PoseWithCovarianceStamped, initial_position_callback)
+    # initial_position_subscriber = rospy.Subscriber('initial_position', PoseWithCovarianceStamped, initial_position_callback)
 
     # just run this to pub/sub to the robot
     while not rospy.is_shutdown():
