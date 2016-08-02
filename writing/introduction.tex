@@ -13,7 +13,7 @@ Today's robots face more problems than just localizing themselves. One of these 
 
 A networked mobile robot is an extension of a wireless sensor network, and these networks are susceptible to a broad variety of attacks \cite{perrig2004security}. Hardware attacks could be the physical destruction of components or sensors of the robot, or the replacement of components with purposefully compromised components. It is hard for a wheeled robot to move when it's wheel axles are broken, and likewise a camera is made unusable when a piece of tape is placed over the lens. Software attacks are much more numerous and can be tailored specifically to a robot's unique software package, or broadly targeted at many different platforms. Two possible attacks that will be discussed in this thesis are false data injection and \gls{DoS} attacks.
 
-\section{Problem Statement} \label{Problem Statement}
+\section{Problem Statement} \label{sec:Problem Statement}
 The problem this thesis addresses is that of a distributed, secure localization system for a mobile robot. Our environment follows these constraints:
 \begin{enumerate}
 \item $M$ independent mobile robots operating in a planar environment
@@ -27,6 +27,7 @@ The localization system itself has the following goals and constraints:
 \begin{enumerate}
 \item Run on the \gls{ros} platform
 \item Seamlessly transition between operating with and without pose estimates from other robots
+\item Handle the addition of new robots or removal of existing robots from environment dynamically
 \item Minimize complexity and added computations to the \glspl{ukf}
 \item Integrate a static map if one is known
 \end{enumerate}

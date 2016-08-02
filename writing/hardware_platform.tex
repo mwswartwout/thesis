@@ -1,6 +1,6 @@
 \documentclass[thesis.tex]{subfile}
 \begin{document}
-\chapter{Hardware Platform} \label{Hardware Platform}
+\chapter{TurtleBot Platform} \label{Hardware Platform}
 This section describes the hardware platform developed for use with this thesis. A matching simulation model was developed in the Gazebo simulator \cite{Koenig}.
 
 \section{TurtleBot}
@@ -16,7 +16,7 @@ One reason the TurtleBot platform was chosen is because it was designed for use 
 
 \gls{ros} is not a true operating system like the name would imply. It is much more correctly described as a set of libraries and tools that are designed for use in robotics applications. It provides a robust set of communication protocols to allow different software components (called nodes) to interact with each other. Additionally, there are many existing, open source \gls{ros} packages that can be built upon without having to start from the ground up.
 
-\subsection{Controls}
+\subsection{Controls} \label{sec:controls}
 One example of using pre-existing software from the \gls{ros} repositories is control and navigation of the Kobuki base. While writing the control system for a mobile robot would normally be a complex and time consuming task on its own, because the TurtleBot uses \gls{ros} we were able implement a known control system very quickly and move on with other research.
 
 \subsubsection{Kobuki Base}
@@ -24,7 +24,7 @@ The Kobuki has a very simple control system made up of four nodes \cite{KobukiCo
 
 \begin{figure}
 \includegraphics[width=\textwidth, keepaspectratio]{kobuki_control}
-\caption{Overview of the Kobuki control system, from~\cite{KobukiControl}}
+\caption[Overview of the Kobuki control system]{Overview of the Kobuki control system, from~\cite{KobukiControl}}
 \label{fig:kobuki_control}
 \end{figure}
 
@@ -37,7 +37,7 @@ For navigation and path planning, both in the real world and simulations, we use
 
 \begin{figure}
 \includegraphics[width=\textwidth, keepaspectratio]{navigation_stack}
-\caption[test]{Overview of the \gls{ros} Navigation Stack, from~\cite{NavigationStack}}
+\caption[Overview of the \gls{ros} Navigation Stack]{Overview of the \gls{ros} Navigation Stack, from~\cite{NavigationStack}}
 \label{fig:navigation_stack}
 \end{figure}
 

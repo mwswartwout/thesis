@@ -10,6 +10,7 @@
 \graphicspath{{images/}}
 \usepackage{caption} % So that hyperref links to figures go to the top of the figure and not the caption
 \usepackage{pdflscape} % For making pages landscape
+\usepackage{datetime}
 \usepackage{hyperref} % TODO maybe not necesssary, it's included in cwru.cls
 \fancyhead[LO,RE]{} % Remove section names from header
 
@@ -18,7 +19,7 @@
 
 \title{Distributed Secure State Estimation with the TurtleBot Platform}
 \author{Matthew Swartwout}
-\date{January, 2017} % Graduate Date
+\date{Compiled \currenttime\ on \today} % Graduate Date
 \doctype{thesis} % dissertation/thesis
 \degree{Master of Science in Computer Engineering}
 \department{Electrical Engineering and Computer Science}
@@ -93,6 +94,8 @@
 \subfile{results}
 \subfile{discussion}
 \subfile{conclusion}
+
+% TODO change multiple citations to \cite{key1, key2, key3}.
 
 \backmatter
 \appendix

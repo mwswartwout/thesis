@@ -6,13 +6,18 @@ This section describes the distributed state estimation system created with the 
 \section{Theory} \label{Theory}
 \glspl{kf} perform better with more inputs. This is the driving force behind increasing the accuracy of mobile robot localization. With more sensor inputs, noise can be removed more accurately. One way to increase the number of sensor inputs to a filter is to add more sensors to the robot. However this will rapidly drive up cost and complexity. Another solution is to have robots share their information about the surrounding world, thus artificially inflating the number of sensors a robot has.
 
-The flow for this system is as follows. A robot at position $p_l$, where $l$ represent that this position is with respect to the local frame, detects another robot at position $g_l$. The robot at $p_l$ then calculates its' pose in with respect to the global frame, $p_g$ and then transforms $g_l \rightarrow g_g$. This position $g_g$ is then shared with the robot's in the surrounding environment, which integrate the position into their own localization estimate. This is summarized below.
-\begin{align}
-\text{\gls{kf} output} &\rightarrow p_l, p_g \\
-\text{Lidar scan} + p_l &\rightarrow g_l \\
-g_l &\rightarrow g_g \\
-g_g &\rightarrow \text{\gls{kf} input}
-\end{align}
+The flow for this system is as follows. A robot at position $p_l$, where $l$ represent that this position is with respect to the local frame, detects another robot at position $g_l$. The robot at $p_l$ then calculates its' pose in with respect to the global frame, $p_g$ and then transforms $g_l \rightarrow g_g$. This position $g_g$ is then shared with the robot's in the surrounding environment, which integrate the position into their own localization estimate. This is summarized in \autoref{tab:external_pose}.
+
+\begin{table}
+\centering
+\begin{tabular}{c}
+ \gls{kf} output $\rightarrow p_l, p_g$ \\
+Lidar scan $+ p_l \rightarrow g_l$ \\
+$g_g \rightarrow$ \gls{kf} input
+\end{tabular}
+\caption{General algorithm for computing external pose.}
+\label{tab:external_pose}
+\end{table}
 
 \section{Methods}
 The following sections describes how the position estimates $p_l$, $p_g$, $g_l$, and $g_g$ are obtained.
@@ -67,16 +72,70 @@ How to choose which of these inputs to use is robot specific, and will change be
 The robot node is where most of the heavy lifting is done for the robot. This node listens to the scan, which is a Lidar scan, and odom topics and calculates the external poses that are sent to other robots. It also sends movement commands to the move\_base node, but this is done via an action server and not a topic so it is not shown in this graph. The robot node also publishes the simulated GPS (fake\_gps) based on the robot's odometry information that is sent to the \gls{dist_filter}.
 
 \subsubsection{Sensor Remap Node}
-The sensor\_remap node subscribes to the odom topic, which is produced by the Gazebo simulator, and adds noise. The noise model is described in \autoref{sec:noise_model}.
+The sensor\_remap node subscribes to the odom topic, which is produced by the Gazebo simulator, and adds noise. The noise model is described in \autoref{sec:noise_model}. This node also remaps topic frame\_ids to handle some multi-robot simulation peculiarities as explained in \autoref{sec:sim_details}.
 
 \subsubsection{Filter Nodes}
 The \gls{dist_filter} and \gls{con_filter} are both subscribed to the odometry information, adn the \gls{dist_filter} is additionally subscribed to the external poses and GPS.
 
 \subsubsection{Move\_Base Node}
-The move\_base node is the \gls{ros} navigation
+The move\_base node is the \gls{ros} navigation stack node. It subscribes to the scan topic for the creation of the local costmap and to the odom topic for path planning purposes. It publishes a raw velocity command which is then sent to the velocity smoother as described in \autoref{sec:controls}.
+
 \subsubsection{Unvisualized Nodes}
-There are some unvisualized nodes.
+There are some unvisualized nodes. They are listed here along with their function.
+\begin{itemize}
+\item Simulation Timer - Allows user to set a specific runtime for simulations and stops simulation once that time has been exceeded
+\item cmd\_vel\_mux - As described in \autoref{sec:controls}
+\item depthimage\_to\_laserscan - Emulates a Lidar using the Microsoft Kinect point cloud data \cite{Rockey2016}
+\item gazebo\_odom\_throttle - By default Gazebo publishes odometry at 1000Hz, node throttles this down to more realistic 10Hz
+\item kobuki\_safety\_controller - As described in \autoref{sec:controls}
+\item navigation\_velocity\_smoother - As described in \autoref{sec:controls}
+\item sensor\_record - Records sensor and filter outputs to \gls{CSV} files for later analysis.
+\item static\_tf\_publisher - Publishes transforms to circumvent multi-robot simulation errors described in \autoref{sec:sim_details}.
+\end{itemize}
+
 \subsection{Communications Logic}
-\subsection{Gazebo Simulation Details}
+In \gls{ros}, there are three separate methods for communication between nodes: publish/subscribe, service, action server. This section will describe these three methods, and explain which parts of the system use which method and the justification for this decision.
+
+\subsubsection{Publish/Subscribe}
+The publish/subscribe method for inter-node communication is the simplest of the three available. A node declares a topic name and message type, and then sends out messages on that topic. The \gls{roscore} registers what node is publishing the topic, and later facilitates any subscription attempts to the topic. There is no communication between the publisher and the subscriber. The publisher does not know how many subscribers are present, if any, or if they are receiving the messages. The subscriber does not have any way to send feedback back to the publisher about the messages received. This system is best used for data that is always being continuously published, such as sensor measurements, and there is no need for two-way communication. Publish/subscribe also has the least overhead of any method.
+
+\subsubsection{Services}
+Services are a middle ground between action servers and publish/subscribe. One way of describing services is "Request/Reply" \cite{RosServices}. A service message is described, and then a client is able to send a request in the style of that message to the service server. The server then responds with an answer. This service call blocks other actions from happening within the calling node while it waits for a response from the server, and the server cannot provide feedback while it is processing the response. This makes services suitable for fast operations that will not cause delays in other parts of the program.
+
+\subsubsection{Action Servers}
+Action servers are the most robust communication option. Similar to a service, there is a server and client relationship. In an action server though the call to the server is non-blocking, and the server can provide feedback during the operation. Additionally, the client can request that a call to an action server be cancelled or replaced with a newer call. This makes action servers appropriate for communications that may take a long time, or where extra feedback to the calling client could be valuable.
+
+\subsubsection{Communication Choices}
+All sensor measurements, and thus all filter inputs and outputs, are done via the publish/subscribe methodology. It does not matter if anyone is listening to the sensor, and there can be no two-way communication, so this should be obvious. Communication with the move\_base navigation stack is done via an action server. Both of these communications were not choices made for this thesis, they are previously defined functionality of the software packages.
+
+For sharing external poses, multiple options were considered. The filter input must be a published topic, so at some point publish/subscribe must be used. However there cannot be multiple publishers of the same topic, so the filters would need to have an input for each robot in the environment, or there would have to be a secondary communication layer laid on top of this. Inputs cannot be dynamically created and deleted in the robot\_localization package, they must be declared before startup. Therefore having an input for each robot would conflict with our goal of handling the addition and removal of robots dynamically from \autoref{sec:Problem Statement}.
+
+This means an extra communications layer is needed. Receiving an external pose and publishing it back to a topic should be an extremely fast operation. So a service may seem like a reasonable choice, but we chose an action server instead for two reasons. First, even though the requested operation should be very fast, the service is still a blocking call. This may not be an issue when there are only a few robots in the environment, but as the number of robots increases the delay between sending out external pose measurements and receiving them back will go up linearly. This could lead to issues in very robot dense environments. Second, while no feedback is currently needed, the opportunity for feedback is very probably in further developments of this system. With this, each robot runs an action server that can receive external poses, and also maintains a list of action clients for every other robot in the environment to send poses to those robot's servers. This action client list is dynamically expanded and pruned, satisfying our goals from \autoref{sec:Problem Statement}.
+
+\subsection{Gazebo Simulation Details} \label{sec:sim_details}
+Gazebo and the TurtleBot simulation files are not designed to handle multi-robot simulations easily, so some modifications were required to make everything work well.
+
+One issue is that TF, which handles coordinate frame transformations in \gls{ros}, enforces a tree structure as noted in \autoref{disc_filter_subsubsection}. This means that each frame has one and only one parent. By default, Gazebo publishes the $odom \rightarrow base_link$ transform for the TurtleBot model. This is necessary and cannot be disabled, because the Gazebo odometry represents the ground truth of the robot. However this means that the \gls{con_filter} cannot publish the same transform or there will be an error of conflicting authority. To circumvent this, a static transform publisher creates a new frame called "base\_footprint\_filter". This frame represents the location of the robot according to the filter. The \gls{con_filter} publishes the transform $odom \rightarrow base_footprint_filter$. This also means that we can establish that $p_{base\_footprint} - p_{base\_footprint\_filter} = error_{continuous\_filter}$, where $p_{frame_id}$ means point $p$ with respect to $frame\_id$.
+
+Another issue is caused by conflicting node names. Each robot runs the exact same nodes, and only one ROS master is used for the simulations. This is avoided by using namespaces in the launch files, where every node name is prefixed by "turtlebotX". The same is done with the \gls{urdf} of the TurtleBot model, prefixing every joint and link name with a robot specific identifier prevents naming collisions.
+
 \subsection{Noise Model} \label{sec:noise_model}
+Gazebo is a relatively noiseless simulation, which makes adding noise for a realistic simulation a requirement. The following sections describe the noise models implemented for different parts of the simulation.
+
+\subsubsection{Odometry}
+For the odometry, the noise model was taken from Probabilistic Robotics by \textcite[136]{ProbabilisticRobotics}. In Table 5.6 they show the algorithm for sampling from $p(x_t | u_t, x_{t-1})$, where $x_t$ represents the pose at time $t$ and $u_t$ represents the odometry measurement received. This table is reproduced in \autoref{sample_motion_model_odometry}.
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth, keepaspectratio]{odometry_sample}
+\caption[sample\_motion\_model\_odometry Algorithm]{sample\_motion\_model\_odometry Algorithm from \cite[136]{ProbabilisticRobotics}}
+\label{sample_motion_model_odometry}
+\end{figure} 
+
+In this model $sample(\sigma)$ represents taking a random sample from a normal distribution with mean 0 and standard deviation $\sigma$. Normally this model would be used for a particle filter, generating random poses based on an odometry measurement and a pose. However since our odometry is virtually noiseless we can use this instead to add random Gaussian error into our odometry measurement.
+
+It is important to note that the Gazebo odometry is not perfectly noiseless. There is some error, presumably due to floating point math errors, however this drift is on the scale of $10^-5$ meters per minute. %TODO justify actual odom drift with data
+
+\subsubsection{IMU}
+\subsubsection{Camera}
+\subsubsection{Pose Estimate}
 \end{document}
