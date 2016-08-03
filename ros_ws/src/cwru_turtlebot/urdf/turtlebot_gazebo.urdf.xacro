@@ -18,7 +18,7 @@
                         <far>8.0</far>
                     </clip>
                     <noise>
-                        <!-- Noise parameters taken from Gazebo documentation reccomendation -->
+                        <!-- Noise parameters taken from Gazebo documentation recommendation -->
                         <type>gaussian</type>
                         <mean>0.0</mean>
                         <stddev>0.007</stddev>
