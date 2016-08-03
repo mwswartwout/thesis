@@ -54,5 +54,8 @@
     </include-->
 
     <!-- Throttle Gazebo odom so it publishes at 10Hz rather than 100Hz -->
-    <node pkg="topic_tools" type="throttle" name="gazebo_odom_throttle" args="messages odom 10"/>
+    <node pkg="topic_tools" type="throttle" name="gazebo_odom_throttle" args="messages odom 10" required="true"/>
+
+    <!-- Simulated GPS publisher -->
+    <node pkg="cwru_turtlebot" type="fake_gps.py" name="fake_gps" required="true" output="screen"/>
 </launch>
