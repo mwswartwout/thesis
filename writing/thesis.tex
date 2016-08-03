@@ -11,7 +11,10 @@
 \usepackage{caption} % So that hyperref links to figures go to the top of the figure and not the caption
 \usepackage{pdflscape} % For making pages landscape
 \usepackage{datetime} % For showing time of compilation
-\usepackage{tikz} % For diagrams
+%\usepackage{tikz} % For diagrams
+\usepackage{listings}
+\lstset{language=bash}
+\usepackage[toc, page]{appendix}
 \usepackage{hyperref} % TODO maybe not necesssary, it's included in cwru.cls
 \fancyhead[LO,RE]{} % Remove section names from header
 
@@ -20,7 +23,7 @@
 
 \title{Distributed Secure State Estimation with the TurtleBot Platform}
 \author{Matthew Swartwout}
-\date{Compiled \currenttime\ on \today} % Graduate Date
+\date{Compiled \currenttime\ on \today} % Graduate Date % TODO switch to graduated date once done
 \doctype{thesis} % dissertation/thesis
 \degree{Master of Science in Computer Engineering}
 \department{Electrical Engineering and Computer Science}
@@ -98,9 +101,12 @@
 
 % TODO change multiple citations to \cite{key1, key2, key3}.
 % TODO make all citations have a non-breaking space (~) before them.
-\backmatter
-\appendix
 
+\begin{appendices}
+\subfile{setting_up_zedboard}
+\end{appendices}
+
+\backmatter
 % For your references
 \chapter{References}
 \printbibliography[heading=none]
