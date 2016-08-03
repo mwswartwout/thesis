@@ -4,7 +4,7 @@
     <arg name="y_pos" default="0"/>
     <arg name="yaw" default="0"/>
     <arg name="sensor_record" default="false"/>
-    <arg name="map_file" default="$(env TURTLEBOT_MAP_FILE)"/>
+    <!--arg name="map_file" default="$(env TURTLEBOT_MAP_FILE)"/-->
 
     <!-- Load the starting position into the parameter server-->
     <!-- So that they can be accessed by the turtlebot node on startup-->
