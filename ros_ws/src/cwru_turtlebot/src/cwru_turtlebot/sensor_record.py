@@ -200,7 +200,8 @@ def write_to_files(event):
     global namespace
     global prefix
 
-    if None not in (continuous_data, discrete_data, gazebo_data, external_count, imu_data, gps_data, noisy_odom_data, namespace, prefix):
+    # Synchronized writing for data published at 10Hz or higher
+    if None not in (continuous_data, discrete_data, gazebo_data, external_count, imu_data, noisy_odom_data, namespace, prefix):
         # rospy.logdebug(namespace + ': Writing to sensor data to files')
 
         filename = prefix + namespace + '_continuous_filter_odom.csv'
@@ -233,18 +234,21 @@ def write_to_files(event):
             writer = csv.writer(noisy_odom_file)
             writer.writerow(noisy_odom_data)
 
-        filename = prefix + namespace + '_gps_data.csv'
-        with open(filename, 'a+') as gps_file:
-            writer = csv.writer(gps_file)
-            writer.writerow(gps_data)
-
         # Invalidate fields so that we don't record duplicate data multiple times in the case of sensor failure
         continuous_data = None
         discrete_data = None
         gazebo_data = None
         imu_data = None
-        # gps_data = None
         noisy_odom_data = None
+
+    if gps_data is not None:
+        filename = prefix + namespace + '_gps_data.csv'
+        with open(filename, 'a+') as gps_file:
+            writer = csv.writer(gps_file)
+            writer.writerow(gps_data)
+
+        gps_data = None
+
         #if external_count is not [0]:
             # Only invalidate external_count if we have been receiving external sensor measurements
         #    external_count = None
