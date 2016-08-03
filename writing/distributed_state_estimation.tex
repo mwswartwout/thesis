@@ -120,22 +120,85 @@ One issue is that TF, which handles coordinate frame transformations in \gls{ros
 Another issue is caused by conflicting node names. Each robot runs the exact same nodes, and only one ROS master is used for the simulations. This is avoided by using namespaces in the launch files, where every node name is prefixed by "turtlebotX". The same is done with the \gls{urdf} of the TurtleBot model, prefixing every joint and link name with a robot specific identifier prevents naming collisions.
 
 \subsection{Noise Model} \label{sec:noise_model}
-Gazebo is a relatively noiseless simulation, which makes adding noise for a realistic simulation a requirement. The following sections describe the noise models implemented for different parts of the simulation.
+Gazebo is a relatively noiseless simulation, which makes adding noise a requirement. The following sections describe the noise models implemented in the simulation.
 
 \subsubsection{Odometry}
-For the odometry, the noise model was taken from Probabilistic Robotics by \textcite[136]{ProbabilisticRobotics}. In Table 5.6 they show the algorithm for sampling from $p(x_t | u_t, x_{t-1})$, where $x_t$ represents the pose at time $t$ and $u_t$ represents the odometry measurement received. This table is reproduced in \autoref{sample_motion_model_odometry}.
+For the odometry, the noise model was taken from Probabilistic Robotics by \textcite[136]{ProbabilisticRobotics}. In Table 5.6 they show the algorithm for sampling from $p(x_t \mid u_t, x_{t-1})$, where $x_t$ represents the pose at time $t$ and $u_t$ represents the odometry measurement received. This table is reproduced in \autoref{tab:sample_motion_model_odometry}.
+
+\begin{table}
+\centering
+\begin{align}
+&\delta_{\text{rot1}} = \text{atan2}(\bar{y}' - \bar{y}, \bar{x}' - \bar{x}) - \bar{\theta}\\ 
+&\delta_{\text{trans}} = \sqrt{(\bar{x} - \bar{x}')^2 + (\bar{y} - \bar{y}')^2}\\
+&\delta_{\text{rot2}} = \bar{\theta}' - \bar{\theta} - \delta_{\text{rot1}}\\
+\notag \\
+&\hat{\delta}_{\text{rot1}} = \delta_{\text{rot1}} - \textbf{sample}(\alpha_1\lvert\delta_{\text{rot1}}\rvert + \alpha_2\delta_{\text{trans}})\\
+&\hat{\delta}_{\text{trans}} = \delta_{\text{trans}} - \textbf{sample}(\alpha_3\delta_{\text{trans}} + \alpha_4(\lvert\delta_{\text{rot1}}\rvert + \lvert\delta_{\text{rot2}}\rvert)\\
+&\hat{\delta}_{\text{rot2}} = \delta_{\text{rot2}} - \textbf{sample}(\alpha_1\lvert\delta_{\text{rot2}}\rvert + \alpha_2\delta_{\text{trans}})\\
+\notag \\
+&x' = x + \hat{\delta}_{\text{trans}}\cos(\theta + \hat{\delta}_{\text{rot1}})\\
+&y' = y + \hat{\delta}_{\text{trans}}\sin(\theta + \hat{\delta}_{\text{rot1}})\\
+&\theta' = \theta + \hat{\delta}_{\text{rot1}} + \hat{\delta}_{\text{rot2}}\\
+\notag \\
+&return \ x_t = (x', y', \theta')^T
+\end{align}
+\caption[Algorithm sample\_motion\_model\_odometry]{Algorithm for sampling from $p(x_t \mid u_t, x_{t-1})$ based on odometry information. Here the pose at time $t$ is represented by $x_{t-1} = (x\ y\ \theta)^T)$. The control is a differentiable set of two pose estimates obtained by the robot's odometer, $u_t = (\bar{x}_{t-1}\ \bar{x}_t)^T$, with $\bar{x}_{t-1} = (\bar{x}\ \bar{y}\ \bar{\theta})$ and $\bar{x}_{t} = (\bar{x}'\ \bar{y}'\ \bar{\theta}')$}
+\label{tab:sample_motion_model_odometry}
+\end{table} 
+
+In this model, a movement by the robot (represented by two odometry readings, $\bar{x}_{t-1} = (\bar{x}\ \bar{y}\ \bar{\theta})$, $\bar{x}_{t} = (\bar{x}'\ \bar{y}'\ \bar{\theta}')$) is represented by a sequence of three motions: a rotation, translation, and a final rotation. This is shown in lines 1-3 of \autoref{tab:sample_motion_model_odometry}. Then, in lines 4-6 random noise is added to these motions. $sample(\sigma)$ represents taking a random sample from a normal distribution with mean 0 and standard deviation $\sigma$. Finally, the noisy new pose is generated in lines 7-9.
+
+It is important to note that the Gazebo odometry is not perfectly noiseless. There is some error, presumably due to floating point math errors, however this drift is on the scale of $10^-5$ meters per minute. Therefore this additional noise was needed to create a realistic simulation %TODO justify actual odom drift with data, show no noise vs noisy drift
+
+%\subsubsection{IMU} %TODO maybe reinclude this
+
+\subsubsection{Camera}
+In the TurtleBot platform ,the Kinect camera is used to emulate a Lidar. The depthimage\_to\_laserscan node receives the depth image from the camera, samples a user-defined number of points horizontally along the center line of the image, and uses these distances to create a message as if those distances were determined via a Lidar scan. It is possible to take that Lidar message and add random noise to it via an intermediary node before it is received by the robot node or move\_base nodes. However Gazebo offers the option of simulating output amplifier noise, which adds Gaussian noise to each pixel in the camera image. This is a much better approximation of our real-world noise, so it is what we used. Based on the recommendations found in \cite{GazeboSensorNoise}, we used a mean of 0 and standard deviation of 0.007 for our camera's error parameters.
+
+\subsubsection{Pose Estimate}
+There are three sources of error in the calculated pose estimate for another robot. The first two sources of error are the Lidar error and the odometry error. Calculating the pose involves using the Lidar reading and the robot's current pose to calculate the location of the other robot. Since there is noise in both the odometry and the Lidar, there is noise in this calculation.
+
+The second source of noise is in the projection from the TurtleBot boundary to the center. When calculating the pose of the TurtleBot, our Lidar measurement is not registering the center of the TurtleBot. Instead, it is hitting an edge. We know that the radius of the TurtleBot is 0.2 meters, so we project the scan 0.2m forward. We do not know the relative angle of the two TurtleBots though, nor the angle of contact between the scan and the TurtleBot exterior, so this projection has an associated error.
+
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth, keepaspectratio]{odometry_sample}
-\caption[sample\_motion\_model\_odometry Algorithm]{sample\_motion\_model\_odometry Algorithm from \cite[136]{ProbabilisticRobotics}}
-\label{sample_motion_model_odometry}
-\end{figure} 
+\includegraphics[width=\textwidth, keepaspectratio]{two_turtlebot}
+\caption{Pose Estimation Diagram}
+\label{fig:pose_estimate}
+\end{figure}
 
-In this model $sample(\sigma)$ represents taking a random sample from a normal distribution with mean 0 and standard deviation $\sigma$. Normally this model would be used for a particle filter, generating random poses based on an odometry measurement and a pose. However since our odometry is virtually noiseless we can use this instead to add random Gaussian error into our odometry measurement.
+\autoref{fig:pose_estimate} shows a TurtleBot detecting another TurtleBot. The line in red represents the Lidar scan originating from the TurtleBot in the upper right and "detecting" the TurtleBot in the lower left. The line in blue shows the angle between the origins of the two robots. We call $\theta_1$ the \textit{angle of contact} and $theta_2$ the \textit{relative position angle}. We call the point where the tangent point between the Lidar scan and the detected robot the \textit{point of contact}.
 
-It is important to note that the Gazebo odometry is not perfectly noiseless. There is some error, presumably due to floating point math errors, however this drift is on the scale of $10^-5$ meters per minute. %TODO justify actual odom drift with data
+\begin{figure}
+\centering
+\includegraphics[width=.5\textwidth, keepaspectratio]{detection_semicircle}
+\caption{Projected Origin Estimates with Fixed Point of Contact and Unknown Angle of Contact}
+\label{fig:detection_semicircle}
+\end{figure}
 
-\subsubsection{IMU}
-\subsubsection{Camera}
-\subsubsection{Pose Estimate}
+\autoref{fig:detection_semicircle} shows the possible calculated poses when projecting from a point of contact, at the exact top of the TurtleBot, forward 0.2m. Because we cannot calculate the angle of contact, we assume that all angles of contact are equally likely. This leaves us with an equal probability of the projected point lying anywhere along the displayed blue semi-circle. 
+
+Then considering the set of all possible projected points, at all possible points of contact and angles of contact, we see that we have an error distribution with a maximum error of $.2\sqrt{2}$ (from Pythagorean Theorem) and minimum error of 0, with higher probabilities as we approach 0.
+
+\subsubsection{GPS}
+The \gls{faa} produced a report in 2014 that studied the accuracy of \gls{gps} systems \cite{FAAGPS}. This data was collected from April 1st through June 30th, 2014 at 28 different locations. The report showed that the \gls{gps} system horizontal measurement error fit a 95\% confidence interval of 3.351m. A mean error was not stated, therefore 0 is assumed. This assumption is probably inaccurate, though we do not feel it would impact the results of this analysis. Further assuming our data is normally distributed, we model our noise with a mean of 0 and a standard deviation of 1.71.
+
+To create the noisy GPS signal, we take the Gazebo published ground truth odometry, which is delivered in the robot's odom frame, and add it to the robot's initial starting position, which is given in the map frame. This gives us the robot's accurate position in the map frame. Then we sample from our distribution to choose a horizontal error. Once that is selected, we sample from a uniform distribution of $[0, 2\pi]$, and calculate a new location offset from the original location in polar coordinates by the angle and distance selected. This algorithm is shown in \autoref{tab:noisy_gps}
+
+\begin{table}
+\centering
+\begin{align}
+&x = x_{initial} + \bar{x}\\
+&y = y_{initial} + \bar{y}\\
+\notag \\
+&horiz_{error} = \textbf{sample}(1.71)\\
+&\theta = \textbf{$sample_{uniform}$}(0, 2\pi)\\
+\notag \\
+&x' = x + horiz_{error} \times \cos(\theta)\\
+&y' = y + horiz_{error} \times \sin(\theta)
+\end{align}
+\caption{Algorithm noisy\_gps}
+\label{tab:noisy_gps}
+\end{table}
+
 \end{document}
