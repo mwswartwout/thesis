@@ -64,7 +64,7 @@ def main():
     gazebo_odom_subscriber = rospy.Subscriber('odom', Odometry, gazebo_odom_cb)
 
     global gps_publisher
-    gps_publisher = rospy.Publisher('fake_gps', PoseWithCovarianceStamped, queue_size=1)
+    gps_publisher = rospy.Publisher('fake_gps', PoseWithCovarianceStamped, queue_size=1, latch=True)
 
     timer = rospy.Timer(rospy.Duration(10), publish_gps)
 
