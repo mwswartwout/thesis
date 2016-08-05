@@ -123,29 +123,29 @@ summary(gps$dist_err)
 #sum(continuous$dist_error <= 0.25) / length(continuous$dist_error)
 #sum(discrete$dist_error <= 0.25) / length(discrete$dist_error)
 
-shapiro.test(noisy_odom$x_err)
-shapiro.test(noisy_odom$y_err)
-shapiro.test(noisy_odom$dist_err)
-
-shapiro.test(gps$x_err)
-shapiro.test(gps$y_err)
-shapiro.test(gps$dist_err)
-
-noisy_odom_fit_x <- fitdist(noisy_odom$x_err, "norm")
-noisy_odom_fit_y <- fitdist(noisy_odom$y_err, "norm")
-noisy_odom_fit_dist <- fitdist(noisy_odom$dist_err, "norm")
-
-summary(noisy_odom_fit_x)
-summary(noisy_odom_fit_y)
-summary(noisy_odom_fit_dist)
-
-gps_fit_x <- fitdist(gps$x_err, "norm")
-gps_fit_y <- fitdist(gps$y_err, "norm")
-gps_fit_dist <- fitdist(gps$dist_err, "norm")
-
-summary(gps_fit_x)
-summary(gps_fit_y)
-summary(gps_fit_dist)
+# shapiro.test(noisy_odom$x_err)
+# shapiro.test(noisy_odom$y_err)
+# shapiro.test(noisy_odom$dist_err)
+#
+# shapiro.test(gps$x_err)
+# shapiro.test(gps$y_err)
+# shapiro.test(gps$dist_err)
+#
+# noisy_odom_fit_x <- fitdist(noisy_odom$x_err, "norm")
+# noisy_odom_fit_y <- fitdist(noisy_odom$y_err, "norm")
+# noisy_odom_fit_dist <- fitdist(noisy_odom$dist_err, "norm")
+#
+# summary(noisy_odom_fit_x)
+# summary(noisy_odom_fit_y)
+# summary(noisy_odom_fit_dist)
+#
+# gps_fit_x <- fitdist(gps$x_err, "norm")
+# gps_fit_y <- fitdist(gps$y_err, "norm")
+# gps_fit_dist <- fitdist(gps$dist_err, "norm")
+#
+# summary(gps_fit_x)
+# summary(gps_fit_y)
+# summary(gps_fit_dist)
 
 ## ---- time
 total_time_seconds <- (length(gazebo$x_position) / 10)
