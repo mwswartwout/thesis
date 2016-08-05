@@ -7,7 +7,7 @@
 \usepackage{subfiles} % Use to compartmentalize different chapters in different files
 \usepackage{graphicx} % For including images
 \usepackage{amsmath} % For align environment and better math
-\graphicspath{{images/}}
+\graphicspath{{images/}, {r_figures/}}
 \usepackage{caption} % So that hyperref links to figures go to the top of the figure and not the caption
 \usepackage{pdflscape} % For making pages landscape
 \usepackage{datetime} % For showing time of compilation
@@ -88,22 +88,22 @@
 \phantomsection
 \printglossary[title=List of Terms]
 
-\subfile{abstract}
+\subfile{subfiles/abstract}
 
 \mainmatter
-\subfile{introduction}
-\subfile{literature_review}
-\subfile{hardware_platform}
-\subfile{distributed_state_estimation}
-\subfile{results}
-\subfile{discussion}
-\subfile{conclusion}
+\subfile{subfiles/introduction}
+\subfile{subfiles/literature_review}
+\subfile{subfiles/hardware_platform}
+\subfile{subfiles/distributed_state_estimation}
+\subfile{subfiles/results}
+\subfile{subfiles/discussion}
+\subfile{subfiles/conclusion}
 
 % TODO change multiple citations to \cite{key1, key2, key3}.
 % TODO make all citations have a non-breaking space (~) before them.
 
 \begin{appendices}
-\subfile{setting_up_zedboard}
+\subfile{subfiles/setting_up_zedboard}
 \end{appendices}
 
 \backmatter
