@@ -17,6 +17,8 @@ knitr::opts_chunk$set(dev='pdf')
 knitr::read_chunk('experiment.R')
 ```
 
+```{r dependencies, echo=FALSE}
+```
 ```{r read_data, echo=FALSE}
 ```
 ```{r calculations, echo=FALSE}
@@ -32,4 +34,9 @@ Shown below is the summary of the error of all robots combined for both x and y 
 Shown below are plots representing the robot's motion and error over time.
 
 ```{r plot}
+```
+
+```{r external_figures}
+```
+```{r stargazer_tables}
 ```

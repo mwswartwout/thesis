@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 data_dir <- "/home/matt/thesis/experiment_data"
 dirs <- list.dirs(path=data_dir, recursive=FALSE) # Find all experiments in the data_dir
 report_dir <- paste0(data_dir, "/reports") # Create a subdirectory in the data_dir to store reports
