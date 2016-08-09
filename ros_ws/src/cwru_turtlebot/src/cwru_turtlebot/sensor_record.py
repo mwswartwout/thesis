@@ -59,10 +59,10 @@ def continuous_odom_callback(new_odom):
         pose_x = new_odom.pose.pose.position.x + initial_x
         pose_y = new_odom.pose.pose.position.y + initial_y
         pose_yaw = helpers.correct_angle(helpers.convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw)
-        # pose_covariance = new_odom.pose.covariance
-        # twist_covariance = new_odom.twist.covariance
-        # TODO see if we can split covariance values into their own items
-        continuous_data = (pose_x, pose_y, pose_yaw)#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        x_variance = new_odom.pose.covariance[0]
+        y_variance = new_odom.pose.covariance[7]
+        yaw_variance = new_odom.pose.covariance[35]
+        continuous_data = (pose_x, pose_y, pose_yaw, x_variance, y_variance, yaw_variance)
         # rospy.logdebug(namespace + ': sensor_record received new continuous data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
@@ -76,9 +76,10 @@ def discrete_odom_callback(new_odom):
     pose_x = new_odom.pose.pose.position.x
     pose_y = new_odom.pose.pose.position.y
     pose_yaw = helpers.correct_angle(helpers.convert_quaternion_to_yaw(new_odom.pose.pose.orientation))
-    # pose_covariance = new_odom.pose.covariance
-    # twist_covariance = new_odom.twist.covariance
-    discrete_data = (pose_x, pose_y, pose_yaw)#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+    x_variance = new_odom.pose.covariance[0]
+    y_variance = new_odom.pose.covariance[7]
+    yaw_variance = new_odom.pose.covariance[35]
+    discrete_data = (pose_x, pose_y, pose_yaw, x_variance, y_variance, yaw_variance)
     # rospy.logdebug(namespace + ': sensor_record received new discrete data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
@@ -93,9 +94,10 @@ def gazebo_odom_callback(new_odom):
         pose_x = new_odom.pose.pose.position.x + initial_x
         pose_y = new_odom.pose.pose.position.y + initial_y
         pose_yaw = helpers.correct_angle(helpers.convert_quaternion_to_yaw(new_odom.pose.pose.orientation) + initial_yaw)
-        # pose_covariance = new_odom.pose.covariance
-        # twist_covariance = new_odom.twist.covariance
-        gazebo_data = (pose_x, pose_y, pose_yaw)#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+        x_variance = new_odom.pose.covariance[0]
+        y_variance = new_odom.pose.covariance[7]
+        yaw_variance = new_odom.pose.covariance[35]
+        gazebo_data = (pose_x, pose_y, pose_yaw, x_variance, y_variance, yaw_variance)
         # rospy.logdebug(namespace + ': sensor_record received new gazebo data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
@@ -159,17 +161,17 @@ def write_headers():
         filename = prefix + namespace + '_continuous_filter_odom.csv'
         with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
-            writer.writerow(['x_position', 'y_position', 'yaw'])  # , 'pose_covariance', 'twist_covariance'])
+            writer.writerow(['x_position', 'y_position', 'yaw', 'x_variance', 'y_variance', 'yaw_variance'])
 
         filename = prefix + namespace + '_discrete_filter_odom.csv'
         with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
-            writer.writerow(['x_position', 'y_position', 'yaw'])  # , 'pose_covariance', 'twist_covariance'])
+            writer.writerow(['x_position', 'y_position', 'yaw', 'x_variance', 'y_variance', 'yaw_variance'])
 
         filename = prefix + namespace + '_gazebo_odom.csv'
         with open(filename, 'w+') as pose_file:
             writer = csv.writer(pose_file)
-            writer.writerow(['x_position', 'y_position', 'yaw'])  # , 'pose_covariance', 'twist_covariance'])
+            writer.writerow(['x_position', 'y_position', 'yaw', 'x_variance', 'y_variance', 'yaw_variance'])
 
         filename = prefix + namespace + '_external_pose_count.csv'
         with open(filename, 'w+') as count_file:
@@ -224,35 +226,11 @@ def write_to_files(event):
     # Synchronized writing for data published at 10Hz or higher
     if None not in (continuous_data, discrete_data, gazebo_data, external_count, imu_data, noisy_odom_data):
         # rospy.logdebug(namespace + ': Writing to sensor data to files')
-
-        #filename = prefix + namespace + '_continuous_filter_odom.csv'
-        #with open(filename, 'a+') as pose_file:
-            #writer = csv.writer(pose_file)
         continuous_writer.writerow(continuous_data)
-
-        #filename = prefix + namespace + '_discrete_filter_odom.csv'
-        #with open(filename, 'a+') as pose_file:
-            #writer = csv.writer(pose_file)
         discrete_writer.writerow(discrete_data)
-
-        #filename = prefix + namespace + '_gazebo_odom.csv'
-        #with open(filename, 'a+') as pose_file:
-            #writer = csv.writer(pose_file)
         gazebo_writer.writerow(gazebo_data)
-
-        #filename = prefix + namespace + '_external_pose_count.csv'
-        #with open(filename, 'a+') as count_file:
-            #writer = csv.writer(count_file)
         external_writer.writerow(external_count)
-
-        #filename = prefix + namespace + '_imu_data.csv'
-        #with open(filename, 'a+') as imu_file:
-            #writer = csv.writer(imu_file)
         imu_writer.writerow(imu_data)
-
-        #filename = prefix + namespace + '_noisy_odom_data.csv'
-        #with open(filename, 'a+') as noisy_odom_file:
-            #writer = csv.writer(noisy_odom_file)
         noisy_odom_writer.writerow(noisy_odom_data)
 
         # Invalidate fields so that we don't record duplicate data multiple times in the case of sensor failure
@@ -262,17 +240,10 @@ def write_to_files(event):
         imu_data = None
         noisy_odom_data = None
 
-    if gps_data is not None:
-        #filename = prefix + namespace + '_gps_data.csv'
-        #with open(filename, 'a+') as gps_file:
-            #writer = csv.writer(gps_file)
-        gps_writer.writerow(gps_data)
-
-        gps_data = None
-
-        #if external_count is not [0]:
-            # Only invalidate external_count if we have been receiving external sensor measurements
-        #    external_count = None
+        # GPS data publishes slower than odometry so it must be checked/written separately
+        if gps_data is not None:
+            gps_writer.writerow(gps_data)
+            gps_data = None
     else:
         if continuous_data is None:
             rospy.logdebug(namespace + ': Could not write data because continuous data was not initialized')
