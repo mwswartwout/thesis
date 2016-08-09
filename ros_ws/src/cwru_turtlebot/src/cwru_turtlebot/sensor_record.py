@@ -11,6 +11,7 @@ from std_msgs.msg import UInt64
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from sensor_msgs.msg import Imu
 
+# Data for recording
 initial_x = None
 initial_y = None
 initial_yaw = None
@@ -24,6 +25,15 @@ prefix = None
 imu_data = None
 noisy_odom_data = None
 gps_data = None
+
+# csv.writer() objects
+continuous_writer = None
+discrete_writer = None
+gazebo_writer = None
+external_writer = None
+imu_writer = None
+noisy_odom_writer = None
+gps_writer = None
 
 
 def initial_position_callback(position):
@@ -62,15 +72,14 @@ def discrete_odom_callback(new_odom):
     global initial_y
     global namespace
 
-    if None not in (initial_x, initial_y, initial_yaw):
-        # Measurement is already in map frame so no need to convert by adding initial position
-        pose_x = new_odom.pose.pose.position.x
-        pose_y = new_odom.pose.pose.position.y
-        pose_yaw = helpers.correct_angle(helpers.convert_quaternion_to_yaw(new_odom.pose.pose.orientation))
-        # pose_covariance = new_odom.pose.covariance
-        # twist_covariance = new_odom.twist.covariance
-        discrete_data = (pose_x, pose_y, pose_yaw)#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
-        # rospy.logdebug(namespace + ': sensor_record received new discrete data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
+    # Measurement is already in map frame so no need to convert by adding initial position
+    pose_x = new_odom.pose.pose.position.x
+    pose_y = new_odom.pose.pose.position.y
+    pose_yaw = helpers.correct_angle(helpers.convert_quaternion_to_yaw(new_odom.pose.pose.orientation))
+    # pose_covariance = new_odom.pose.covariance
+    # twist_covariance = new_odom.twist.covariance
+    discrete_data = (pose_x, pose_y, pose_yaw)#, (''.join(str(pose_covariance))).split(","), (''.join(str(twist_covariance))).split(",")]
+    # rospy.logdebug(namespace + ': sensor_record received new discrete data of (' + str(pose_x) + ', ' + str(pose_y) + ')')
 
 
 def gazebo_odom_callback(new_odom):
@@ -95,7 +104,7 @@ def external_pose_count_callback(count):
     global namespace
 
     rospy.logdebug(namespace + ': sensor_record received new external_count value of ' + str(count.data))
-    external_count = [count.data]
+    external_count = (count.data,)
 
 
 def imu_callback(imu_msg):
@@ -114,8 +123,9 @@ def noisy_odom_callback(odom_msg):
     x = odom_msg.pose.pose.position.x
     y = odom_msg.pose.pose.position.y
     yaw = helpers.convert_quaternion_to_yaw(odom_msg.pose.pose.orientation)
-
-    noisy_odom_data = (x, y, yaw)
+    x_vel = odom_msg.twist.twist.linear.x
+    yaw_vel = odom_msg.twist.twist.angular.z
+    noisy_odom_data = (x, y, yaw, x_vel, yaw_vel)
 
 
 def gps_callback(gps_msg):
@@ -174,7 +184,7 @@ def write_headers():
         filename = prefix + namespace + '_noisy_odom_data.csv'
         with open(filename, 'w+') as noisy_odom_file:
             writer = csv.writer(noisy_odom_file)
-            writer.writerow(['x', 'y', 'yaw'])
+            writer.writerow(['x', 'y', 'yaw', 'x_vel', 'yaw_vel'])
 
         filename = prefix + namespace + '_gps_data.csv'
         with open(filename, 'w+') as gps_file:
@@ -200,39 +210,50 @@ def write_to_files(event):
     global namespace
     global prefix
 
+    global continuous_writer
+    global discrete_writer
+    global gazebo_writer
+    global external_writer
+    global imu_writer
+    global noisy_odom_writer
+    global gps_writer
+
+    assert None not in (continuous_writer, discrete_writer, gazebo_writer, external_writer, imu_writer,
+                        noisy_odom_writer, gps_writer, namespace, prefix)
+
     # Synchronized writing for data published at 10Hz or higher
-    if None not in (continuous_data, discrete_data, gazebo_data, external_count, imu_data, noisy_odom_data, namespace, prefix):
+    if None not in (continuous_data, discrete_data, gazebo_data, external_count, imu_data, noisy_odom_data):
         # rospy.logdebug(namespace + ': Writing to sensor data to files')
 
-        filename = prefix + namespace + '_continuous_filter_odom.csv'
-        with open(filename, 'a+') as pose_file:
-            writer = csv.writer(pose_file)
-            writer.writerow(continuous_data)
+        #filename = prefix + namespace + '_continuous_filter_odom.csv'
+        #with open(filename, 'a+') as pose_file:
+            #writer = csv.writer(pose_file)
+        continuous_writer.writerow(continuous_data)
 
-        filename = prefix + namespace + '_discrete_filter_odom.csv'
-        with open(filename, 'a+') as pose_file:
-            writer = csv.writer(pose_file)
-            writer.writerow(discrete_data)
+        #filename = prefix + namespace + '_discrete_filter_odom.csv'
+        #with open(filename, 'a+') as pose_file:
+            #writer = csv.writer(pose_file)
+        discrete_writer.writerow(discrete_data)
 
-        filename = prefix + namespace + '_gazebo_odom.csv'
-        with open(filename, 'a+') as pose_file:
-            writer = csv.writer(pose_file)
-            writer.writerow(gazebo_data)
+        #filename = prefix + namespace + '_gazebo_odom.csv'
+        #with open(filename, 'a+') as pose_file:
+            #writer = csv.writer(pose_file)
+        gazebo_writer.writerow(gazebo_data)
 
-        filename = prefix + namespace + '_external_pose_count.csv'
-        with open(filename, 'a+') as count_file:
-            writer = csv.writer(count_file)
-            writer.writerow(external_count)
+        #filename = prefix + namespace + '_external_pose_count.csv'
+        #with open(filename, 'a+') as count_file:
+            #writer = csv.writer(count_file)
+        external_writer.writerow(external_count)
 
-        filename = prefix + namespace + '_imu_data.csv'
-        with open(filename, 'a+') as imu_file:
-            writer = csv.writer(imu_file)
-            writer.writerow(imu_data)
+        #filename = prefix + namespace + '_imu_data.csv'
+        #with open(filename, 'a+') as imu_file:
+            #writer = csv.writer(imu_file)
+        imu_writer.writerow(imu_data)
 
-        filename = prefix + namespace + '_noisy_odom_data.csv'
-        with open(filename, 'a+') as noisy_odom_file:
-            writer = csv.writer(noisy_odom_file)
-            writer.writerow(noisy_odom_data)
+        #filename = prefix + namespace + '_noisy_odom_data.csv'
+        #with open(filename, 'a+') as noisy_odom_file:
+            #writer = csv.writer(noisy_odom_file)
+        noisy_odom_writer.writerow(noisy_odom_data)
 
         # Invalidate fields so that we don't record duplicate data multiple times in the case of sensor failure
         continuous_data = None
@@ -242,10 +263,10 @@ def write_to_files(event):
         noisy_odom_data = None
 
     if gps_data is not None:
-        filename = prefix + namespace + '_gps_data.csv'
-        with open(filename, 'a+') as gps_file:
-            writer = csv.writer(gps_file)
-            writer.writerow(gps_data)
+        #filename = prefix + namespace + '_gps_data.csv'
+        #with open(filename, 'a+') as gps_file:
+            #writer = csv.writer(gps_file)
+        gps_writer.writerow(gps_data)
 
         gps_data = None
 
@@ -253,25 +274,22 @@ def write_to_files(event):
             # Only invalidate external_count if we have been receiving external sensor measurements
         #    external_count = None
     else:
-        if namespace is None:
-            rospy.logdebug('Could not write data because namespace was not initialized')
-        else:
-            if continuous_data is None:
-                rospy.logdebug(namespace + ': Could not write data because continuous data was not initialized')
-            if discrete_data is None:
-                rospy.logdebug(namespace + ': Could not write data because discrete data was not initialized')
-            if gazebo_data is None:
-                rospy.logdebug(namespace + ': Could not write data because gazebo data was not initialized')
-            if external_count is None:
-                rospy.logdebug(namespace + ': Could not write data because external count was not initialized')
-            if prefix is None:
-                rospy.logdebug(namespace + ': Could not write data because file prefix was not initialized')
-            if noisy_odom_data is None:
-                rospy.logdebug(namespace + ': Could not write data because noisy odom data was not initialized')
-            if gps_data is None:
-                rospy.logdebug(namespace + ': Could not write data because gps data was not initialized')
-            if imu_data is None:
-                rospy.logdebug(namespace + ': Could not write data because imu data was not initialized')
+        if continuous_data is None:
+            rospy.logdebug(namespace + ': Could not write data because continuous data was not initialized')
+        if discrete_data is None:
+            rospy.logdebug(namespace + ': Could not write data because discrete data was not initialized')
+        if gazebo_data is None:
+            rospy.logdebug(namespace + ': Could not write data because gazebo data was not initialized')
+        if external_count is None:
+            rospy.logdebug(namespace + ': Could not write data because external count was not initialized')
+        if prefix is None:
+            rospy.logdebug(namespace + ': Could not write data because file prefix was not initialized')
+        if noisy_odom_data is None:
+            rospy.logdebug(namespace + ': Could not write data because noisy odom data was not initialized')
+        if gps_data is None:
+            rospy.logdebug(namespace + ': Could not write data because gps data was not initialized')
+        if imu_data is None:
+            rospy.logdebug(namespace + ': Could not write data because imu data was not initialized')
 
 
 def main():
@@ -289,15 +307,6 @@ def main():
     global prefix
     prefix = rospy.get_param('/save_file_prefix')
 
-    initial_position_subscriber = rospy.Subscriber('initial_position', PoseWithCovarianceStamped, initial_position_callback)
-    continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous', Odometry, continuous_odom_callback)
-    discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete', Odometry, discrete_odom_callback)
-    gazebo_odom_subscriber = rospy.Subscriber('odom_throttle', Odometry, gazebo_odom_callback)
-    external_pose_count_subscriber = rospy.Subscriber('external_poses_count', UInt64, external_pose_count_callback)
-    imu_subscriber = rospy.Subscriber('imu_data_remapped', Imu, imu_callback)
-    noisy_odom_subscriber = rospy.Subscriber('noisy_odom_remapped', Odometry, noisy_odom_callback)
-    gps_subscriber = rospy.Subscriber('fake_gps', PoseWithCovarianceStamped, gps_callback)
-
     write_headers()
 
     # Must account for single robot simulation where there are no external poses
@@ -307,10 +316,43 @@ def main():
 
     rospy.sleep(rospy.Duration(2))  # Wait 2 seconds for filters to successfully localize before recording
 
-    timer = rospy.Timer(rospy.Duration(.1), write_to_files)
+    initial_position_subscriber = rospy.Subscriber('initial_position', PoseWithCovarianceStamped, initial_position_callback)
+    continuous_odom_subscriber = rospy.Subscriber('odometry/filtered_continuous', Odometry, continuous_odom_callback)
+    discrete_odom_subscriber = rospy.Subscriber('odometry/filtered_discrete', Odometry, discrete_odom_callback)
+    gazebo_odom_subscriber = rospy.Subscriber('odom_throttle', Odometry, gazebo_odom_callback)
+    external_pose_count_subscriber = rospy.Subscriber('external_poses_count', UInt64, external_pose_count_callback)
+    imu_subscriber = rospy.Subscriber('imu_data_remapped', Imu, imu_callback)
+    noisy_odom_subscriber = rospy.Subscriber('noisy_odom_remapped', Odometry, noisy_odom_callback)
+    gps_subscriber = rospy.Subscriber('fake_gps', PoseWithCovarianceStamped, gps_callback)
 
-    while not rospy.is_shutdown():
-        rospy.spin()
+    global continuous_writer
+    global discrete_writer
+    global gazebo_writer
+    global external_writer
+    global imu_writer
+    global noisy_odom_writer
+    global gps_writer
+
+    with open(prefix + namespace + '_continuous_filter_odom.csv', 'a+') as continuous_file, \
+        open(prefix + namespace + '_discrete_filter_odom.csv', 'a+') as discrete_file, \
+        open(prefix + namespace + '_gazebo_odom.csv', 'a+') as gazebo_file, \
+        open(prefix + namespace + '_external_pose_count.csv', 'a+') as external_file, \
+        open(prefix + namespace + '_imu_data.csv', 'a+') as imu_file, \
+        open(prefix + namespace + '_noisy_odom_data.csv', 'a+') as noisy_odom_file, \
+        open(prefix + namespace + '_gps_data.csv', 'a+') as gps_file:
+
+        continuous_writer = csv.writer(continuous_file)
+        discrete_writer = csv.writer(discrete_file)
+        gazebo_writer = csv.writer(gazebo_file)
+        external_writer = csv.writer(external_file)
+        imu_writer = csv.writer(imu_file)
+        noisy_odom_writer = csv.writer(noisy_odom_file)
+        gps_writer = csv.writer(gps_file)
+
+        timer = rospy.Timer(rospy.Duration(.1), write_to_files)
+        
+        while not rospy.is_shutdown():
+            rospy.spin()
 
 if __name__ == '__main__':
     try:
