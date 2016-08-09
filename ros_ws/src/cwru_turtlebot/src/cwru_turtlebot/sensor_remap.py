@@ -161,6 +161,25 @@ def noisy_odom_remap(odom_msg):
         noisy_odom.twist.twist.linear.x = 0
         noisy_odom.twist.twist.angular.z = 0
 
+    # From documentation on nav_msgs/Odometry:
+    # Row-major representation of the 6x6 covariance matrix
+    # The orientation parameters use a fixed-axis representation.
+    # In order, the parameters are:
+    # (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
+    noisy_odom.pose.covariance = [0.1, 0, 0, 0, 0, 0,  # x variance taken from Gazebo odometry
+                                  0, 0.1, 0, 0, 0, 0,  # y variance taken from Gazebo odometry
+                                  0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0.05]  # yaw variance taken from Gazebo odometry
+    # Twist covariance copied from position covariance TODO this definitely wrong
+    noisy_odom.twist.covariance = [0.1, 0, 0, 0, 0, 0,  # x_vel variance
+                                   0, 0.1, 0, 0, 0, 0,  # y_vel variance
+                                   0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0,
+                                   0, 0, 0, 0, 0, 0.05]  # yaw_vel variance
+
     # Publish noisy odom message
     try:
         rospy.logdebug('Publishing noisy odom message')
