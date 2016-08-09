@@ -14,11 +14,11 @@ namespace = None
 noisy = False
 previous_pose = None
 previous_odom = None
+previous_time = None
 initial_pose = None
 imu_publisher = None
 odom_publisher = None
 noisy_odom_publisher = None
-
 
 # def initial_position_callback(position):
 #     # Record the initial position of the robot so that we can convert the odometry values from the robot's odom frame
@@ -81,6 +81,7 @@ def noisy_odom_remap(odom_msg):
     global namespace
     global previous_pose
     global previous_odom
+    global previous_time
 
     # Odometry model taken from Probabilistic Robotics by Thrun et al.
     # Algorithm used is sample_motion_model_odometry from Table 5.6
@@ -97,6 +98,11 @@ def noisy_odom_remap(odom_msg):
     current_odom.x = odom_msg.pose.pose.position.x
     current_odom.y = odom_msg.pose.pose.position.y
     current_odom.theta = convert_quaternion_to_yaw(odom_msg.pose.pose.orientation)
+
+    current_time = odom_msg.header.stamp
+
+    if previous_time is None:
+        previous_time = rospy.get_rostime()
 
     # If we have no previous_pose, set to (0, 0, 0)
     if previous_pose is None:
@@ -128,13 +134,24 @@ def noisy_odom_remap(odom_msg):
     delta_rotation_2_hat = delta_rotation_2 - normal(scale=std_dev_3)
 
     noisy_odom = Odometry()
+    noisy_odom.header = odom_msg.header
+    noisy_odom.child_frame_id = namespace + 'base_footprint_filter'
+
     noisy_odom.pose.pose.position.x = previous_pose.x + delta_translation_hat * math.cos(previous_pose.theta + delta_rotation_1_hat)
     noisy_odom.pose.pose.position.y = previous_pose.y + delta_translation_hat * math.sin(previous_pose.theta + delta_rotation_1_hat)
     noisy_odom_yaw = previous_pose.theta + delta_rotation_1_hat + delta_rotation_2_hat
     noisy_odom.pose.pose.orientation = convert_yaw_to_quaternion(noisy_odom_yaw)
-    noisy_odom.header = odom_msg.header
-    noisy_odom.child_frame_id = namespace + 'base_footprint_filter'
-    # TODO add velocity calculations based off previous pose to include with odom message
+
+    delta_time = current_time - previous_time
+    delta_time_seconds = delta_time.to_sec()
+    # We will assume that our robot moves perfectly with only linear x velocity and angular z velocity
+    # This is an okay assumption because we ignore other data anyways because all readings are noise and not valid
+    noisy_odom.twist.twist.linear.x = delta_translation_hat / delta_time_seconds
+    noisy_odom.twist.twist.linear.y = 0
+    noisy_odom.twist.twist.linear.z = 0
+    noisy_odom.twist.twist.angular.x = 0
+    noisy_odom.twist.twist.angular.y = 0
+    noisy_odom.twist.twist.angular.z = (noisy_odom_yaw - previous_pose.theta) / delta_time_seconds
 
     # Publish noisy odom message
     try:
