@@ -50,11 +50,6 @@ def correct_angle(yaw):
 
     assert -1 * math.pi <= yaw <= math.pi, 'Returned yaw was %f' % yaw
 
-    # TODO add in calculation to rotate in shortest direction
-    # Make sure we're using the shortest rotation
-    #if yaw > math.pi:
-    #    yaw = -1 * (2*math.pi - yaw)
-
     return yaw
 
 

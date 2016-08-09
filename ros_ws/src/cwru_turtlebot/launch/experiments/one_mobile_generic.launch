@@ -1,4 +1,3 @@
-<!-- TODO Simplify launch files with a turtlebot_common file -->
 <launch>
     <arg name="gui" default="false"/>
     <arg name="sensor_record" default="true"/>
