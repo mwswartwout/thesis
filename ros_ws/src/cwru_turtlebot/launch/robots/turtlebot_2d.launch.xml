@@ -4,6 +4,7 @@
     <arg name="y_pos" default="0"/>
     <arg name="yaw" value="0"/> <!-- Don't allow overwrite due to bug in current code caused when initial yaw != 0 -->
     <arg name="sensor_record" default="false"/>
+    <arg name="gps" default="true"/>
 
     <include file="$(find cwru_turtlebot)/launch/includes/turtlebot_common.launch.xml">
         <arg name="model_name" value="$(arg model_name)"/>
@@ -11,6 +12,7 @@
         <arg name="y_pos" value="$(arg y_pos)"/>
         <arg name="yaw" value="$(arg yaw)"/>
         <arg name="sensor_record" value="$(arg sensor_record)"/>
+        <arg name="gps" value="$(arg gps)"/>
     </include>
 
     <!-- move_base for navigation -->
