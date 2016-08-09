@@ -34,22 +34,36 @@ def publish_gps(event):
     global initial_position
     global gazebo_odom
 
-    x_map = initial_position.pose.pose.position.x + gazebo_odom.pose.pose.position.x
-    y_map = initial_position.pose.pose.position.y + gazebo_odom.pose.pose.position.y
+    if None not in (initial_position, gazebo_odom):
+        x_map = initial_position.pose.pose.position.x + gazebo_odom.pose.pose.position.x
+        y_map = initial_position.pose.pose.position.y + gazebo_odom.pose.pose.position.y
 
-    horizontal_error = numpy.random.normal(scale=1.71)
-    theta = numpy.random.uniform(high=2*numpy.pi)
+        horizontal_error = numpy.random.normal(scale=1.71)
+        theta = numpy.random.uniform(high=2*numpy.pi)
 
-    noisy_gps = PoseWithCovarianceStamped()
-    noisy_gps.header.stamp = rospy.get_rostime()
-    noisy_gps.header.frame_id = 'map'
-    noisy_gps.pose.pose.position.x = x_map + horizontal_error * numpy.cos(theta)
-    noisy_gps.pose.pose.position.y = y_map + horizontal_error * numpy.sin(theta)
-    noisy_gps.pose.pose.orientation = gazebo_odom.pose.pose.orientation # Leave this alone because robot has no compass
-    # TODO figure out setting covariance
+        noisy_gps = PoseWithCovarianceStamped()
+        noisy_gps.header.stamp = rospy.get_rostime()
+        noisy_gps.header.frame_id = 'map'
+        noisy_gps.pose.pose.position.x = x_map + horizontal_error * numpy.cos(theta)
+        noisy_gps.pose.pose.position.y = y_map + horizontal_error * numpy.sin(theta)
+        noisy_gps.pose.pose.orientation = gazebo_odom.pose.pose.orientation # Leave this alone because robot has no compass
+        # TODO create fake compass node
 
-    assert gps_publisher is not None
-    gps_publisher.publish(noisy_gps)
+        # From documentation on nav_msgs/Odometry:
+        # Row-major representation of the 6x6 covariance matrix
+        # The orientation parameters use a fixed-axis representation.
+        # In order, the parameters are:
+        # (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
+        # Our robot relies on X, Y, and Yaw
+        noisy_gps.pose.covariance = [1.43, 0, 0, 0, 0, 0,  # X variance taken from collected sample
+                                     0, 1.43, 0, 0, 0, 0,  # Y variance taken from collected sample
+                                     0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0.05]  # Yaw variance taken from Gazebo odometry
+
+        assert gps_publisher is not None
+        gps_publisher.publish(noisy_gps)
 
 
 def main():
@@ -62,7 +76,7 @@ def main():
     helpers.wait_for_services()
 
     initial_position_subscriber = rospy.Subscriber('initial_position', PoseWithCovarianceStamped, initial_position_cb)
-    gazebo_odom_subscriber = rospy.Subscriber('odom', Odometry, gazebo_odom_cb)
+    gazebo_odom_subscriber = rospy.Subscriber('odom_throttle', Odometry, gazebo_odom_cb)
 
     global gps_publisher
     gps_publisher = rospy.Publisher('fake_gps', PoseWithCovarianceStamped, queue_size=1, latch=True)
