@@ -52,11 +52,9 @@ class TurtleBot:
         self.discrete_pose_wrt_map = copy.deepcopy(self.initial_pose)
         self.gazebo_pose_wrt_map = copy.deepcopy(self.initial_pose)
 
-        self.initialize_subscribers()
         self.initialize_publishers()
 
-        self.external_pose_publisher.publish()
-        rospy.set_param('server_started', False)
+        #self.external_pose_publisher.publish()
 
         self.initialize_action_servers()
 
@@ -78,7 +76,10 @@ class TurtleBot:
         self.external_pose_publisher.publish(self.initial_pose)  # Publish so that we start out knowing where we are
         self.initialize_action_clients()
 
+        self.initialize_subscribers()
+
         # Wait for everything else in Gazebo world to be ready
+        rospy.set_param('server_started', False)
         self.wait_for_clients()
 
         # Once everything is ready we need to reset our filters
@@ -284,9 +285,9 @@ class TurtleBot:
             pose = PoseWithCovarianceStamped()
 
             # Determine our current pose (which is already in the map frame)
-            current_x = self.gazebo_pose_wrt_map.pose.pose.position.x
-            current_y = self.gazebo_pose_wrt_map.pose.pose.position.y
-            current_yaw = convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation) + scan.scan.yaw_offset
+            current_x = self.discrete_pose_wrt_map.pose.pose.position.x
+            current_y = self.discrete_pose_wrt_map.pose.pose.position.y
+            current_yaw = convert_quaternion_to_yaw(self.discrete_pose_wrt_map.pose.pose.orientation) + scan.scan.yaw_offset
 
             # Determine what pose (in the map frame) we believe we are seeing the other robot at
             # Add 0.2 (turtlebot radius) to more evenly distribute pose estimates non-deterministically
