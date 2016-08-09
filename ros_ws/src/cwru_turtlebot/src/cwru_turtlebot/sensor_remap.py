@@ -3,6 +3,7 @@
 import rospy
 import math
 import helpers
+import copy
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
 from numpy.random import randn, normal
@@ -102,7 +103,7 @@ def noisy_odom_remap(odom_msg):
     current_time = odom_msg.header.stamp
 
     if previous_time is None:
-        previous_time = rospy.get_rostime()
+        previous_time = copy.deepcopy(current_time)
 
     # If we have no previous_pose, set to (0, 0, 0)
     if previous_pose is None:
@@ -144,14 +145,21 @@ def noisy_odom_remap(odom_msg):
 
     delta_time = current_time - previous_time
     delta_time_seconds = delta_time.to_sec()
+    assert delta_time_seconds >= 0
+
     # We will assume that our robot moves perfectly with only linear x velocity and angular z velocity
     # This is an okay assumption because we ignore other data anyways because all readings are noise and not valid
-    noisy_odom.twist.twist.linear.x = delta_translation_hat / delta_time_seconds
     noisy_odom.twist.twist.linear.y = 0
     noisy_odom.twist.twist.linear.z = 0
     noisy_odom.twist.twist.angular.x = 0
     noisy_odom.twist.twist.angular.y = 0
-    noisy_odom.twist.twist.angular.z = (noisy_odom_yaw - previous_pose.theta) / delta_time_seconds
+
+    if delta_time_seconds > 0:
+        noisy_odom.twist.twist.linear.x = delta_translation_hat / delta_time_seconds
+        noisy_odom.twist.twist.angular.z = (noisy_odom_yaw - previous_pose.theta) / delta_time_seconds
+    else:
+        noisy_odom.twist.twist.linear.x = 0
+        noisy_odom.twist.twist.angular.z = 0
 
     # Publish noisy odom message
     try:
@@ -176,6 +184,9 @@ def noisy_odom_remap(odom_msg):
     previous_odom.x = current_odom.x
     previous_odom.y = current_odom.y
     previous_odom.theta = current_odom.theta
+
+    # Increment time
+    previous_time = current_time
 
 
 def main():
