@@ -79,7 +79,7 @@ class TurtleBot:
         self.initialize_subscribers()
 
         # Wait for everything else in Gazebo world to be ready
-        rospy.set_param('server_started', False)
+        #rospy.sleep(2)  # Sleep to avoid crash due to get/set of param in rapid succession,
         self.wait_for_clients()
 
         # Once everything is ready we need to reset our filters
