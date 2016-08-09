@@ -10,8 +10,6 @@ from move_base_msgs.msg import MoveBaseActionGoal, MoveBaseGoal
 from helpers import convert_quaternion_to_yaw, correct_angle
 
 
-# TODO add ROS debug statements
-# TODO add something to correct odom drift
 class TurtleBot2D(TurtleBot, object):
 
     def __init__(self, linear_speed=.2, angular_speed=.2):
