@@ -30,6 +30,7 @@ def publish_gps(event):
     # Use this so discrete filter can localize w/o external measurements
     # FAA 2014 research shows 95% confidence interval of 3.351 meters horizontal accuracy
     # Assuming this error is Gaussian and normally distributed, we have a mean of 0 and standard deviation of 1.71
+    # Obtained this by general rule of : std_dev = 95% confidence interval / 1.96
     global initial_position
     global gazebo_odom
 
