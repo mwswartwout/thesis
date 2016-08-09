@@ -6,7 +6,7 @@
     <arg name="use_map_topic"   default="true"/>
     <arg name="scan_topic"      default="scan"/>
     <arg name="odom_frame_id"   default="$(arg model_name)/odom"/>
-    <arg name="base_frame_id"   default="$(arg model_name)/base_footprint"/> <!-- TODO change to _filter once running -->
+    <arg name="base_frame_id"   default="$(arg model_name)/base_footprint_filter"/>
     <arg name="global_frame_id" default="/map"/>
 
     <node pkg="amcl" type="amcl" name="amcl" output="screen" required="true">
