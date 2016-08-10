@@ -1,0 +1,15 @@
+For 60 second experiments:
+
+one_stationary_noiseless_no_gps: Identical output from continuous and discrete, incredibly accurate
+one_stationary_noiseless: Discrete filter slightly more accurate but still both are realistically perfect
+one_stationary_no_gps: Identical output from continuous and discrete, incredibly accurate
+one_stationary: Continuous is more accurate, by factor of 100, but error in discrete is only .26 meters.
+
+Summary: For stationary robot in noisy environment continuous filter is more accurate than discrete because there is more noise in the GPS than the odometry
+
+two_stationary_noiseless_no_gps:Continuous filter more accurate, but discrete filter accurate to 0.03
+two_stationary_noiseless: Appears to have same accuracy as w/ no gps
+two_stationary_no_gps: TurtleBot receiving external pose measurements less accurate, accuracy appears identical to previous simulations
+two_stationary: TurtleBot w/ external measurements slightly more accurate in position (.3481 median error vs .3783). Continuous filter still perfect.
+
+
