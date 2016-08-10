@@ -8,15 +8,7 @@ kill_everything() {
     killall rosmaster
 }
 
-declare -i time=1800
-
-# stationary, noiseless, no gps
-roslaunch cwru_turtlebot one_robot.launch noisy:=false gps:=false stationary:=true sim_time:=${time}
-kill_everything
-
-# stationary, noiseless, w/ gps
-roslaunch cwru_turtlebot one_robot.launch noisy:=false gps:=true stationary:=true sim_time:=${time}
-kill_everything
+declare -i time=480
 
 # mobile, noiseless, no gps
 roslaunch cwru_turtlebot one_robot.launch noisy:=false gps:=false stationary:=false sim_time:=${time}
@@ -24,14 +16,6 @@ kill_everything
 
 # mobile, noiseless, w/ gps
 roslaunch cwru_turtlebot one_robot.launch noisy:=false gps:=true stationary:=false sim_time:=${time}
-kill_everything
-
-# stationary, noisy, no gps
-roslaunch cwru_turtlebot one_robot.launch noisy:=true gps:=false stationary:=true sim_time:=${time}
-kill_everything
-
-# stationary, noisy, w/ gps
-roslaunch cwru_turtlebot one_robot.launch noisy:=true gps:=true stationary:=true sim_time:=${time}
 kill_everything
 
 # mobile, noisy, no gps
@@ -43,20 +27,20 @@ roslaunch cwru_turtlebot one_robot.launch noisy:=true gps:=true stationary:=fals
 kill_everything
 
 # two stationary, noiseless, no gps
-roslaunch cwru_turtlebot two_robot.launch noisy:=false gps:=false stationary:=true sim_time:=${time}
-kill_everything
+#roslaunch cwru_turtlebot two_robot.launch noisy:=false gps:=false stationary:=true sim_time:=${time}
+#kill_everything
 
 # two stationary, noiseless, w/ gps
-roslaunch cwru_turtlebot two_robot.launch noisy:=false gps:=true stationary:=true sim_time:=${time}
-kill_everything
+#roslaunch cwru_turtlebot two_robot.launch noisy:=false gps:=true stationary:=true sim_time:=${time}
+#kill_everything
 
 # two stationary, noisy, no gps
-roslaunch cwru_turtlebot two_robot.launch noisy:=true gps:=false stationary:=true sim_time:=${time}
-kill_everything
+#roslaunch cwru_turtlebot two_robot.launch noisy:=true gps:=false stationary:=true sim_time:=${time}
+#kill_everything
 
 # two stationary, noisy, w/ gps
-roslaunch cwru_turtlebot two_robot.launch noisy:=true gps:=true stationary:=true sim_time:=${time}
-kill_everything
+#roslaunch cwru_turtlebot two_robot.launch noisy:=true gps:=true stationary:=true sim_time:=${time}
+#kill_everything
 
 # two mobile, noiseless, no gps
 roslaunch cwru_turtlebot two_robot.launch noisy:=false gps:=false stationary:=false sim_time:=${time}
