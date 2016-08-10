@@ -38,10 +38,14 @@ def publish_gps(event):
         x_map = initial_position.pose.pose.position.x + gazebo_odom.pose.pose.position.x
         y_map = initial_position.pose.pose.position.y + gazebo_odom.pose.pose.position.y
 
-        gps = copy.deepcopy(gazebo_odom)
+        gps = PoseWithCovarianceStamped()
+        gps.header.stamp = gazebo_odom.header.stamp
         gps.header.frame_id = 'map'
-        gps.pose.pose.position.x += x_map
-        gps.pose.pose.position.y += y_map
+        gps.pose.pose.position.x = gazebo_odom.pose.pose.position.x + x_map
+        gps.pose.pose.position.y = gazebo_odom.pose.pose.position.y + y_map
+        gps.pose.pose.position.z = 0
+        gps.pose.pose.orientation = gazebo_odom.pose.pose.orientation
+        gps.pose.covariance = gazebo_odom.pose.covariance
 
         assert gps_publisher is not None
         gps_publisher.publish(gps)

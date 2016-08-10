@@ -42,10 +42,11 @@ def publish_gps(event):
         theta = numpy.random.uniform(high=2*numpy.pi)
 
         noisy_gps = PoseWithCovarianceStamped()
-        noisy_gps.header.stamp = rospy.get_rostime()
+        noisy_gps.header.stamp = gazebo_odom.header.stamp
         noisy_gps.header.frame_id = 'map'
         noisy_gps.pose.pose.position.x = x_map + horizontal_error * numpy.cos(theta)
         noisy_gps.pose.pose.position.y = y_map + horizontal_error * numpy.sin(theta)
+        noisy_gps.pose.pose.position.z = 0
         noisy_gps.pose.pose.orientation = gazebo_odom.pose.pose.orientation # Leave this alone because robot has no compass
         # TODO create fake compass node
 
