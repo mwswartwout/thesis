@@ -13,9 +13,9 @@ def main():
     # Don't use helpers.wait_for_services() because it relies on namespace completion for the set_pose_* service calls
     rospy.wait_for_service('/gazebo/set_physics_properties')
 
-    sim_time = rospy.get_param('sim_time')
+    sim_time = rospy.get_param('sim_time') # This is specified in seconds
     interval = float(sim_time) / 10
-    timer = rospy.Duration(interval)
+    timer = rospy.Duration.from_sec(interval)
     for i in range(0, 10):
         count = 10 * i
         rospy.loginfo("Simulation is " + str(count) + "% complete...")

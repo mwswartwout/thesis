@@ -4,7 +4,8 @@
     <arg name="y_pos" default="0"/>
     <arg name="yaw" default="0"/>
     <arg name="sensor_record" default="false"/>
-    <arg name="gps" default="true"/>
+    <arg name="gps"/>
+    <arg name="noisy"/>
 
     <!--arg name="map_file" default="$(env TURTLEBOT_MAP_FILE)"/-->
 
@@ -20,6 +21,7 @@
         <arg name="x_pos" value="$(arg x_pos)"/>
         <arg name="y_pos" value="$(arg y_pos)"/>
         <arg name="yaw" value="$(arg yaw)"/>
+        <arg name="noisy" value="$(arg noisy)"/>
     </include>
 
     <!-- Robot State Publisher for publishing tf status of turtlebot-->
@@ -42,6 +44,8 @@
     <!-- Kalman filters responsible from robot_localization package -->
     <include file="$(find cwru_turtlebot)/launch/includes/turtlebot_filters.launch.xml">
         <arg name="model_name" value="$(arg model_name)"/>
+        <arg name="gps" value="$(arg gps)"/>
+        <arg name="noisy" value="$(arg noisy)"/>
     </include>
 
     <!-- Node to record sensor data to files -->
@@ -59,5 +63,9 @@
     <node pkg="topic_tools" type="throttle" name="gazebo_odom_throttle" args="messages odom 10" required="true"/>
 
     <!-- Simulated GPS publisher -->
-    <node if="$(arg gps)" pkg="cwru_turtlebot" type="fake_gps.py" name="fake_gps" required="true" output="screen"/>
+    <group if="$(arg gps)">
+        <node if="$(arg noisy)" pkg="cwru_turtlebot" type="noisy_gps.py" name="noisy_gps" required="true" output="screen"/>
+        <node unless="$(arg noisy)" pkg="cwru_turtlebot" type="noiseless_gps.py" name="noiseless_gps" required="true" output="screen"/>
+    </group>
+
 </launch>

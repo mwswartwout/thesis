@@ -132,7 +132,7 @@ dev.off()
 
 filename = paste0(figure_dir, params$experiment, "_discrete_error.pdf")
 pdf(filename)
-plot(continuous$horizontal_error, main="Discrete Filter Error", sub=paste0("For ", params$experiment, " Experiment"), xlab="Time (.1s)", ylab="Horizontal Position Error (m)")
+plot(discrete$horizontal_error, main="Discrete Filter Error", sub=paste0("For ", params$experiment, " Experiment"), xlab="Time (.1s)", ylab="Horizontal Position Error (m)")
 dev.off()
 
 if (params$experiment == "one_stationary_noiseless") {

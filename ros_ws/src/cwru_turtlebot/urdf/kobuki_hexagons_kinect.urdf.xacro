@@ -10,5 +10,5 @@
   
   <kobuki model_name="$(arg model_name)"/>
   <stack_hexagons parent="$(arg model_name)/base_link" model_name="$(arg model_name)"/>
-  <sensor_kinect  parent="$(arg model_name)/base_link" model_name="$(arg model_name)"/>
+  <sensor_kinect  parent="$(arg model_name)/base_link" model_name="$(arg model_name)" noisy="$(arg noisy)"/>
 </robot>

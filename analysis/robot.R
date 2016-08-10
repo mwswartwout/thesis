@@ -33,20 +33,33 @@ gazebo$dist_from_origin <- sqrt(gazebo$x_position ^ 2 + gazebo$y_position ^ 2)
 
 discrete$x_error <- gazebo$x_position - discrete$x_position
 discrete$y_error <- gazebo$y_position - discrete$y_position
-discrete$yaw_error <- gazebo$yaw - discrete$yaw
 discrete$dist_error <- sqrt(discrete$x_error ^ 2 + discrete$y_error ^ 2)
 
 continuous$x_error <- gazebo$x_position - continuous$x_position
 continuous$y_error <- gazebo$y_position - continuous$y_position
-continuous$yaw_error <- gazebo$yaw - continuous$yaw
 continuous$dist_error <- sqrt(continuous$x_error ^ 2 + continuous$y_error ^ 2)
+
+correct_yaw <- function(yaw) {
+    while (yaw > pi) {
+        yaw <- yaw - 2*pi
+    }
+    while (yaw < -1*pi) {
+        yaw <- yaw + 2*pi
+    }
+
+    return(yaw)
+}
+
+vector_correct_yaw <- Vectorize(correct_yaw)
+discrete$yaw_error <- vector_correct_yaw(gazebo$yaw - discrete$yaw)
+continuous$yaw_error <- vector_correct_yaw(gazebo$yaw - continuous$yaw)
 
 noisy_odom$x_err <- gazebo$x_position - noisy_odom$x
 noisy_odom$y_err <- gazebo$y_position - noisy_odom$y
 noisy_odom$dist_err <- sqrt(noisy_odom$x_err ^ 2 + noisy_odom$y_err ^ 2)
 
-gps$x_err <- gazebo$x_position - gps$x
-gps$y_err <- gazebo$y_position - gps$y
+gps$x_err <- 0 - gps$x
+gps$y_err <- 0 - gps$y
 gps$dist_err <- sqrt(gps$x_err ^ 2 + gps$y_err ^ 2)
 
 ## ---- plot
@@ -83,23 +96,60 @@ plot(continuous$dist_error,
 plot(discrete$dist_error,
       main="Discrete total distance error over time")
 
-plot(noisy_odom$x_err,
-     main="Noisy Odom X Error Over Time")
+if (NROW(gps) > 0) {
+    plot(gps$x_err,
+         main="GPS X Error Over Time")
 
-plot(noisy_odom$y_err,
-     main="Noisy Odom Y Error Over Time")
+    plot(gps$y_err,
+         main="GPS Y Error Over Time")
 
-plot(noisy_odom$dist_err,
-     main="Noisy Odom Horizontal Distance Error Over Time")
+    plot(gps$dist_err,
+         main="GPS Horizontal Distance Error Over Time")
+}
 
-plot(gps$x_err,
-     main="GPS X Error Over Time")
+plot(continuous$x_variance,
+     main="Continuous Filter X Variance Over Time")
 
-plot(gps$y_err,
-     main="GPS Y Error Over Time")
+plot(continuous$y_variance,
+     main="Continuous Filter Y Variance Over Time")
 
-plot(gps$dist_err,
-     main="GPS Horizontal Distance Error Over Time")
+plot(continuous$yaw_variance,
+     main="Continuous Filter Yaw Variance Over Time")
+
+plot(discrete$x_variance,
+     main="Discrete Filter X Variance Over Time")
+
+plot(discrete$y_variance,
+     main="Discrete Filter Y Variance Over Time")
+
+plot(discrete$yaw_variance,
+     main="Discrete Filter Yaw Variance Over Time")
+
+if (NROW(noisy_odom) > 0) {
+    plot(noisy_odom$x_err,
+         main="Noisy Odom X Error Over Time")
+
+    plot(noisy_odom$y_err,
+         main="Noisy Odom Y Error Over Time")
+
+    plot(noisy_odom$dist_err,
+         main="Noisy Odom Horizontal Distance Error Over Time")
+
+    plot(noisy_odom$x_variance,
+         main="Variance of X Coordinate in Noisy Odometry")
+
+    plot(noisy_odom$y_variance,
+         main="Variance of Y Coordinate in Noisy Odometry")
+
+    plot(noisy_odom$yaw_variance,
+         main="Variance of Yaw Coordinate in Noisy Odometry")
+
+    plot(noisy_odom$x_vel, noisy_odom$x_variance,
+         main="Variance vs. Velocity of X in Noisy Odometry")
+
+    plot(noisy_odom$yaw_vel, noisy_odom$yaw_variance,
+         main="Variance vs. Velocity of Yaw in Noisy Odometry")
+}
 
 ## ---- summary
 summary(continuous$x_error)
@@ -116,36 +166,17 @@ summary(noisy_odom$x_err)
 summary(noisy_odom$y_err)
 summary(noisy_odom$dist_err)
 
-summary(gps$x_err)
-summary(gps$y_err)
-summary(gps$dist_err)
+if (NROW(gps) > 0) {
+    summary(gps$x_err)
+    summary(gps$y_err)
+    summary(gps$dist_err)
+}
 
-#sum(continuous$dist_error <= 0.25) / length(continuous$dist_error)
-#sum(discrete$dist_error <= 0.25) / length(discrete$dist_error)
-
-# shapiro.test(noisy_odom$x_err)
-# shapiro.test(noisy_odom$y_err)
-# shapiro.test(noisy_odom$dist_err)
-#
-# shapiro.test(gps$x_err)
-# shapiro.test(gps$y_err)
-# shapiro.test(gps$dist_err)
-#
-# noisy_odom_fit_x <- fitdist(noisy_odom$x_err, "norm")
-# noisy_odom_fit_y <- fitdist(noisy_odom$y_err, "norm")
-# noisy_odom_fit_dist <- fitdist(noisy_odom$dist_err, "norm")
-#
-# summary(noisy_odom_fit_x)
-# summary(noisy_odom_fit_y)
-# summary(noisy_odom_fit_dist)
-#
-# gps_fit_x <- fitdist(gps$x_err, "norm")
-# gps_fit_y <- fitdist(gps$y_err, "norm")
-# gps_fit_dist <- fitdist(gps$dist_err, "norm")
-#
-# summary(gps_fit_x)
-# summary(gps_fit_y)
-# summary(gps_fit_dist)
+if (NROW(noisy_odom) > 0) {
+    summary(noisy_odom$x_variance)
+    summary(noisy_odom$y_variance)
+    summary(noisy_odom$yaw_variance)
+}
 
 ## ---- time
 total_time_seconds <- (length(gazebo$x_position) / 10)

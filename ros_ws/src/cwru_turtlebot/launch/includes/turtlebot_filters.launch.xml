@@ -1,5 +1,7 @@
 <launch>
     <arg name="model_name"/>
+    <arg name="noisy"/>
+    <arg name="gps"/>
     <!-- Robot Localization nodes-->
 
     <!-- TODO add another continuous filter to compare noiseless and noisy readings in same experiment -->
@@ -17,7 +19,8 @@
         <param name="base_link_frame" value="$(arg model_name)/base_footprint_filter"/>
         <param name="world_frame" value="$(arg model_name)/odom"/>
         <param name="transform_time_offset" value="0.0"/>
-        <param name="odom0" value="noisy_odom_remapped"/> <!-- internal odom-->
+        <param if="$(arg noisy)" name="odom0" value="noisy_odom_remapped"/> <!-- internal odom-->
+        <param unless="$(arg noisy)" name="odom0" value="odom_remapped"/>
         <rosparam param="odom0_config">[false,  false,  false, <!-- x y z -->
                                         false,  false,  false, <!-- roll pitch yaw -->
                                         true,  true,   false, <!-- x_vel y_vel z_vel -->
@@ -37,7 +40,7 @@
         <!--<param name="imu0_differential" value="false"/>-->
         <param name="odom0_relative" value="false"/>
         <!--<param name="imu0_relative" value="false"/>-->
-        <param name="print_diagnostics" value="true"/>
+        <param name="print_diagnostics" value="true"/> <!-- TODO make this controlled by debug arg once everything is set up correctly -->
     </node>
 
     <!-- Discrete UKF -->
@@ -52,7 +55,8 @@
         <param name="base_link_frame" value="$(arg model_name)/base_footprint_filter"/>
         <param name="world_frame" value="map"/>
         <param name="transform_time_offset" value="0.0"/>
-        <param name="odom0" value="noisy_odom_remapped"/>
+        <param if="$(arg noisy)" name="odom0" value="noisy_odom_remapped"/> <!-- internal odom-->
+        <param unless="$(arg noisy)" name="odom0" value="odom_remapped"/>
          <!-- TODO adjust these -->
         <rosparam param="odom0_config">[false,  false,  false, <!-- x y z -->
                                         false,  false,  false, <!-- roll pitch yaw -->
@@ -77,21 +81,23 @@
                                         false,   false, false, <!-- roll_vel pitch_vel yaw_vel -->
                                         false,   false, false] <!-- x_acc y_acc z_acc -->
         </rosparam>
-        <param name="pose1" value="fake_gps"/>
-        <rosparam param="pose1_config">[true,    true,  false, <!-- x y z -->
+        <param if="$(arg gps)" name="pose1" value="fake_gps"/>
+        <rosparam if="$(arg gps)" param="pose1_config">[true,    true,  false, <!-- x y z -->
                                         false,   false, true, <!-- roll pitch yaw -->
                                         false,   false, false, <!-- x_vel y_vel z_vel -->
                                         false,   false, false, <!-- roll_vel pitch_vel yaw_vel -->
                                         false,   false, false] <!-- x_acc y_acc z_acc -->
         </rosparam>
+        <param if="$(arg gps)" name="pose1_differential" value="false"/>
+        <param if="$(arg gps)" name="pose1_differential" value="false"/>
+
         <param name="odom0_differential" value="false"/>
         <!--<param name="imu0_differential" value="false"/>-->
         <param name="pose0_differential" value="false"/>
-        <param name="pose1_differential" value="false"/>
         <param name="odom0_relative" value="false"/>
         <!--<param name="imu0_relative" value="false"/>-->
         <param name="pose0_relative" value="false"/>
-        <param name="pose1_differential" value="false"/>
+
         <param name="print_diagnostics" value="true"/>
     </node>
 

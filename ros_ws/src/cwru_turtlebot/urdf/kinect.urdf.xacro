@@ -5,7 +5,7 @@
   
   <xacro:property name="kinect_cam_py" value="-0.0125"/>
   <!-- Parameterised in part by the values in turtlebot_properties.urdf.xacro -->
-  <xacro:macro name="sensor_kinect" params="parent model_name">
+  <xacro:macro name="sensor_kinect" params="parent model_name noisy">
     <joint name="${model_name}/camera_rgb_joint" type="fixed">
       <origin xyz="${cam_px} ${kinect_cam_py} ${cam_pz}" rpy="${cam_or} ${cam_op} ${cam_oy}"/>
       <parent link="${parent}"/>
@@ -65,6 +65,6 @@
 	<link name="${model_name}/camera_depth_optical_frame"/>
 	
 	<!-- Kinect sensor for simulation -->
-	<turtlebot_sim_3dsensor model_name="${model_name}"/>
+	<turtlebot_sim_3dsensor model_name="${model_name}" noisy="${noisy}"/>
   </xacro:macro>
 </robot>

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="turtlebot_gazebo" xmlns:xacro="http://ros.org/wiki/xacro">
     <!-- Microsoft Kinect / ASUS Xtion PRO Live for simulation -->
-    <xacro:macro name="turtlebot_sim_3dsensor" params="model_name">
+    <xacro:macro name="turtlebot_sim_3dsensor" params="model_name noisy">
         <gazebo reference="${model_name}/camera_link">
             <sensor type="depth" name="camera">
                 <always_on>true</always_on>
@@ -17,12 +17,14 @@
                         <near>0.05</near>
                         <far>8.0</far>
                     </clip>
-                    <noise>
-                        <!-- Noise parameters taken from Gazebo documentation recommendation -->
-                        <type>gaussian</type>
-                        <mean>0.0</mean>
-                        <stddev>0.007</stddev>
-                    </noise>
+                    <xacro:if value="${noisy}">
+                        <noise>
+                            <!-- Noise parameters taken from Gazebo documentation recommendation -->
+                            <type>gaussian</type>
+                            <mean>0.0</mean>
+                            <stddev>0.007</stddev>
+                        </noise>
+                    </xacro:if>
                 </camera>
                 <plugin name="kinect_camera_controller" filename="libgazebo_ros_openni_kinect.so">
                     <cameraName>camera</cameraName>

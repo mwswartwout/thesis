@@ -11,3 +11,15 @@ gps$horizontal_error <- sqrt(gps$x ^ 2 + gps$y ^ 2) * sample(c(-1, 1), 2)
 
 hist(gps$horizontal_error)
 shapiro.test(gps$horizontal_error)
+
+mean(gps$x)
+var(gps$x)
+sd(gps$x)
+
+mean(gps$y)
+var(gps$y)
+sd(gps$y)
+
+mean(gps$horizontal_error)
+var(gps$horizontal_error)
+sd(gps$horizontal_error)

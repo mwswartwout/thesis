@@ -122,12 +122,15 @@ def imu_callback(imu_msg):
 def noisy_odom_callback(odom_msg):
     global noisy_odom_data
 
-    x = odom_msg.pose.pose.position.x
-    y = odom_msg.pose.pose.position.y
-    yaw = helpers.convert_quaternion_to_yaw(odom_msg.pose.pose.orientation)
+    pose_x = odom_msg.pose.pose.position.x
+    pose_y = odom_msg.pose.pose.position.y
+    pose_yaw = helpers.convert_quaternion_to_yaw(odom_msg.pose.pose.orientation)
     x_vel = odom_msg.twist.twist.linear.x
     yaw_vel = odom_msg.twist.twist.angular.z
-    noisy_odom_data = (x, y, yaw, x_vel, yaw_vel)
+    x_variance = odom_msg.pose.covariance[0]
+    y_variance = odom_msg.pose.covariance[7]
+    yaw_variance = odom_msg.pose.covariance[35]
+    noisy_odom_data = (pose_x, pose_y, pose_yaw, x_vel, yaw_vel, x_variance, y_variance, yaw_variance)
 
 
 def gps_callback(gps_msg):
@@ -186,7 +189,7 @@ def write_headers():
         filename = prefix + namespace + '_noisy_odom_data.csv'
         with open(filename, 'w+') as noisy_odom_file:
             writer = csv.writer(noisy_odom_file)
-            writer.writerow(['x', 'y', 'yaw', 'x_vel', 'yaw_vel'])
+            writer.writerow(['x', 'y', 'yaw', 'x_vel', 'yaw_vel', 'x_variance', 'y_variance', 'yaw_variance'])
 
         filename = prefix + namespace + '_gps_data.csv'
         with open(filename, 'w+') as gps_file:
@@ -277,6 +280,8 @@ def main():
 
     global prefix
     prefix = rospy.get_param('/save_file_prefix')
+    if not prefix.endswith('/'):
+        prefix += '/'
 
     write_headers()
 

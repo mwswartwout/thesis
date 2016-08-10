@@ -2,11 +2,12 @@
 
 <launch>
     <arg name="model_name"/>
-    <arg name="x_pos" default="0"/>
-    <arg name="y_pos" default="0"/>
-    <arg name="yaw" default="0"/>
+    <arg name="x_pos"/>
+    <arg name="y_pos"/>
+    <arg name="yaw"/>
+    <arg name="noisy"/>
 
-    <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find cwru_turtlebot)/urdf/kobuki_hexagons_kinect.urdf.xacro' model_name:=$(arg model_name)" />
+    <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find cwru_turtlebot)/urdf/kobuki_hexagons_kinect.urdf.xacro' model_name:=$(arg model_name) noisy:=$(arg noisy)" />
     <param name="robot_description" command="$(arg urdf_file)" />
 
     <!-- Gazebo model spawner -->

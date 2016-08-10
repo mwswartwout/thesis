@@ -4,6 +4,7 @@ import rospy
 import math
 import helpers
 import copy
+import numpy
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
 from numpy.random import randn, normal
@@ -119,66 +120,83 @@ def noisy_odom_remap(odom_msg):
         previous_odom.y = 0
         previous_odom.theta = 0
 
-    # Split movement into three distinct actions, rotate -> translate -> rotate
-    delta_rotation_1 = helpers.correct_angle(math.atan2(current_odom.y - previous_odom.y, current_odom.x - previous_odom.x) - previous_odom.theta)
-    delta_translation = math.sqrt((previous_odom.x - current_odom.x) ** 2 + (previous_odom.y - current_odom.y) ** 2)
-    delta_rotation_2 = helpers.correct_angle(current_odom.theta - previous_odom.theta - delta_rotation_1)
-
-    # Create random pose from given movements by adding noise
-    std_dev_1 = alpha_1 * abs(delta_rotation_1) + alpha_2 * delta_translation
-    delta_rotation_1_hat = delta_rotation_1 - normal(scale=std_dev_1)
-
-    std_dev_2 = alpha_3 * delta_translation + alpha_4 * (abs(delta_rotation_1) + abs(delta_rotation_2))
-    delta_translation_hat = delta_translation - normal(scale=std_dev_2)
-
-    std_dev_3 = alpha_1 * abs(delta_rotation_2) + alpha_2 * delta_translation
-    delta_rotation_2_hat = delta_rotation_2 - normal(scale=std_dev_3)
+    noisy_odom_x_list = []
+    noisy_odom_y_list = []
+    noisy_odom_yaw_list = []
+    noisy_odom_x_vel_list = []
+    noisy_odom_y_vel_list = []
+    noisy_odom_yaw_vel_list = []
 
     noisy_odom = Odometry()
     noisy_odom.header = odom_msg.header
     noisy_odom.child_frame_id = namespace + 'base_footprint_filter'
 
-    noisy_odom.pose.pose.position.x = previous_pose.x + delta_translation_hat * math.cos(previous_pose.theta + delta_rotation_1_hat)
-    noisy_odom.pose.pose.position.y = previous_pose.y + delta_translation_hat * math.sin(previous_pose.theta + delta_rotation_1_hat)
-    noisy_odom_yaw = previous_pose.theta + delta_rotation_1_hat + delta_rotation_2_hat
-    noisy_odom.pose.pose.orientation = convert_yaw_to_quaternion(noisy_odom_yaw)
+    for i in range(1, 1000):
+        # Split movement into three distinct actions, rotate -> translate -> rotate
+        delta_rotation_1 = helpers.correct_angle(math.atan2(current_odom.y - previous_odom.y, current_odom.x - previous_odom.x) - previous_odom.theta)
+        delta_translation = math.sqrt((previous_odom.x - current_odom.x) ** 2 + (previous_odom.y - current_odom.y) ** 2)
+        delta_rotation_2 = helpers.correct_angle(current_odom.theta - previous_odom.theta - delta_rotation_1)
 
-    delta_time = current_time - previous_time
-    delta_time_seconds = delta_time.to_sec()
-    assert delta_time_seconds >= 0
+        # Create random pose from given movements by adding noise
+        std_dev_1 = alpha_1 * abs(delta_rotation_1) + alpha_2 * delta_translation
+        delta_rotation_1_hat = delta_rotation_1 - normal(scale=std_dev_1)
 
-    # We will assume that our robot moves perfectly with only linear x velocity and angular z velocity
-    # This is an okay assumption because we ignore other data anyways because all readings are noise and not valid
-    noisy_odom.twist.twist.linear.y = 0
-    noisy_odom.twist.twist.linear.z = 0
-    noisy_odom.twist.twist.angular.x = 0
-    noisy_odom.twist.twist.angular.y = 0
+        std_dev_2 = alpha_3 * delta_translation + alpha_4 * (abs(delta_rotation_1) + abs(delta_rotation_2))
+        delta_translation_hat = delta_translation - normal(scale=std_dev_2)
 
-    if delta_time_seconds > 0:
-        noisy_odom.twist.twist.linear.x = delta_translation_hat / delta_time_seconds
-        noisy_odom.twist.twist.angular.z = (noisy_odom_yaw - previous_pose.theta) / delta_time_seconds
-    else:
-        noisy_odom.twist.twist.linear.x = 0
-        noisy_odom.twist.twist.angular.z = 0
+        std_dev_3 = alpha_1 * abs(delta_rotation_2) + alpha_2 * delta_translation
+        delta_rotation_2_hat = delta_rotation_2 - normal(scale=std_dev_3)
+
+        noisy_odom.pose.pose.position.x = previous_pose.x + delta_translation_hat * math.cos(previous_pose.theta + delta_rotation_1_hat)
+        noisy_odom.pose.pose.position.y = previous_pose.y + delta_translation_hat * math.sin(previous_pose.theta + delta_rotation_1_hat)
+        noisy_odom_yaw = previous_pose.theta + delta_rotation_1_hat + delta_rotation_2_hat
+        noisy_odom.pose.pose.orientation = convert_yaw_to_quaternion(noisy_odom_yaw)
+
+        delta_time = current_time - previous_time
+        delta_time_seconds = delta_time.to_sec()
+        assert delta_time_seconds >= 0
+
+        # We will assume that our robot moves perfectly with only linear x velocity and angular z velocity
+        # This is an okay assumption because we ignore other data anyways because all readings are noise and not valid
+        noisy_odom.twist.twist.linear.y = 0
+        noisy_odom.twist.twist.linear.z = 0
+        noisy_odom.twist.twist.angular.x = 0
+        noisy_odom.twist.twist.angular.y = 0
+
+        if delta_time_seconds > 0:
+            noisy_odom.twist.twist.linear.x = delta_translation_hat / delta_time_seconds
+            noisy_odom.twist.twist.angular.z = (noisy_odom_yaw - previous_pose.theta) / delta_time_seconds
+        else:
+            noisy_odom.twist.twist.linear.x = 0
+            noisy_odom.twist.twist.angular.z = 0
+
+        noisy_odom_x_list.append(noisy_odom.pose.pose.position.x)
+        noisy_odom_y_list.append(noisy_odom.pose.pose.position.y)
+        noisy_odom_yaw_list.append(noisy_odom_yaw)
+        noisy_odom_x_vel_list.append(noisy_odom.twist.twist.linear.x)
+        noisy_odom_y_vel_list.append(noisy_odom.twist.twist.linear.y)
+        noisy_odom_yaw_vel_list.append(noisy_odom.twist.twist.angular.z)
 
     # From documentation on nav_msgs/Odometry:
     # Row-major representation of the 6x6 covariance matrix
     # The orientation parameters use a fixed-axis representation.
     # In order, the parameters are:
     # (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
-    noisy_odom.pose.covariance = [0.1, 0, 0, 0, 0, 0,  # x variance taken from Gazebo odometry
-                                  0, 0.1, 0, 0, 0, 0,  # y variance taken from Gazebo odometry
+    noisy_odom.pose.covariance = [numpy.var(noisy_odom_x_list), 0, 0, 0, 0, 0,  # x variance taken from Gazebo odometry
+                                  0, numpy.var(noisy_odom_y_list), 0, 0, 0, 0,  # y variance taken from Gazebo odometry
                                   0, 0, 0, 0, 0, 0,
                                   0, 0, 0, 0, 0, 0,
                                   0, 0, 0, 0, 0, 0,
-                                  0, 0, 0, 0, 0, 0.05]  # yaw variance taken from Gazebo odometry
+                                  0, 0, 0, 0, 0, numpy.var(noisy_odom_yaw_list)]  # yaw variance taken from Gazebo odometry
     # Twist covariance copied from position covariance TODO this definitely wrong
-    noisy_odom.twist.covariance = [0.1, 0, 0, 0, 0, 0,  # x_vel variance
-                                   0, 0.1, 0, 0, 0, 0,  # y_vel variance
+    noisy_odom.twist.covariance = [numpy.var(noisy_odom_x_vel_list), 0, 0, 0, 0, 0,  # x_vel variance
+                                   0, numpy.var(noisy_odom_y_vel_list), 0, 0, 0, 0,  # y_vel variance
                                    0, 0, 0, 0, 0, 0,
                                    0, 0, 0, 0, 0, 0,
                                    0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 0.05]  # yaw_vel variance
+                                   0, 0, 0, 0, 0, numpy.var(noisy_odom_yaw_vel_list)]  # yaw_vel variance
+
+
 
     # Publish noisy odom message
     try:
