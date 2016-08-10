@@ -42,11 +42,11 @@ class TurtleBot2D(TurtleBot, object):
         goal.target_pose = goal_pose
 
         try:
-            rospy.loginfo('Waiting for move_base server')
+            rospy.logdebug('Waiting for move_base server')
             self.move_base_client.wait_for_server()
-            rospy.loginfo('Sending goal to move_base server')
+            rospy.logdebug('Sending goal to move_base server')
             self.move_base_client.send_goal(goal)
-            rospy.loginfo('Waiting for goal result from move_base server')
+            rospy.logdebug('Waiting for goal result from move_base server')
             self.move_base_client.wait_for_result()
             success = self.move_base_client.get_result()
             if not success:
