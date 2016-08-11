@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <robot name="kobuki_sim" xmlns:xacro="http://ros.org/wiki/xacro">
-    <xacro:macro name="kobuki_sim" params="model_name">
+    <xacro:macro name="kobuki_sim" params="model_name noisy">
         <gazebo reference="${model_name}/wheel_left_link">
             <mu1>1.0</mu1>
             <mu2>1.0</mu2>
@@ -150,21 +150,23 @@
                 <update_rate>50</update_rate>
                 <visualize>false</visualize>
                 <imu>
-                    <noise>
-                        <type>gaussian</type>
-                        <rate>
-                            <mean>0.0</mean>
-                            <stddev>${0.0014*0.0014}</stddev> <!-- 0.25 x 0.25 (deg/s) -->
-                            <bias_mean>0.0</bias_mean>
-                            <bias_stddev>0.0</bias_stddev>
-                        </rate>
-                        <accel> <!-- not used in the plugin and real robot, hence using tutorial values -->
-                            <mean>0.0</mean>
-                            <stddev>1.7e-2</stddev>
-                            <bias_mean>0.1</bias_mean>
-                            <bias_stddev>0.001</bias_stddev>
-                        </accel>
-                    </noise>
+                    <xacro:if value="${noisy}">
+                        <noise>
+                            <type>gaussian</type>
+                            <rate>
+                                <mean>0.0</mean>
+                                <stddev>${0.0014*0.0014}</stddev> <!-- 0.25 x 0.25 (deg/s) -->
+                                <bias_mean>0.0</bias_mean>
+                                <bias_stddev>0.0</bias_stddev>
+                            </rate>
+                            <accel> <!-- not used in the plugin and real robot, hence using tutorial values -->
+                                <mean>0.0</mean>
+                                <stddev>1.7e-2</stddev>
+                                <bias_mean>0.1</bias_mean>
+                                <bias_stddev>0.001</bias_stddev>
+                            </accel>
+                        </noise>
+                    </xacro:if>
                 </imu>
             </sensor>
         </gazebo>

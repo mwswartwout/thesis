@@ -11,7 +11,7 @@
   <xacro:include filename="$(find cwru_turtlebot)/urdf/kobuki_gazebo.urdf.xacro"/>
 
   <!-- Kobuki --> 
-  <xacro:macro name="kobuki" params="model_name">
+  <xacro:macro name="kobuki" params="model_name noisy">
     <link name="${model_name}/base_footprint"/>
     <!--
        Base link is set at the bottom of the base mould.
@@ -221,7 +221,7 @@
     </link>
     
     <!-- Kobuki Gazebo simulation details -->
-    <kobuki_sim model_name="${model_name}"/>
+    <kobuki_sim model_name="${model_name}" noisy="${noisy}"/>
     
   </xacro:macro>
 </robot>
