@@ -46,10 +46,10 @@
 
     <param name="number_of_robots" type="int" value="1"/>
     <param name="sim_time" type="double" value="$(arg sim_time)"/>
-    <param name="x_upper" type="double" value="10"/>
-    <param name="x_lower" type="double" value="-10"/>
-    <param name="y_upper" type="double" value="10"/>
-    <param name="y_lower" type="double" value="-10"/>
+    <param name="x_upper" type="double" value="5"/>
+    <param name="x_lower" type="double" value="-5"/>
+    <param name="y_upper" type="double" value="5"/>
+    <param name="y_lower" type="double" value="-5"/>
     <param name="debug" type="bool" value="$(arg debug)"/>
 
     <include file="$(find cwru_turtlebot)/launch/gazebo/world_common.launch.xml">
