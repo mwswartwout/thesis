@@ -13,24 +13,28 @@ from geometry_msgs.msg import Pose2D, PoseWithCovarianceStamped
 
 # get the current namespace
 namespace = None
-noisy = False
-previous_pose = None
-previous_odom = None
-previous_time = None
-initial_pose = None
+previous_noisy_pose = None
+previous_noisy_odom = None
+previous_noisy_time = None
+previous_noiseless_pose = None
+previous_noiseless_odom = None
+previous_noiseless_time = None
+# initial_pose = None
 imu_publisher = None
 odom_publisher = None
 noisy_odom_publisher = None
 
+# previous_clean_odom = None
+
 # def initial_position_callback(position):
-#     # Record the initial position of the robot so that we can convert the odometry values from the robot's odom frame
-#     # to the map frame
-#     global initial_pose
+#      # Record the initial position of the robot so that we can convert the odometry values from the robot's odom frame
+#      # to the map frame
+#      global initial_pose
 #
-#     initial_pose = Pose2D()
-#     initial_pose.x = position.pose.pose.position.x
-#     initial_pose.y = position.pose.pose.position.y
-#     initial_pose.theta = convert_quaternion_to_yaw(position.pose.pose.orientation)
+#      initial_pose = Pose2D()
+#      initial_pose.x = position.pose.pose.position.x
+#      initial_pose.y = position.pose.pose.position.y
+#      initial_pose.theta = convert_quaternion_to_yaw(position.pose.pose.orientation)
 
 
 def imu_remap(imu_msg):
@@ -67,23 +71,101 @@ def imu_remap(imu_msg):
 
 def odom_remap(odom_msg):
     global namespace
+    global previous_noiseless_pose
+    global previous_noiseless_odom
+    global previous_noiseless_time
 
-    # remap odom message to base_footprint_self and publish the new message
-    remapped_msg = odom_msg
-    remapped_msg.child_frame_id = namespace + 'base_footprint_filter'
+    # Make our received odom reading more palatable
+    current_odom = Pose2D()
+    current_odom.x = odom_msg.pose.pose.position.x
+    current_odom.y = odom_msg.pose.pose.position.y
+    current_odom.theta = convert_quaternion_to_yaw(odom_msg.pose.pose.orientation)
 
-    if not rospy.is_shutdown():
-        try:
-            odom_publisher.publish(remapped_msg)
-        except rospy.ROSException as e:
-            rospy.logwarn(e.message)
+    current_time = odom_msg.header.stamp
+
+    if previous_noiseless_time is None:
+        previous_noiseless_time = copy.deepcopy(current_time)
+
+    # If we have no previous_pose, set to (0, 0, 0)
+    if previous_noiseless_pose is None:
+        previous_noiseless_pose = Pose2D()
+        previous_noiseless_pose.x = 0
+        previous_noiseless_pose.y = 0
+        previous_noiseless_pose.theta = 0
+
+    # Create the previous_odom Pose2D if it doesn't exist, also (0, 0, 0)
+    if previous_noiseless_odom is None:
+        previous_noiseless_odom = Pose2D()
+        previous_noiseless_odom.x = 0
+        previous_noiseless_odom.y = 0
+        previous_noiseless_odom.theta = 0
+
+    noiseless_odom = Odometry()
+    noiseless_odom.header = odom_msg.header
+    noiseless_odom.child_frame_id = namespace + 'base_footprint_filter'
+
+    # Split movement into three distinct actions, rotate -> translate -> rotate
+    delta_rotation_1 = helpers.correct_angle(math.atan2(current_odom.y - previous_noiseless_odom.y, current_odom.x - previous_noiseless_odom.x) - previous_noiseless_odom.theta)
+    delta_translation = math.sqrt((previous_noiseless_odom.x - current_odom.x) ** 2 + (previous_noiseless_odom.y - current_odom.y) ** 2)
+    delta_rotation_2 = helpers.correct_angle(current_odom.theta - previous_noiseless_odom.theta - delta_rotation_1)
+
+    noiseless_odom.pose.pose.position.x = previous_noiseless_pose.x + delta_translation * math.cos(previous_noiseless_pose.theta + delta_rotation_1)
+    noiseless_odom.pose.pose.position.y = previous_noiseless_pose.y + delta_translation * math.sin(previous_noiseless_pose.theta + delta_rotation_1)
+    noiseless_odom_yaw = previous_noiseless_pose.theta + delta_rotation_1 + delta_rotation_2
+    noiseless_odom.pose.pose.orientation = convert_yaw_to_quaternion(noiseless_odom_yaw)
+
+    delta_time = current_time - previous_noiseless_time
+    delta_time_seconds = delta_time.to_sec()
+    assert delta_time_seconds >= 0
+
+    # We will assume that our robot moves perfectly with only linear x velocity and angular z velocity
+    # This is an okay assumption because we ignore other data anyways because all readings are noise and not valid
+    noiseless_odom.twist.twist.linear.y = 0
+    noiseless_odom.twist.twist.linear.z = 0
+    noiseless_odom.twist.twist.angular.x = 0
+    noiseless_odom.twist.twist.angular.y = 0
+
+    if delta_time_seconds > 0:
+        noiseless_odom.twist.twist.linear.x = delta_translation / delta_time_seconds
+        noiseless_odom.twist.twist.angular.z = (noiseless_odom_yaw - previous_noiseless_pose.theta) / delta_time_seconds
+    else:
+        noiseless_odom.twist.twist.linear.x = 0
+        noiseless_odom.twist.twist.angular.z = 0
+
+    # From documentation on nav_msgs/Odometry:
+    # Row-major representation of the 6x6 covariance matrix
+    # The orientation parameters use a fixed-axis representation.
+    # In order, the parameters are:
+    # (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
+    noiseless_odom.pose.covariance = odom_msg.pose.covariance
+    # Twist covariance copied from position covariance TODO this definitely wrong
+    noiseless_odom.twist.covariance = odom_msg.pose.covariance
+
+    # Publish odom message
+    try:
+        odom_publisher.publish(noiseless_odom)
+    except rospy.ROSException as e:
+        rospy.logwarn(e.message)
+
+    # Increment previous pose for use with next message
+    previous_noiseless_pose.x = noiseless_odom.pose.pose.position.x
+    previous_noiseless_pose.y = noiseless_odom.pose.pose.position.y
+    previous_noiseless_pose.theta = convert_quaternion_to_yaw(noiseless_odom.pose.pose.orientation)
+
+    # Increment previous odom for use with next message
+    previous_noiseless_odom.x = current_odom.x
+    previous_noiseless_odom.y = current_odom.y
+    previous_noiseless_odom.theta = current_odom.theta
+
+    # Increment time
+    previous_noiseless_time = current_time
 
 
 def noisy_odom_remap(odom_msg):
     global namespace
-    global previous_pose
-    global previous_odom
-    global previous_time
+    global previous_noisy_pose
+    global previous_noisy_odom
+    global previous_noisy_time
 
     # Odometry model taken from Probabilistic Robotics by Thrun et al.
     # Algorithm used is sample_motion_model_odometry from Table 5.6
@@ -103,22 +185,22 @@ def noisy_odom_remap(odom_msg):
 
     current_time = odom_msg.header.stamp
 
-    if previous_time is None:
-        previous_time = copy.deepcopy(current_time)
+    if previous_noisy_time is None:
+        previous_noisy_time = copy.deepcopy(current_time)
 
     # If we have no previous_pose, set to (0, 0, 0)
-    if previous_pose is None:
-        previous_pose = Pose2D()
-        previous_pose.x = 0
-        previous_pose.y = 0
-        previous_pose.theta = 0
+    if previous_noisy_pose is None:
+        previous_noisy_pose = Pose2D()
+        previous_noisy_pose.x = 0
+        previous_noisy_pose.y = 0
+        previous_noisy_pose.theta = 0
 
     # Create the previous_odom Pose2D if it doesn't exist, also (0, 0, 0)
-    if previous_odom is None:
-        previous_odom = Pose2D()
-        previous_odom.x = 0
-        previous_odom.y = 0
-        previous_odom.theta = 0
+    if previous_noisy_odom is None:
+        previous_noisy_odom = Pose2D()
+        previous_noisy_odom.x = 0
+        previous_noisy_odom.y = 0
+        previous_noisy_odom.theta = 0
 
     noisy_odom_x_list = []
     noisy_odom_y_list = []
@@ -133,9 +215,9 @@ def noisy_odom_remap(odom_msg):
 
     for i in range(1, 1000):
         # Split movement into three distinct actions, rotate -> translate -> rotate
-        delta_rotation_1 = helpers.correct_angle(math.atan2(current_odom.y - previous_odom.y, current_odom.x - previous_odom.x) - previous_odom.theta)
-        delta_translation = math.sqrt((previous_odom.x - current_odom.x) ** 2 + (previous_odom.y - current_odom.y) ** 2)
-        delta_rotation_2 = helpers.correct_angle(current_odom.theta - previous_odom.theta - delta_rotation_1)
+        delta_rotation_1 = helpers.correct_angle(math.atan2(current_odom.y - previous_noisy_odom.y, current_odom.x - previous_noisy_odom.x) - previous_noisy_odom.theta)
+        delta_translation = math.sqrt((previous_noisy_odom.x - current_odom.x) ** 2 + (previous_noisy_odom.y - current_odom.y) ** 2)
+        delta_rotation_2 = helpers.correct_angle(current_odom.theta - previous_noisy_odom.theta - delta_rotation_1)
 
         # Create random pose from given movements by adding noise
         std_dev_1 = alpha_1 * abs(delta_rotation_1) + alpha_2 * delta_translation
@@ -147,12 +229,12 @@ def noisy_odom_remap(odom_msg):
         std_dev_3 = alpha_1 * abs(delta_rotation_2) + alpha_2 * delta_translation
         delta_rotation_2_hat = delta_rotation_2 - normal(scale=std_dev_3)
 
-        noisy_odom.pose.pose.position.x = previous_pose.x + delta_translation_hat * math.cos(previous_pose.theta + delta_rotation_1_hat)
-        noisy_odom.pose.pose.position.y = previous_pose.y + delta_translation_hat * math.sin(previous_pose.theta + delta_rotation_1_hat)
-        noisy_odom_yaw = previous_pose.theta + delta_rotation_1_hat + delta_rotation_2_hat
+        noisy_odom.pose.pose.position.x = previous_noisy_pose.x + delta_translation_hat * math.cos(previous_noisy_pose.theta + delta_rotation_1_hat)
+        noisy_odom.pose.pose.position.y = previous_noisy_pose.y + delta_translation_hat * math.sin(previous_noisy_pose.theta + delta_rotation_1_hat)
+        noisy_odom_yaw = previous_noisy_pose.theta + delta_rotation_1_hat + delta_rotation_2_hat
         noisy_odom.pose.pose.orientation = convert_yaw_to_quaternion(noisy_odom_yaw)
 
-        delta_time = current_time - previous_time
+        delta_time = current_time - previous_noisy_time
         delta_time_seconds = delta_time.to_sec()
         assert delta_time_seconds >= 0
 
@@ -165,7 +247,7 @@ def noisy_odom_remap(odom_msg):
 
         if delta_time_seconds > 0:
             noisy_odom.twist.twist.linear.x = delta_translation_hat / delta_time_seconds
-            noisy_odom.twist.twist.angular.z = (noisy_odom_yaw - previous_pose.theta) / delta_time_seconds
+            noisy_odom.twist.twist.angular.z = (noisy_odom_yaw - previous_noisy_pose.theta) / delta_time_seconds
         else:
             noisy_odom.twist.twist.linear.x = 0
             noisy_odom.twist.twist.angular.z = 0
@@ -205,25 +287,25 @@ def noisy_odom_remap(odom_msg):
     except rospy.ROSException as e:
         rospy.logwarn(e.message)
 
-    rospy.logdebug('Calculated new noisy odom pose. Previous pose was ' + str(previous_pose) + ',\n previous odom was ' +
-                  str(previous_odom) + ',\n current odom was ' + str(current_odom) + ',\n and new noisy pose is ' +
-                  str(noisy_odom))
+    rospy.logdebug('Calculated new noisy odom pose. Previous pose was ' + str(previous_noisy_pose) + ',\n previous odom was ' +
+                   str(previous_noisy_odom) + ',\n current odom was ' + str(current_odom) + ',\n and new noisy pose is ' +
+                   str(noisy_odom))
     rospy.logdebug('d_rot_1 noise was ' + str(delta_rotation_1_hat - delta_rotation_1) + '\n d_trans noise was ' +
                   str(delta_translation_hat - delta_translation) + '\n d_rot_2 noise was ' +
                   str(delta_rotation_2_hat - delta_rotation_2))
 
     # Increment previous pose for use with next message
-    previous_pose.x = noisy_odom.pose.pose.position.x
-    previous_pose.y = noisy_odom.pose.pose.position.y
-    previous_pose.theta = convert_quaternion_to_yaw(noisy_odom.pose.pose.orientation)
+    previous_noisy_pose.x = noisy_odom.pose.pose.position.x
+    previous_noisy_pose.y = noisy_odom.pose.pose.position.y
+    previous_noisy_pose.theta = convert_quaternion_to_yaw(noisy_odom.pose.pose.orientation)
 
     # Increment previous odom for use with next message
-    previous_odom.x = current_odom.x
-    previous_odom.y = current_odom.y
-    previous_odom.theta = current_odom.theta
+    previous_noisy_odom.x = current_odom.x
+    previous_noisy_odom.y = current_odom.y
+    previous_noisy_odom.theta = current_odom.theta
 
     # Increment time
-    previous_time = current_time
+    previous_noisy_time = current_time
 
 
 def main():
