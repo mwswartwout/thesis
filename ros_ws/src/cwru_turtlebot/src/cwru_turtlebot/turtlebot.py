@@ -287,15 +287,31 @@ class TurtleBot:
             # Determine our current pose (which is already in the map frame)
             current_x = self.discrete_pose_wrt_map.pose.pose.position.x
             current_y = self.discrete_pose_wrt_map.pose.pose.position.y
-            current_yaw = convert_quaternion_to_yaw(self.discrete_pose_wrt_map.pose.pose.orientation) + scan.scan.yaw_offset
+            # TODO find why discrete filter is not correctly getting orientation
+            current_yaw = convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation) + scan.scan.yaw_offset
 
             # Determine what pose (in the map frame) we believe we are seeing the other robot at
             # Add 0.2 (turtlebot radius) to more evenly distribute pose estimates non-deterministically
             pose.pose.pose.position.x = current_x + scan.scan.median * math.cos(current_yaw)
             pose.pose.pose.position.y = current_y + scan.scan.median * math.sin(current_yaw)
 
-            rospy.logdebug(self.namespace + ': Current position is (' + str(current_x) + ', ' + str(current_y) +
-                           '), with yaw of ' + str(current_yaw) + ' got scan with median ' + str(scan.scan.median) +
+            continuous_x = self.continuous_pose_wrt_map.pose.pose.position.x
+            continuous_y = self.continuous_pose_wrt_map.pose.pose.position.y
+            continuous_yaw = convert_quaternion_to_yaw(self.continuous_pose_wrt_map.pose.pose.orientation)
+            discrete_x = self.discrete_pose_wrt_map.pose.pose.position.x
+            discrete_y = self.discrete_pose_wrt_map.pose.pose.position.y
+            discrete_yaw = convert_quaternion_to_yaw(self.discrete_pose_wrt_map.pose.pose.orientation)
+            gazebo_x = self.gazebo_pose_wrt_map.pose.pose.position.x
+            gazebo_y = self.gazebo_pose_wrt_map.pose.pose.position.y
+            gazebo_yaw = convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation)
+
+            rospy.logdebug(self.namespace + ': Current gazebo odom pose is (' + str(gazebo_x) + ', ' + str(gazebo_y)
+                           + ', ' + str(gazebo_yaw) + '). '
+                           + 'Current continuous odom pose is (' + str(continuous_x) + ', ' + str(continuous_y) + ', '
+                           + str(continuous_yaw) + '). '
+                           + 'Current discrete odom pose is (' + str(discrete_x) + ', ' + str(discrete_y) + ', '
+                           + str(discrete_yaw) + '). '
+                           + ' got scan with median ' + str(scan.scan.median) +
                            ' and calculated pose of other robot at (' + str(pose.pose.pose.position.x) + ', ' +
                            str(pose.pose.pose.position.y) + ').')
             # Right now use default quaternion since we can't figure out orientation from our scans
@@ -322,15 +338,21 @@ class TurtleBot:
         try:
             continuous_x = self.continuous_pose_wrt_map.pose.pose.position.x
             continuous_y = self.continuous_pose_wrt_map.pose.pose.position.y
+            continuous_yaw = convert_quaternion_to_yaw(self.continuous_pose_wrt_map.pose.pose.orientation)
             discrete_x = self.discrete_pose_wrt_map.pose.pose.position.x
             discrete_y = self.discrete_pose_wrt_map.pose.pose.position.y
+            discrete_yaw = convert_quaternion_to_yaw(self.discrete_pose_wrt_map.pose.pose.orientation)
             gazebo_x = self.gazebo_pose_wrt_map.pose.pose.position.x
             gazebo_y = self.gazebo_pose_wrt_map.pose.pose.position.y
+            gazebo_yaw = convert_quaternion_to_yaw(self.gazebo_pose_wrt_map.pose.pose.orientation)
             rospy.logdebug(self.namespace + ': Received external pose indicating position (' +
                            str(goal.pose.pose.pose.position.x) + ', ' + str(goal.pose.pose.pose.position.y) + '). ' +
-                           'Current gazebo odom pose is (' + str(gazebo_x) + ', ' + str(gazebo_y) + '). ' +
-                           'Current continuous odom pose is (' + str(continuous_x) + ', ' + str(continuous_y) + '). ' +
-                           'Current discrete odom pose is (' + str(discrete_x) + ', ' + str(discrete_y) + '). ')
+                           'Current gazebo odom pose is (' + str(gazebo_x) + ', ' + str(gazebo_y)
+                           + ', ' + str(gazebo_yaw) + '). '
+                           + 'Current continuous odom pose is (' + str(continuous_x) + ', ' + str(continuous_y) + ', '
+                           + str(continuous_yaw) + '). '
+                           + 'Current discrete odom pose is (' + str(discrete_x) + ', ' + str(discrete_y) + ', '
+                           + str(discrete_yaw) + '). ')
             self.external_pose_publisher.publish(goal.pose)
             self.external_pose_count += 1
             self.external_pose_count_publisher.publish(UInt64(data=self.external_pose_count))
