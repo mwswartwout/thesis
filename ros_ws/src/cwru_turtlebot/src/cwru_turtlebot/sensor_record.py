@@ -124,7 +124,7 @@ def noisy_odom_callback(odom_msg):
     global initial_x
     global initial_y
     global initial_yaw
-    
+
     if None not in (initial_x, initial_y, initial_yaw):
         pose_x = odom_msg.pose.pose.position.x + initial_x
         pose_y = odom_msg.pose.pose.position.y + initial_y

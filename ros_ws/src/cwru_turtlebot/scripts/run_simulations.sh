@@ -8,13 +8,13 @@ kill_everything() {
     killall rosmaster
 }
 
-declare -i mobile_time=480
-declare -i stationary_time=60
+declare -i mobile_time=1800
+declare -i stationary_time=960
 declare -i sleep_time=20
 
-one_mobile=false
+one_mobile=true
 two_stationary=true
-two_mobile=false
+two_mobile=true
 
 if [ "$one_mobile" = true ] ; then
     # mobile, noiseless, no gps
