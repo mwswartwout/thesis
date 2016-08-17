@@ -1,4 +1,4 @@
-\usepackage[xindy, acronyms, toc]{glossaries}
+\usepackage[xindy, acronyms, toc, indexonlyfirst]{glossaries}
 \makeglossaries
 
 \newacronym{ros}{ROS}{Robot Operating System}
@@ -24,3 +24,5 @@
 \newglossaryentry{DenOfSev}{name={Denial of Service},description={A software attack where the attacker attempts to overload a system and prevent communications by flooding the target machine with network requests}}
 
 \newglossaryentry{roscore}{name={Roscore},description={A \gls{ros} node that is responsible for facilitating communication between other nodes. All nodes register with the roscore on startup, and also register all published topic, service, and action server names with the roscore. When a node attempts to subscribe to a topic or initiate a connection with a service or action server, the roscore facilitates the connection}}
+
+\newglossaryentry{node}{name={node},description={A program running as a part of a ROS system.}}

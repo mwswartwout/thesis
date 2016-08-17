@@ -1,4 +1,13 @@
 \documentclass[thesis.tex]{subfile}
 \begin{document}
 \chapter{Conclusion} \label{Conclusion}
+\section{Summary}
+This thesis presents a distributed system for state estimation of mobile robots. This system is created as a network of \gls{ros} nodes and uses \glspl{ukf} to create the state estimate. In \autoref{sec:Problem Statement} we laid out the primary goals for the distributed system. The choice of a \gls{ukf} allows for the seamless transition between operating in a group or solo. By using the \gls{ros} Action Server structure we accomplish the goal of dynamically handling the addition and removal of robots from the environment. And by using the standard \gls{ros} Navigation Stack no TurtleBot specific implementations, we allow for easy extension of this work onto other platforms.
+
+Finally, we achieve an accurate state estimation system with no changes to the \gls{ukf} algorithm. We show that robots operating in a group and sharing sensor data with each other can greatly increase the accuracy of their state estimates. This is shown through a series of Gazebo simulations in a variety of single and group, stationary and mobile, noiseless and noisy configurations. We demonstrate the effectiveness of the noise model at creating a realistic simulation, and then the improvements in accuracy that the distributed system brings.
+
+\section{Future Work and Improvements}
+There are two main areas for improvement in this project. First, the current system utilizes a single roscore, which is a necessity for simulation purposes. As such, this is not a truly distributed system. Reconfiguring the nodes to run on top of a multimaster system, such as multimaster\_fkie~\cite{Tiderko} or Robotics in Concert~\cite{StonierLeeKimEtAl2016} would create a true distributed system outside of simulation.
+
+Physical multi-robot testing is another next step. We have done previous work to enable autonomous navigation with the Navigation Stack on the TurtleBot, however we have not been able to test this system with multiple TurtleBots. We expect that our noise model in simulation is equivalent to, or noisier than, noise encountered in physical testing, and thus the system should be well behaved, however this requires validation.
 \end{document}
