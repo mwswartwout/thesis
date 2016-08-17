@@ -139,11 +139,19 @@ def noisy_odom_callback(odom_msg):
 
 def gps_callback(gps_msg):
     global gps_data
+    global gazebo_data
 
     x = gps_msg.pose.pose.position.x
     y = gps_msg.pose.pose.position.y
 
-    gps_data = (x, y)
+    if gazebo_data is not None:
+        x_error = x - gazebo_data[0]
+        y_error = y - gazebo_data[1]
+    else:
+        x_error = 'NA'
+        y_error = 'NA'
+
+    gps_data = (x, y, x_error, y_error)
 
 
 def make_sure_path_exists(path):
@@ -198,7 +206,7 @@ def write_headers():
         filename = prefix + namespace + '_gps_data.csv'
         with open(filename, 'w+') as gps_file:
             writer = csv.writer(gps_file)
-            writer.writerow(['x', 'y'])
+            writer.writerow(['x', 'y', 'x_error', 'y_error'])
     else:
         if namespace is None:
             rospy.logdebug('Could not write headers because namespace was not initialized')
