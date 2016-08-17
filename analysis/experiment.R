@@ -31,11 +31,6 @@ for (robot in 1:params$robots) {
 
 ## ---- calculations
 # Now calculate errors
-gazebo$dist_from_origin <- sqrt(gazebo$x_position ^ 2 + gazebo$y_position ^ 2)
-
-discrete$x_error <- gazebo$x_position - discrete$x_position
-discrete$y_error <- gazebo$y_position - discrete$y_position
-discrete$horizontal_error <- sqrt(discrete$x_error ^ 2 + discrete$y_error ^ 2)
 
 correct_yaw <- function(yaw) {
     while (yaw > pi) {
@@ -49,8 +44,13 @@ correct_yaw <- function(yaw) {
 }
 
 vector_correct_yaw <- Vectorize(correct_yaw)
+
+gazebo$dist_from_origin <- sqrt(gazebo$x_position ^ 2 + gazebo$y_position ^ 2)
+
+discrete$x_error <- gazebo$x_position - discrete$x_position
+discrete$y_error <- gazebo$y_position - discrete$y_position
 discrete$yaw_error <- vector_correct_yaw(gazebo$yaw - discrete$yaw)
-continuous$yaw_error <- vector_correct_yaw(gazebo$yaw - continuous$yaw)
+discrete$position_error <- sqrt(discrete$x_error ^ 2 + discrete$y_error ^ 2)
 
 # for (i in 1:NROW(discrete$yaw)) {
 #     yaw <- gazebo$yaw[i] - discrete$yaw[i]
@@ -66,7 +66,8 @@ continuous$yaw_error <- vector_correct_yaw(gazebo$yaw - continuous$yaw)
 
 continuous$x_error <- gazebo$x_position - continuous$x_position
 continuous$y_error <- gazebo$y_position - continuous$y_position
-continuous$horizontal_error <- sqrt(continuous$x_error ^ 2 + continuous$y_error ^ 2)
+continuous$yaw_error <- vector_correct_yaw(gazebo$yaw - continuous$yaw)
+continuous$position_error <- sqrt(continuous$x_error ^ 2 + continuous$y_error ^ 2)
 
 # for (i in 1:NROW(continuous$yaw)) {
 #     yaw <- gazebo$yaw[i] - continuous$yaw[i]
@@ -95,7 +96,7 @@ hist(continuous$x_error,
 hist(continuous$y_error,
       main = "Continuous y_error")
 
-hist(continuous$horizontal_error,
+hist(continuous$position_error,
      main = "Continuous total distance error")
 
 hist(discrete$x_error,
@@ -104,19 +105,19 @@ hist(discrete$x_error,
 hist(discrete$y_error,
      main = "Discrete y_error")
 
-hist (discrete$horizontal_error,
+hist (discrete$position_error,
       main = "Discrete total distance error")
 
 ## ---- summary
 summary(continuous$x_error)
 summary(continuous$y_error)
 summary(continuous$yaw_error)
-summary(continuous$horizontal_error)
+summary(continuous$position_error)
 
 summary(discrete$x_error)
 summary(discrete$y_error)
 summary(discrete$yaw_error)
-summary(discrete$horizontal_error)
+summary(discrete$position_error)
 
 if (params$robot >= 2) {
     summary(external_data_averages)
@@ -126,20 +127,20 @@ if (params$robot >= 2) {
 figure_dir <- "/home/matt/thesis/writing/r_figures/"
 filename = paste0(figure_dir, params$experiment, "_continuous_error.pdf")
 pdf(filename)
-plot(continuous$horizontal_error, main="Continuous Filter Error", sub=paste0("For ", params$experiment, " Experiment"), xlab="Time (.1s)", ylab="Horizontal Position Error (m)")
+plot(continuous$position_error, main="Continuous Filter Error", sub=paste0("For ", params$experiment, " Experiment"), xlab="Time (.1s)", ylab="Horizontal Position Error (m)")
 
 dev.off()
 
 filename = paste0(figure_dir, params$experiment, "_discrete_error.pdf")
 pdf(filename)
-plot(discrete$horizontal_error, main="Discrete Filter Error", sub=paste0("For ", params$experiment, " Experiment"), xlab="Time (.1s)", ylab="Horizontal Position Error (m)")
+plot(discrete$position_error, main="Discrete Filter Error", sub=paste0("For ", params$experiment, " Experiment"), xlab="Time (.1s)", ylab="Horizontal Position Error (m)")
 dev.off()
 
 if (params$experiment == "one_stationary_noiseless") {
-    gazebo$horizontal_error <- sqrt(gazebo$x_position ^ 2 + gazebo$y_position ^ 2)
+    gazebo$position_error <- sqrt(gazebo$x_position ^ 2 + gazebo$y_position ^ 2)
     pdf(paste0(figure_dir, "gazebo_odom_drift.pdf"))
 
-    plot(gazebo$horizontal_error, main="Gazebo Odometry Drift for Stationary Robot with Noiseless Odometry", ylab="Distance from Origin (m)", xlab="Time (.1s)")
+    plot(gazebo$position_error, main="Gazebo Odometry Drift for Stationary Robot with Noiseless Odometry", ylab="Distance from Origin (m)", xlab="Time (.1s)")
     dev.off()
 }
 ## ---- stargazer_tables
