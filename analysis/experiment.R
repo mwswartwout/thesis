@@ -150,7 +150,7 @@ out_file <- paste0(table_dir, params$experiment, "_continuous_summary.tex")
 tex_label <- paste0("tab:", params$experiment, "_continuous_summary")
 stargazer(continuous,
           out=out_file,
-          table.placement="h",
+          table.placement="htbp",
           label=tex_label,
           title=gsub("_", "-", paste0("Continuous Filter Estimate for ", params$experiment, " Experiment")),
           digits.extra = 20)
@@ -159,7 +159,7 @@ out_file <- paste0(table_dir, params$experiment, "_discrete_summary.tex")
 tex_label <- paste0("tab:", params$experiment, "_discrete_summary")
 stargazer(discrete,
           out=out_file,
-          table.placement="h",
+          table.placement="htbp",
           label=tex_label,
           title=gsub("_", "-", paste0("Discrete Filter Estimate for ", params$experiment, " Experiment")),
           digits.extra = 20)
@@ -167,7 +167,7 @@ stargazer(discrete,
 if (params$experiment == "one_stationary_noiseless") {
     stargazer(gazebo,
               out=paste0(table_dir, "gazebo_stationary_noiseless_summary.tex"),
-              table.placement="h",
+              table.placement="htbp",
               label="tab:gazebo_stationary_noiseless_summary",
               title="Ground Truth Noiseless Odometry for Stationary Robot located at Origin",
               digits.extra = 20)
