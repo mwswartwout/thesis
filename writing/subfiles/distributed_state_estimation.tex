@@ -193,7 +193,7 @@ The second source of noise is in the projection from the TurtleBot boundary to t
 \subsubsection{GPS}
 The \gls{faa} produced a report in 2014 about the accuracy of \gls{gps} systems~\cite{FAAGPS}. The data was collected from April 1st through June 30th, 2014 at 28 different locations. The results showed that the \gls{gps} system horizontal measurement error fits a 95\% confidence interval of 3.351m. A mean error was not stated, therefore 0 is assumed. This assumption is possibly inaccurate, though we do not feel it would impact the results of this analysis. Further assuming our data are normally distributed, we model our noise with a mean of 0 and a standard deviation of 1.71 to fit this 95\% confidence interval.
 
-To create the noisy \gls{gps} signal, we take the Gazebo published ground truth odometry, which is delivered in the robot's odom frame, and add it to the robot's initial starting position, which is given in the map frame. This gives us the robot's accurate position in the map frame. Then we sample from our distribution to choose a horizontal error. Once that is selected, we sample from a uniform distribution of $[0, 2\pi]$, and calculate a new location offset from the original location in polar coordinates by the angle and distance selected. This algorithm is shown in \cref{tab:noisy_gps}
+To create the noisy \gls{gps} signal, we take the Gazebo published ground truth odometry, which is delivered in the robot's odom frame, and add it to the robot's initial starting position, which is given in the map frame. This gives us the robot's accurate position in the map frame. Then we sample from our distribution to choose a horizontal error. Once that is selected, we sample from a uniform distribution of $[0, 2\pi)$, and calculate a new location offset from the original location in polar coordinates by the angle and distance selected. This algorithm is shown in \cref{tab:noisy_gps}
 
 \begin{table}[htbp]
 \centering
@@ -207,7 +207,7 @@ To create the noisy \gls{gps} signal, we take the Gazebo published ground truth 
 &x' = x + horiz_{error} \times \cos(\theta)\\
 &y' = y + horiz_{error} \times \sin(\theta)
 \end{align}
-\caption{Algorithm for generating noisy\_gps positions. These are received by the robot at a rate of 0.1Hz}
+\caption{Algorithm for generating noisy\_gps positions. These are received by the robot at a rate of \SI{0.1}{\hertz}}
 \label{tab:noisy_gps}
 \end{table}
 
