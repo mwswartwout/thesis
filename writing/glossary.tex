@@ -11,18 +11,20 @@
 \newacronym{urdf}{URDF}{Unified Robot Description Format}
 \newacronym{faa}{FAA}{Federal Aviation Administration}
 \newacronym{gps}{GPS}{Global Positioning System}
-% TODO make sure all acronyms in text use \gls tag
+\newacronym{adi}{ADI}{Analog Devices, Inc.}
+\newacronym{pl}{PL}{Programmable Logic}
+\newacronym{gui}{GUI}{Graphical User Interface}
 
 \newglossaryentry{disc_filter}{name={Discrete Filter},description={Extended Kalman Filter that incorporates the robot's odometry, sensor information, GPS, and external pose estimates from other robots. This filter is subject to discrete jumps in position}}
 
 \newglossaryentry{con_filter}{name={Continuous Filter},description={Extended Kalman Filter that incorporates only the robot's odometry and sensor information. This filter provides continuous data suitable for short-term navigation and control but it subject to drift over time}}
 
-\newglossaryentry{self_filter}{name={Self Filter}, description={Another name for the Continuous Filter}, see={con_filter}}
+%\newglossaryentry{self_filter}{name={Self Filter}, description={Another name for the Continuous Filter}, see={con_filter}}
 
-\newglossaryentry{dist_filter}{name={Distributed Filter}, description={Another name for the Discrete Filter}, see={disc_filter}}
+%\newglossaryentry{dist_filter}{name={Distributed Filter}, description={Another name for the Discrete Filter}, see={disc_filter}}
 
 \newglossaryentry{DenOfSev}{name={Denial of Service},description={A software attack where the attacker attempts to overload a system and prevent communications by flooding the target machine with network requests}}
 
-\newglossaryentry{roscore}{name={Roscore},description={A \gls{ros} node that is responsible for facilitating communication between other nodes. All nodes register with the roscore on startup, and also register all published topic, service, and action server names with the roscore. When a node attempts to subscribe to a topic or initiate a connection with a service or action server, the roscore facilitates the connection}}
+\newglossaryentry{roscore}{name={roscore},description={A \gls{ros} node that is responsible for facilitating communication between other nodes. All nodes register with the roscore on startup, and also register all published topic, service, and action server names with the roscore. When a node attempts to subscribe to a topic or initiate a connection with a service or action server, the roscore facilitates the connection}}
 
-\newglossaryentry{node}{name={node},description={A program running as a part of a ROS system.}}
+\newglossaryentry{node}{name={node},description={A program running as a part of a ROS system}}

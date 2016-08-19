@@ -1,110 +1,136 @@
 \documentclass[thesis.tex]{subfile}
 %\overfullrule=2cm
 \begin{document}
+\lstset{language=bash, breaklines=true, postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}}}
 \chapter{Setting Up ZedBoard Guide}
 
 \section{Hardware Setup}
+%TODO Get rid of you/your
 The first thing that needs to be done is make sure the Zedboard's jumpers are in the correct locations.
 The Boot Mode jumpers (MIO6:2) should be set to SD card boot mode.
 That is set to GND for MIO6 and MIO3:2, and pulled high for MIO5:4.
-This is explained in the Zedboard Getting Started Guide \cite{ZedGetStarted}.
+This is explained in the Zedboard Getting Started Guide~\cite{ZedGetStarted}.
 
 \section{Software Setup}
 After verifying the Zedboard is set up correctly, you must install the Xilinx tools (Vivado and SDK) and get some sources from github.
 
-\subsection{Xilinx Tools} A license for Vivado should have come with the Zedboard.
-Some notes on installing the Xilinx tools can be found at \cite{InstallTools}.
-There are two steps that you need to take in your terminal after installing the Vivado and the SDK.
-The examples given are for Vivado and SDK 2015.4 installed on Ubuntu 14.04, your exact syntax may vary. These commands can be put into a script or a .bashrc or similar.
+\subsection{Xilinx Tools}
+A license for Vivado should have come with the Zedboard.
+Some notes on installing the Xilinx tools can be found at the Xilinx Wiki Install Xilinx Tools page~\cite{InstallTools}.
+Once Vivado and the Xilinx SDK are installed, you must source the appropriate files and export certain environment variables, which will be needed in future steps. The commands to do this are shown below.
 
+\lstinputlisting{appendix_scripts/setupEnvironment}
+
+Some machines may not need the following packages installed, however our test machine did require them. It is wise to install them as a precaution, especially if you are running on a 64-bit operating system.
 \begin{lstlisting}
-export CROSS_COMPILE=arm-xilinx-linux-gnueabi-
-source /opt/Xilinx/Vivado/2015.4/settings64.sh
-source /opt/Xilinx/SDK/2015.4/settings64.sh
+sudo apt-get install libncurses5, libncurses5-dev, lib32z1, lib32bz2-1.0, libstdc++6:i386, libgtk2.0-0:i386, dpkg-dev:i386
 \end{lstlisting}
 
-If issues are encountered with building a board support package, make sure the following packages are installed:
-\begin{enumerate}
-\item libncurses5
-\item libncurses5-dev
-\item lib32z1
-\item lib32bz2-1.0
-\item libstdc++6:i386
-\item libgtk2.0-0:i386
-\item dpkg-dev:i386
-\end{enumerate}
-Also make sure a symlink from make to gmake exists: sudo ln -s /usr/bin/make /usr/bin/gmake
+Finally, make sure a symlink from make to gmake exists:
+\begin{lstlisting}
+sudo ln -s /usr/bin/make /usr/bin/gmake
+\end{lstlisting}.
+
+Your machine should now be setup and ready to complete the next steps.
 
 \subsection{Install Cable Drivers}
-To use the USB-JTAG functionality of the Zedboard you must install the Digilent cable drivers. These are packaged with the Xilinx SDK and can be found at "Xilinx Install Directory"/SDK/"Version \#"/data/xicom/cable\_drivers. There will be an install script further in the subdirectories for your OS (for Ubuntu 14.04 and SDK 2016.1 it is called install\_drivers). Run this with root privileges and then unplug and replug the cables.
+To use the USB-JTAG functionality of the Zedboard you must install the Digilent cable drivers. These are packaged with the Xilinx SDK and can be found at Xilinx\_Install\_Directory/SDK/Version\_\#/data/xicom/cable\_drivers. There will be an install script further in the subdirectories for your OS (for Ubuntu 14.04 and SDK 2016.1 it is called install\_drivers). Run this with root privileges and then unplug and replug the USB cable from the ZedBoard to the PC if you have already connected it.
 
 \subsection{Add User to Dialout Group}
-In order to communicate with serial devices, your user account must be a part of the "dialout" group. You can check what you groups you belong to by executing the command `groups [username]`. If you do not belong to the dialout group you can add your user by executing `adduser [username] [groupname]`.
+In order to communicate with serial devices, the user account must be a part of the ``dialout" group. To check what groups the user belongs to, execute the command: 
+\begin{lstlisting}
+groups USERNAME
+\end{lstlisting}
+If the user does not belong to the dialout group you can add the user by executing:
+\begin{lstlisting}
+adduser USERNAME dialout
+\end{lstlisting}
 
-You must log out and log back in after completing this for the changes to take effect.
+Log out and log back in after completing this in order for the changes to take effect.
 
 \subsection{Fetch Sources}
-Next you must clone some Github repositories that contain the Xilinx linux kernel, u-boot, device tree compiler, and the device tree generator for the Xilinx SDK. This is explained in \cite{FetchSources}. As of writing this, the commands to do this are as follows.
+Next, clone the Github repositories that contain the linux kernel, u-boot, device tree compiler, and the device tree generator. This is explained in the Xilinx Wiki Fetch Sources page~\cite{FetchSources}. Commands to fetch the sources are shown below.
 
-\begin{lstlisting}
-git clone https://github.com/Xilinx/linux-xlnx
-git clone https://github.com/Xilinx/u-boot-xlnx
-git clone https://github.com/Xilinx/device-tree-xlnx
-git clone https://git.kernel.org/pub/scm/utils/dtc/dtc
-\end{lstlisting}
-
+\lstinputlisting{appendix_scripts/clone_git_repos}
 
 \subsection{Build Device Tree Compiler}
-Finally, you need to build the Device Tree Compiler (DTC). This is required to be able to build U-Boot, which we will do in the next step. This is explained in \cite{BuildDTC}, and it involves just a single make command and then updating your PATH environment variable.
+Next, build the Device Tree Compiler (DTC). This is required to be able to build U-Boot, which we will do in the next step. This is explained in the Xilinx Wiki Build Device Tree Compiler (dtc) page~\cite{BuildDTC}.
 
+First, make sure you have flex and bison installed, or you will be unable to make the DTC.
 \begin{lstlisting}
-make
-export PATH=`pwd`:$PATH
+sudo apt-get install flex bison
 \end{lstlisting}
+
+Next, make the DTC and add it to your path.
+\lstinputlisting{appendix_scripts/buildDTC}
 
 \section{BOOT.bin}
 The BOOT.bin file contains, at a minimum, the First Stage Boot Loader (FSBL) and the kernel or a standalone (bare-metal) application.
-For this setup we will use Das U-Boot as a Second Stage Boot Loader, so our BOOT.bin will contain the FSBL and U-Boot image.
-If any use of the Programmable Logic (PL) section of the device is desired than a system bitstream is also required.
+For this setup we will use Das U-Boot~\cite{UBoot} as a Second Stage Boot Loader, so our BOOT.bin will contain the FSBL and U-Boot image.
+If any use of the \gls{pl} section of the device is desired than a system bitstream is also required.
 
 \subsection{FSBL}
 Building the FSBL is done with the Xilinx Vivado tool.
-\cite{BuildFSBL} is a tutorial that walks through how to build the FSBL with pictures from a relatively recent version of Vivado. The general gist though is that you want to create a new Application Project with a standalone board support package, and then just use the Zedboard FSBL example that they provide. No modifications need to be made to this example.
+Sven Andersson has a helpful tutorial~\cite{BuildFSBL} that walks through how to build the FSBL with pictures from a relatively recent version of the Xilinx SDK. The general summary is to create a new Application Project with a standalone board support package in the SDK, and then just use the Zedboard FSBL example that they provide. No modifications need to be made to the source code of this example.
 
 \subsection{U-Boot}
-U-Boot is an open source Second Stage Boot Loader that is quite popular in the embedded community. You must build U-Boot from source, and it is one of the Github repositories cloned previously. This is explained in \cite{BuildUBoot}. Below are the Zedboard specific commands.
+U-Boot is an open source Second Stage Boot Loader that is quite popular in the embedded community. You must build U-Boot from source, and it is one of the Github repositories cloned previously. This is explained in the appropriate Xilinx wiki page~\cite{BuildUBoot}. Below are the Zedboard specific commands we used.
 
-\begin{lstlisting}
-make zynq_zed_config
-make
-cd tools
-export PATH=`pwd`:$PATH
-\end{lstlisting}
+\lstinputlisting{appendix_scripts/buildUBoot}
 
 \subsection{Generating Boot Image}
-Once the FSBL and U-Boot have been built the final step is to combine them into the BOOT.bin boot image. This can be done interactively in the Xilinx SDK, and \cite{BootImageVideo} explains the process. \cite{PrepareBootImage} explains how to do this via the command line.
-Note that in this example we do not put the bitstream, device tree, or kernel image into the boot image. This can, and should be done, once all modification to those files are complete. For now though, it is easier to leave them separate and point to them with a custom uEnv.txt file, which will be explained later.
+Once the FSBL and U-Boot have been built the final step is to combine them into the BOOT.bin boot image. This can be done interactively in the Xilinx SDK, and Xilinx has a video that explains the process when done via the SDK~\cite{BootImageVideo}. The Xilinx wiki also explains how to do this via the command line~\cite{PrepareBootImage}.
+Note that in this example we do not put the bitstream, device tree, or kernel image into the boot image. This can, and should, be done once all modification to those files are complete. For now though, it is easier to leave them separate and point to them with a custom uEnv.txt file, which is explained in \cref{subsec:uenv}.
 
 \section{Putting Boot Media Together}
+Once all parts of the boot media have been created, we must put it all together. The following sections describe how.
+
+
 \subsection{Building Kernel}
-\subsection{uEnv.txt}
-\subsection{devicetree}
+First we must compile the kernel. We use the \gls{adi} linux kernel, as we found some issues with the configuration for the Xilinx kernel. At the time of writing, we used the xcomm\_zynq branch in the linux-adi repo. The following steps build the kernel.
+\lstinputlisting{appendix_scripts/buildKernel}
+
+\subsection{uEnv.txt} \label{subsec:uenv}
+The uEnv.txt file is used to override the default U-Boot environment and is read when U-Boot starts up. The \gls{adi} tutorial~\cite{uenv} on booting the ZedBoard provides an example uEnv.txt file, which we used, and is reproduced.
+\lstinputlisting{appendix_scripts/uEnv.txt}
+Note that you can manually set the MAC address in the uEnv.txt file. All ZedBoards ship with an identical MAC address, so if you have multiple ZedBoards on the same network you may wish to override the default MAC address with a custom one.
+
+\subsection{Device Tree Blob}
+If you require use of the \gls{pl} on the ZedBoard you will need to build the device tree blob. Instructions for this can be found on the appropriate Xilinx Wiki page~\cite{devicetree}. For this research, we did not use the \gls{pl} and thus used the device tree blob that shipped with the ZedBoard. On the SD card included with our ZedBoard this file was called devicetree.dtb.
+
 \subsection{Linaro filesystem}
-\subsection{Partitioning SD Card}
+Because the ZedBoard is not officially supported by the ZedBoard, we cannot download the image creation tool. Instead we must download the image itself and copy it onto the SD card. The Linaro 14.10 image can be downloaded on the Linaro releases site~\cite{linaroImage}.
+
+\subsection{Prepare SD Card}
+Next, the SD card must be partitioned for use with Linaro. You must create two partitions, a boot partition and a root partition. Appropriate directions can be found on the Xilinx Wiki~/cite{PrepareBootMedium}. Alternatively, a \gls{gui} program like GParted can be used rather than the command line. However you do it, you must create a 200MB Fat32 formatted boot partition, and a ext4 root partition that takes up the remaining space on your SD card.
+
+Now, copy the prepared boot files into the boot partition on the SD card. These files are: BOOT.bin (boot image), devicetree.dtb (device tree blob), uImage (u-boot), and uEnv.txt.
+
+Lastly, copy the downloaded Linaro image into the root partition of the SD card. When you do this, we recommend you use the ``cp -a" command to preserve all file settings in the image. If you do not do this, weird permissions errors can be encountered, though they are correctable, when booting the ZedBoard.
 
 \section{Booting Zedboard}
+Time to boot up the ZedBoard! Insert the SD card into the ZedBoard, make sure the boot jumpers are placed into the correct setting, and turn on the power.
+
 \subsection{Connecting with kermit}
+In order to communicate with the ZedBoard you must use a serial emulator. The SDK has one built in, though we found it unreliable. We used kermit for most of our communication with the zedboard. If using kermit, you will connect to the zedboard with the following commands:
+\begin{lstlisting}
+kermit
+set carrier-watch off
+open line /dev/ZEDBOARD
+\end{lstlisting}
+Note that /dev/ZEDBOARD represents the serial device that has been registered with your computer. In our case, it was usually /dev/ttyUSB0.
 
 \section{Configuring Linaro for use with Zedboard}
-\subsection{Enabling ethernet}
-\subsection{Synchronize clock}
-\subsection{Install ROS}
+A few steps must be taken to make Linaro work properly after booting the ZedBoard. We developed two setup scripts to handle this, which are shown below.
 
-\appendix
-\section{Environment Configuration Scripts}
-\section{Linaro Configuration Scripts}
+\subsection{Initial Setup Script}
+This initial setup script enables the ethernet on the ZedBoard and synchronizes the clock with nist.gov. An out of sync clock will cause problems later when using apt. Next, it makes sure certain important permissions were not changed accidentally when copying the Linaro image to the SD card. Finally, we change the root password for security purposes and create a new admin user called Zed.
+\lstinputlisting{appendix_scripts/linaroNanoInitialSetupScript}
 
+\subsection{Second Setup Script}
+The second setup script shown below installs usefull and necessary packages, and then installs and configures \gls{ros} and all necessary packages for the TurtleBot.
 
+\lstinputlisting{appendix_scripts/linaroNanoSecondarySetupScript}
 %\emergencystretch=1em
 
 \end{document}

@@ -1,13 +1,34 @@
 \documentclass[thesis.tex]{subfile}
 \begin{document}
-\chapter{Conclusion} \label{Conclusion}
+\chapter{Conclusion} \label{ch:Conclusion}
 \section{Summary}
-This thesis presents a distributed system for state estimation of mobile robots. This system is created as a network of \gls{ros} nodes and uses \glspl{ukf} to create the state estimate. In \autoref{sec:Problem Statement} we laid out the primary goals for the distributed system. The choice of a \gls{ukf} allows for the seamless transition between operating in a group or solo. By using the \gls{ros} Action Server structure we accomplish the goal of dynamically handling the addition and removal of robots from the environment. And by using the standard \gls{ros} Navigation Stack no TurtleBot specific implementations, we allow for easy extension of this work onto other platforms.
+This thesis presents a distributed system for state estimation of mobile robots. This system is created as a network of \gls{ros} nodes and uses \glspl{ukf} to create the state estimate. In \cref{sec:Problem Statement} we laid out the primary goals for the distributed system. These five goals were to create a distributed localization system to seamlessly integrate sensor measurements from other robots, to dynamically handle robots entering and exiting the environment, to not introduce new steps to the \gls{kf} algorithm while maintaining accuracy, to not utilize static landmarks or cooperative agents, and to utilize standard \gls{ros} practices and constructs. Ultimately, we show that performance of the Unscented Kalman Filter can be greatly improved for a mobile robot when the robot's odometry is supplemented with state information obtained from other robot's sensor data.
 
-Finally, we achieve an accurate state estimation system with no changes to the \gls{ukf} algorithm. We show that robots operating in a group and sharing sensor data with each other can greatly increase the accuracy of their state estimates. This is shown through a series of Gazebo simulations in a variety of single and group, stationary and mobile, noiseless and noisy configurations. We demonstrate the effectiveness of the noise model at creating a realistic simulation, and then the improvements in accuracy that the distributed system brings.
+\subsection{Distributed Localization System}
+The choice of a \gls{ukf} allows for the fusion of external robot's sensor information with ease, and also seamlessly handles transitions between operating in a group or solo. By using the \gls{ros} Action Server structure we accomplish the goal of dynamically handling the addition and removal of robots from the environment. 
+
+\subsection{Unchanged Algorithm}
+We achieve an accurate state estimation system with no changes to the \gls{ukf} algorithm or the robot\_localization package. We show that robots operating in a group and sharing sensor data with each other can greatly increase the accuracy of their state estimates versus state estimates achieved via odometry and \gls{gps} only. This increased accuracy is shown through a series of Gazebo simulations in a variety of single and group, stationary and mobile, noiseless and noisy configurations. We also implement a realistic noise model for all of the robot's sensors to show that improvements in accuracy will carry over into real world testing.
+
+\subsection{No Static Landmarks or Cooperative Agents}
+Our system does not rely on static landmarks or cooperative positioning between agents. Both of these can greatly increase accuracy, but are not a realistic assumption for many mobile robot operating environments. We show this non-dependence by utilizing an empty environment and not giving the robots a map of any kind, and by running the test simulations with random motion. The use of this random motion shows that accuracy of the localization estimate can still be increased when the robots are moving independently of one another.
+
+\subsection{Standard ROS Practices and Constructs}
+By not changing the \gls{kf} algorithm, using the standard robot\_localization and \gls{ros} Navigation Stack packages, and utilizing no proprietary or non-public techniques, we make it significantly easier for future researchers to extend this work. By using \gls{ros} and the standards associated with it we also make the use of this work on robotic platforms other than the TurtleBot very straightforward.
+%TODO tie some of this back to the literature
 
 \section{Future Work and Improvements}
-There are two main areas for improvement in this project. First, the current system utilizes a single roscore, which is a necessity for simulation purposes. As such, this is not a truly distributed system. Reconfiguring the nodes to run on top of a multimaster system, such as multimaster\_fkie~\cite{Tiderko} or Robotics in Concert~\cite{StonierLeeKimEtAl2016} would create a true distributed system outside of simulation.
+There are two main areas of improvement for this project. First, the current system utilizes a single roscore, which is a necessity for simulation purposes. As such, this is not a truly distributed system. Reconfiguring the nodes to run on top of a multimaster system, such as multimaster\_fkie~\cite{Tiderko} or Robotics in Concert~\cite{StonierLeeKimEtAl2016} would create a true distributed system outside of simulation.
 
-Physical multi-robot testing is another next step. We have done previous work to enable autonomous navigation with the Navigation Stack on the TurtleBot, however we have not been able to test this system with multiple TurtleBots. We expect that our noise model in simulation is equivalent to, or noisier than, noise encountered in physical testing, and thus the system should be well behaved, however this requires validation.
+Physical multi-robot testing is the next step. We have done previous work to enable autonomous navigation with the Navigation Stack on the TurtleBot, however we have not been able to test this system with multiple TurtleBots. We expect that our noise model in simulation is equivalent to, or noisier than, noise encountered in physical testing. The system should be well behaved, but requires validation.
+
+We have also shown the effectiveness of the Kinect camera as a localization tool, confirming other work in this regard~cite{ganganath2012mobile, biswas2012depth, cunha2011using}, while also moving outside the typical realm of stationary landmarks and cooperative positioning. Much more work into localization between agents in a fully dynamic, rather than partially static, environment is possible. Future robotic systems will interact with static and dynamic elements of their environment and understanding how these different elements can be used for localization is important.
+
+Finally, we have demonstrated a simple distributed system for sharing sensor information between robots in an environment. However, this system is not robust or secure enough for production use in mission critical applications or areas where malfunctions or attacks could cause serious harm. Expanding upon this system is an important step towards making distributed systems reliable enough for widespread use.
+
+%TODO how does this advance the science or corroborate/validate the work of other people?
+%TODO what kind of implications does this have for the people that will come after and move this on?
+%TODO tie back to literature
+%TODO read the cooperative positioning papers in depth
+
 \end{document}

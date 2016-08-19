@@ -17,6 +17,7 @@
 \usepackage[toc, page]{appendix}
 \usepackage[scientific-notation=true]{siunitx}
 \usepackage{hyperref} % TODO maybe not necesssary, it's included in cwru.cls
+\usepackage{cleveref}
 \fancyhead[LO,RE]{} % Remove section names from header
 
 % If you're using the `glossaries` package acronyms (see below)
@@ -24,12 +25,12 @@
 
 \title{Distributed Secure State Estimation with the TurtleBot Platform}
 \author{Matthew Swartwout}
-\date{Compiled \currenttime\ on \today} % Graduate Date % TODO switch to graduated date once done
+\date{January 20, 2017} % Graduate Date
 \doctype{thesis} % dissertation/thesis
 \degree{Master of Science in Computer Engineering}
 \department{Electrical Engineering and Computer Science}
 
-\defensedate{August 29, 2016}
+\defensedate{August 26, 2016}
 % By default, commitee chair is advisor,
 % but you can override it
 %\committeechair{Dr.\ Some Otherperson}
@@ -109,6 +110,9 @@
 \backmatter
 % For your references
 \chapter{References}
+% TODO cite stargazer
+% TODO 17, 39, 40 are missing authors
+\nocite{JabRef_software, stargazer}
 \printbibliography[heading=none]
 
 \end{document}

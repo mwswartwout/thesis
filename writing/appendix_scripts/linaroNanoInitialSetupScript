@@ -1,0 +1,28 @@
+#!/bin/bash
+
+dhclient eth0 # Start ethernet
+# Make ethernet start automatically upon boot
+echo "auto eth0" >> /etc/network/interfaces
+echo "iface eth0 inet dhcp" >> /etc/network/interfaces
+
+# Synchronize clock
+ntpdate time.nist.gov
+
+# Make sure permissions were not accidentally changed when copying Linaro image to SD card
+chmod 1777 /tmp
+chown root:root /usr/bin/sudo && chmod 4755 /usr/bin/sudo
+chmod u+s `which ping`
+
+#Now we are going to change the root password to something we know
+echo "Change the root password now"
+passwd
+
+echo "What do you want the hostname of this machine to be?"
+read hostname
+echo "$hostname" > /etc/hostname
+
+echo "Adding the admin user zed"
+adduser zed
+adduser zed admin
+adduser zed sudo
+su zed

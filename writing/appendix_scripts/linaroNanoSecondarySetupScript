@@ -1,0 +1,39 @@
+#!/bin/bash
+cd
+
+echo "Getting some packages that will be needed in the future"
+sudo apt-get update
+sudo apt-get upgrade --yes
+sudo apt-get --yes install wget build-essential vim openssh-server screen zsh man-db curl python3-dev
+
+echo "Beginning ROS installation"
+sudo update-locale LANG=C LANGUAGE=C LC_ALL=C LC_MESSAGES=POSIX
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
+wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
+sudo apt-get update
+sudo apt-get --yes install ros-indigo-ros-base
+sudo rosdep init
+rosdep update
+source /opt/ros/indigo/setup.bash
+sudo apt-get --yes install python-rosinstall
+
+echo "Now configuring catkin workspace"
+mkdir -p ros_ws/src
+cd ros_ws/src
+catkin_init_workspace
+cd ..
+catkin_make
+source devel/setup.bash
+echo "source ~/ros_ws/devel/setup.bash" >> ~/.bashrc
+
+echo "Now setting up Kinect"
+sudo apt-get install ros-indigo-libfreenect ros-indigo-freenect-camera ros-indigo-freenect-launch
+
+echo "Now setting up Kobuki"
+sudo apt-get install ros-indigo-kobuki ros-indigo-kobuki-core
+(cd ~/ros_ws && catkin_make)
+rosrun kobuki_ftdi create_udev_rules
+
+echo "Now setting up Turtlebot"
+sudo apt-get install ros-indigo-turtlebot ros-indigo-turtlebot-apps ros-indigo-turtlebot-interactions ros-indigo-kobuki-ftdi ros-indigo-rocon-remocon  ros-indigo-ar-track-alvar-msgs
+echo "export TURTLEBOT_3D_SENSOR=kinect" >> ~/.bashrc

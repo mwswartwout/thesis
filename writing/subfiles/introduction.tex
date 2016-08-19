@@ -2,7 +2,7 @@
 \begin{document}
 \chapter{Introduction} \label{ch:Introduction}
 \section{Mobile Robot Localization} %\label{Mobile Robot Localization}
-Robotic navigation can be divided into three questions: "Where am I?", "Where am I going?", and "How should I get there?"~\cite{Leonard1991}. The first of these questions, "Where am I?" is the problem of localization. This second and third are problems of goal-setting and path-planning. All three are complex issues, but the focus of this thesis will be on localization. Determining a robot's location with respect to its surroundings is a fundamental precursor to all other robotic motion problems.
+Robotic navigation can be divided into three questions: ``Where am I?", ``Where am I going?", and ``How should I get there?"~\cite{Leonard1991}. The first of these questions, ``Where am I?" is the problem of localization. This second and third are problems of goal-setting and path-planning. All three are complex issues, but the focus of this thesis will be on localization. Determining a robot's location with respect to its surroundings is a fundamental precursor to all other robotic motion problems.
 
 The main task of localization is combining sensor measurements that assess the state of the robot with measurements that represent the state of the surroundings~\cite{Roumeliotis2002}. There are numerous methods for doing this, and new methods and improvements on existing methods are constantly appearing. Most of these methods vary in their chosen state estimator and how they filter out inherent noise in the measurements. This thesis will explore some of the existing methods, but the chosen method is the \gls{ukf}~\cite{Julier1997}.
 
@@ -14,28 +14,11 @@ How these sensor measurements are obtained is as important as the type of state 
 %A networked mobile robot is an extension of a wireless sensor network, and these networks are susceptible to a broad variety of attacks~\cite{perrig2004security}. Hardware attacks could be the physical destruction of components or sensors of the robot, or the replacement of components with purposefully compromised components. It is hard for a wheeled robot to move when it's wheel axles are broken, and likewise a camera is made unusable by a piece of tape placed over the lens. Software attacks are much more numerous and can be tailored specifically to a robot's unique software package, or broadly targeted at many different platforms. Two possible attacks that will be discussed in this thesis are false data injection and \gls{DoS} attacks.
 
 \section{Problem Statement} \label{sec:Problem Statement}
-The problem this thesis addresses is that of a distributed, secure localization system for a mobile robot. Our environment follows these constraints:
-\begin{enumerate}
-\item $M$ independent mobile robots operating in a planar environment
-\item Wireless communication abilities between all robots in the environment
-\item No known, static map of environment
-\item GPS and a compass for localization in the world frame is available
-\item Motion planning and control of other robots is unknown and unpredictable
-\item Robots run on the \gls{ros} platform.
-\end{enumerate}
+The problem this thesis addresses is that of a distributed localization system for a mobile robot running \gls{ros}. We have five primary goals for this system. First, we seek to develop a continuous localization system that can seamlessly integrate the robot's own sensor measurements with other measurements received via the distributed network. Second, we allow the distributed network to dynamically change size as robots enter and exit the environment. Third, we aim to keep the computational load on the robot low by not adding any steps to the \gls{kf} algorithm while still maintaining accuracy. Fourth, we do not impose a requirement of static landmarks or cooperative agents in the environment. Finally, we will complete these previous four objectives while using all standard \gls{ros} constructs and practices, making the extension of this work with new techniques or onto different robotic platforms much easier for future researchers.
 
-The localization system itself has the following goals and constraints:
-\begin{enumerate}
-\item Seamlessly transition between operating with and without pose estimates from other robots
-\item Handle the addition of new robots or removal of existing robots from environment dynamically
-\item Minimize complexity and added computations to the \glspl{ukf}
-\item Remain relatively robot agnostic and use standard \gls{ros} constructs
-\end{enumerate}
 
-In summary, this provides a continuous localization system that can seamlessly integrate the robot's own sensor measurements with other measurements received via the distributed network. The primary goals of this are to increase the accuracy of the localization estimate %while also increasing resilience to attacks
-without greatly increasing the computational load on the robot.
 
 \section{Thesis Structure} %\label{Thesis Structure}
-\autoref{ch:Introduction} provided a brief overview of the problems this will address. \autoref{ch:Background} will explore the existing literature around these problems in more detail. \autoref{ch:Hardware Platform} will present the TurtleBot + ZedBoard hardware platform used in conjunction with this project, and \autoref{ch:Distributed State Estimation} will explain the state estimation system that was developed. \autoref{ch:Results} showcases the results of this new state estimation system. Finally, \autoref{sec:Conclusion} discusses the implications and significance of this work and the possibilities for future research.
+\Cref{ch:Introduction} provided a brief overview of the problems this will address. \Cref{ch:Background} will explore the existing literature around these problems in more detail. \Cref{ch:Hardware Platform} will present the TurtleBot + ZedBoard hardware platform used in conjunction with this project, and \cref{ch:Distributed State Estimation} will explain the state estimation system that was developed. \Cref{ch:Results} showcases the results of this new state estimation system. Finally, \cref{ch:Conclusion} discusses the implications and significance of this work and the possibilities for future research.
 
 \end{document}

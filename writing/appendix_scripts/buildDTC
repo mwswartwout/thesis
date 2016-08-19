@@ -1,0 +1,3 @@
+cd XLNX_SOURCES_DIR/dtc
+make
+export PATH=`pwd`:$PATH

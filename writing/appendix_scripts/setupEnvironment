@@ -1,0 +1,7 @@
+source XILINX_INSTALL_DIR/Vivado/2016.1/settings64.sh
+source XILINX_INSTALL_DIR/SDK/2016.1/settings64.sh
+
+export CROSS_COMPILE=arm-xilinx-linux-gnueabi-
+export ARCH=arm
+export UIMAGE_LOADADDR=0x8000 # For xilinx kernel
+export LOADADDR=0x8000 # For ADI kernel

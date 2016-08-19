@@ -1,0 +1,4 @@
+cd XLNX_SOURCES_DIR/linux-adi 
+make xilinx_zynq_defconfig
+make menuconfig
+make uImage

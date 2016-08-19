@@ -1,0 +1,6 @@
+git clone https://github.com/Xilinx/device-tree-xlnx
+git clone https://git.kernel.org/pub/scm/utils/dtc/dtc
+git clone https://github.com/Xilinx/linux-xlnx
+git clone https://github.com/Xilinx/u-boot-xlnx
+git clone https://github.com/analogdevicesinc/linux linux-adi
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware

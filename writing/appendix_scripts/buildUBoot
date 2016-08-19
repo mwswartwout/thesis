@@ -1,0 +1,3 @@
+cd XLNX_SOURCES_DIR/u-boot-xlnx
+make zynq_zed_config
+make
