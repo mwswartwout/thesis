@@ -1,6 +1,8 @@
 \documentclass{beamer}
-
+\usepackage[backend=biber, style=ieee]{biblatex}
+\addbibresource{library.bib}
 \usepackage{default}
+\mode<presentation>
 
 \title{Distributed State Estimation on the TurtleBot Platform}
 \author{Matthew Swartwout}
@@ -12,6 +14,98 @@
 \end{frame}
 
 \begin{frame}
+\frametitle{Outline}
 \tableofcontents
+\end{frame}
+
+\section{Introduction}
+\begin{frame}
+\frametitle{What is localization and state estimation?}
+\begin{itemize}
+\item Robot localization answers the question "Where am I?"
+\item Use sensors to obtain information about environment
+\item Many methods to convert sensor information $\rightarrow$ state estimate 
+\end{itemize}
+\end{frame}
+
+\section{Problem Statement}
+\begin{frame}
+\frametitle{Problem Statement}
+Our distributed state estimation has five goals:
+\begin{enumerate}
+\item Integrate the robot's sensor information with information from other robots
+\item Allow for dynamic resizing of the distributed network
+\item Use unmodified Unscented Kalman Filter
+\item No requirement for static landmarks or cooperation with other robots
+\item Use standard ROS practices and constructs
+\end{enumerate}
+\end{frame}
+
+\section{Background}
+
+\begin{frame}
+\frametitle{State Estimation}
+\begin{itemize}
+\item State estimation is a fundamental problem of robotics. Without knowing its position a robot loses a lot of its usefulness.
+\item The Kalman Filter is one of the most studied and used Bayesian filters for state estimation \cite{Localization2003, Mohsin2014}
+\item We use the Unscented Kalman Filter, which has better accuracy for nonlinear systems than the Extended Kalman Filter and the plain Kalman Filter
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Distributed State Estimation}
+Why make a distributed system?
+\begin{itemize}
+\item Networked mobile robots are becoming more ubiquitous
+\item Can reduce the number of sensors required per robot
+\item Theoretically more resilient to malfunctions and attacks
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Examples of Distributed Systems}
+\begin{itemize}
+\item Cooperative Positioning
+    \begin{itemize}
+    \item Coordinate actions between robots
+    \item Often use one robot as static landmark while another moves
+    \end{itemize}
+\item 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Distributed State Estimation}
+\framesubtitle{Distributed vs. Decentralized}
+\begin{itemize}
+\item Decentralized systems require connections between all nodes in the system.
+\item Distributed systems require connections to only some neighbors.
+\end{itemize}
+\end{frame}
+
+\section{Hardware Platform}
+\begin{frame}
+
+\end{frame}
+
+\section{Distributed State Estimation}
+\begin{frame}
+content...
+\end{frame}
+
+\section{Results}
+\begin{frame}
+content...
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}
+content...
+\end{frame}
+
+\section{References}
+\begin{frame}
+\frametitle{References}
+\printbibliography
 \end{frame}
 \end{document}
