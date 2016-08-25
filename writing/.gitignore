@@ -1,3 +1,4 @@
 latex/
 *.pdf
 !r_figures/*.pdf
+!presentation_plots/*.pdf

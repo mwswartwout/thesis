@@ -5,7 +5,7 @@
 \usepackage[per-mode=symbol, scientific-notation=true]{siunitx}
 \usepackage[final]{microtype}
 \usepackage{graphicx}
-\graphicspath{{images/}, {r_figures/}}
+\graphicspath{{images/}, {r_figures/}, {presentation_plots/}}
 \usepackage{default}
 \mode<presentation>
 
@@ -375,10 +375,10 @@ Control group testing of the continuous filter in a noiseless environment shows 
 Next, we tested a single robot in a noisy environment. We saw expected drift with the mobile robot for the continuous filter, and no drift but a noisy estimate for the distributed filter. The stationary robot remained relatively noise free.
 \end{frame}
 
-\begin{frame}
-\frametitle{Noisy Individual Results, cont.}
-\begin{itemize}
-\item Stationary Robot
+\begin{frame}{Noisy Individual Results, cont.}
+\begin{columns}[t]
+\column{0.5\linewidth}
+Stationary Robot
     \begin{itemize}
     \item Continuous Filter
         \begin{itemize}
@@ -387,10 +387,16 @@ Next, we tested a single robot in a noisy environment. We saw expected drift wit
         \end{itemize}
     \item Discrete Filter
         \begin{itemize}
+        \item Mean position error = \SI{.000004}{\meter}
         \item Max position error = \SI{.00001}{\meter}
         \end{itemize}
     \end{itemize}
-\item Mobile Robot
+%\end{itemize}
+%\end{column}
+\column{0.5\linewidth}
+%\begin{itemize}
+%\item
+Mobile Robot
     \begin{itemize}
     \item Continuous Filter
         \begin{itemize}
@@ -403,7 +409,9 @@ Next, we tested a single robot in a noisy environment. We saw expected drift wit
         \item Max position error = \SI{6.037}{\meter}
         \end{itemize}
     \end{itemize}
-\end{itemize}
+%\end{itemize}
+%\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}
@@ -419,8 +427,14 @@ Finally, we simulate two mobile robots operating together and sharing external p
     \end{itemize}
 \end{itemize}
 
+\vspace{14pt}
 Group operation reduced mean and max position error by 30\%.
 \end{frame}
+
+\begin{frame} %{Error Summary}
+\includegraphics[keepaspectratio, width=\linewidth]{distributed_summary}
+\end{frame}
+
 \section{Conclusion}
 
 \begin{frame}[allowframebreaks]
@@ -444,7 +458,8 @@ We had five goals from our Problem Statement:
 \vspace{14pt}
 \item Use unmodified Unscented Kalman Filter (UKF)
     \begin{itemize}
-    \item Used robot\_localization package
+    \item Used robot\_localization package with no modifications
+    \item Makes extension and continuation of work very easy because no custom algorithms will have to be implemented
     \end{itemize}
 \framebreak
 \item No requirement for static landmarks or cooperation with other robots
@@ -470,8 +485,12 @@ We had five goals from our Problem Statement:
 \frametitle{Future Work}
 \begin{enumerate}
 \item Physical testing - We implemented solo autonomous navigation on the TurtleBot, but need to test group operation
+\pause
 \item Multimaster - A multimaster system (multimaster\_fkie or rocon) implementation will make this truly distributed and not decentralized
+\pause
 \item Implement secure Kalman Filter algorithms
+\pause
+\item External Pose Pre-processing - We simulated up to ten robots. However without pre-processing of received poses to exclude or adjust covariances of unlikely poses this significantly degrades filter performance.
 \end{enumerate}
 \end{frame}
 
