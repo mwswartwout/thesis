@@ -28,8 +28,22 @@
 \frametitle{What is localization and state estimation?}
 \begin{itemize}
 \item Robot localization answers the question "Where am I?"
+\pause
 \item Use sensors to obtain information about environment
-\item Many methods to convert sensor information $\rightarrow$ state estimate 
+\pause
+\item Many methods to convert sensor information $\rightarrow$ state estimate
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+%\frametitle{Background}
+\frametitle{State Estimation}
+\begin{itemize}
+\item State estimation is a fundamental problem of robotics.
+\pause
+\item The Kalman Filter is one of the most studied and used Bayesian filters for state estimation~\cite{Localization2003, Mohsin2014}.
+\pause
+\item We use the Unscented Kalman Filter (UKF) to create our state estimates.
 \end{itemize}
 \end{frame}
 
@@ -37,49 +51,65 @@
 \begin{frame}
 \frametitle{Problem Statement}
 Our distributed state estimation has five goals:
+\pause
 \begin{enumerate}
 \item Integrate the robot's sensor information with information from other robots
+\pause
 \item Allow for dynamic resizing of the distributed network
-\item Use unmodified Unscented Kalman Filter (UKF)
+\pause
+\item Use unmodified UKF
+\pause
 \item No requirement for static landmarks or cooperation with other robots
+\pause
 \item Use standard ROS practices and constructs
 \end{enumerate}
 \end{frame}
 
-\section{Background}
-
-\begin{frame}
-%\frametitle{Background}
-\frametitle{State Estimation}
+\begin{frame}{System Assumptions and Constraints}
+%\frametitle{Distributed State Estimation}
 \begin{itemize}
-\item State estimation is a fundamental problem of robotics. Without knowing its position a robot loses a lot of its usefulness.
-\item The Kalman Filter is one of the most studied and used Bayesian filters for state estimation~\cite{Localization2003, Mohsin2014}
-\item We use the UKF, which has better accuracy for nonlinear systems than the Extended Kalman Filter and plain Kalman Filter
+\item An arbitrary number independent mobile robots operating in a planar environment
+\pause
+\item Wireless communication abilities between some robots in the environment
+\pause
+\item No known static map of environment
+\pause
+\item GPS and a compass for localization in the world frame is available
+\pause
+\item Motion planning and control of other robots is unknown and unpredictable
 \end{itemize}
 \end{frame}
 
+\section{Background}
 \begin{frame}
 %\frametitle{Background}
 \frametitle{Distributed State Estimation}
-Why make a distributed system?
+Why make a distributed state estimation system?
+\pause
 \begin{itemize}
 \item Networked mobile robots are becoming more ubiquitous
-\item Can reduce the number of sensors required per robot
-\item Theoretically more resilient to malfunctions and attacks
+\pause
+\item Reduce the number of sensors per robot
+\pause
+\item More resilient to malfunctions and attacks
 \end{itemize}
 \end{frame}
 
 \begin{frame}
 %\frametitle{Background}
-\frametitle{Examples of Distributed Systems}
+\frametitle{Examples of Other Systems}
 \begin{itemize}
 \item Cooperative Positioning
     \begin{itemize}
+    \pause
     \item Coordinate actions between robots
     \item Often use one robot as static landmark while another moves
     \end{itemize}
     \vspace{14pt}
+    \pause
 \item Represent multiple robots as end effectors of a single robot
+\pause
+\item Both of these require a team of robots that will not be separated
 \end{itemize}
 \end{frame}
 
@@ -87,78 +117,85 @@ Why make a distributed system?
 \begin{frame}
 %\frametitle{Hardware Platform}
 \frametitle{TurtleBot}
+\begin{columns}
+\column{0.5\linewidth}
 \begin{itemize}
-
 \item Developed by the Open Source Robotics Foundation, Inc. as a low cost, educational mobile robotics platform.
 \vspace{14pt}
 \item We combined the TurtleBot 2 and 2e specification with some modifications
 \end{itemize}
+\column{0.5\linewidth}
+\begin{figure}
+\centering
+\includegraphics[keepaspectratio, width=0.5\linewidth]{turtlebot}
+\caption{The TurtleBot 2~\cite{TurtleBot}}
+\label{turtlebot}
+\end{figure}
+\end{columns}
 \end{frame}
 
 \begin{frame}
 %\frametitle{Hardware Platform}
-\frametitle{TurtleBot Specifications}
+\frametitle{Our TurtleBot Specifications}
 \begin{itemize}
 \item Yujin Robot Kobuki mobile base
 \item Avent ZedBoard
-\item Microsoft Kinect Camera
+\item Microsoft Kinect
 \item Asus Wireless Router
 \item USB Hub
 \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}{Kobuki Mobile Base}
 %\frametitle{Hardware Platform}
-\frametitle{Kobuki Mobile Base}
-The Kobuki mobile base is an open-source differential drive robot base developed for use with ROS.
-
+\begin{columns}
+\column{0.5\linewidth}
+The Kobuki is an open-source differential drive robot base developed for use with ROS.
 \begin{itemize}
-\item \SI{0.7}{\meter\per\second} max velocity
+\item 0.7 \si{\meter\per\second} max velocity
 \item \SI{5}{\kilogram} max payload
 \item Cliff sensor detects drops greater than \SI{5}{\cm}
-\item Climbs thresholds less than \SI{12}{\mm}
+\item Climbs thresholds less than 12 \si{\mm}
 \item \SI{3}{\hour} runtime
 \end{itemize}
+\column{0.5\linewidth}
+\begin{figure}
+\includegraphics[keepaspectratio, width=0.5\linewidth]{kobuki}
+\caption{Yujin Robot, Inc. Kobuki mobile base~\cite{Kobuki}}
+\end{figure}
+\end{columns}
 \end{frame}
 
-\begin{frame}
+\begin{frame}{ZedBoard}
 %\frametitle{Hardware Platform}
-\frametitle{ZedBoard}
-The Avnet ZedBoard is a single board computer featuring a Xilinx Zynq-7000 All Programmable System on a Chip.
-\begin{itemize}
-\item Dual-core ARM Cortex-A9 processor
-\item Xilinx FPGA
-\item 512~MB DDR3 RAM
-\item HDMI \& VGA output
-\item USB 2.0 and JTAG connections
-\end{itemize}
+\begin{columns}
+\column{0.5\linewidth}
+The ZedBoard is a single board computer featuring a Xilinx Zynq-7000 All Programmable System on a Chip.
 
+\vspace{14pt}
 We run Linaro 14.10, an ARM specific fork of Ubuntu 14.04.
+
+\column{0.5\linewidth}
+\begin{figure}
+\includegraphics[keepaspectratio, width=0.5\linewidth]{zedboard}
+\caption{Avnet ZedBoard~\cite{ZedBoard}}
+\end{figure}
+\end{columns}
 \end{frame}
 
-\section{Distributed State Estimation}
+\section{Methods}
+\subsection{Distributed State Estimation}
 \begin{frame}
 \frametitle{Distributed State Estimation}
 \framesubtitle{Theory}
 Our system uses Lidar scans to calculate the pose of other robots in the environment and then shares the calculated pose with the other robot.
+\pause
 \begin{align}
 &\text{UKF output} \rightarrow \text{position}_\text{robot1} \\
 &\text{Lidar scan} + \text{position}_\text{robot1} \rightarrow \text{position}_\text{robot2} \\
 &\text{position}_\text{robot2} \rightarrow \text{UKF input}
 \end{align}
-\end{frame}
-
-\begin{frame}
-%\frametitle{Distributed State Estimation}
-\frametitle{System Assumptions and Constraints}
-
-\begin{itemize}
-\item An arbitrary number independent mobile robots operating in a planar environment
-\item Wireless communication abilities between some robots in the environment
-\item No known static map of environment
-\item GPS and a compass for localization in the world frame is available
-\item Motion planning and control of other robots is unknown and unpredictable
-\end{itemize}
+\setcounter{equation}{0}
 \end{frame}
 
 \begin{frame}
@@ -170,6 +207,7 @@ Our system uses Lidar scans to calculate the pose of other robots in the environ
     \item Rigidly connected to center of Kobuki mobile base
     \item Describes position of parts of robot relative to other parts 
     \end{itemize}
+\pause
 \item odom
     \begin{itemize}
     \item Fixed continuous world frame
@@ -197,7 +235,7 @@ Our system uses Lidar scans to calculate the pose of other robots in the environ
 \begin{frame}
 %\frametitle{Distributed State Estimation}
 \frametitle{UKFs}
-For our UKFs we used the robot\_localization package~\cite{MooreStouch2014, Moore}, the defacto Kalman Filter solution for state estimation in ROS. We did make any modifications to the source code.
+For our UKFs we used the robot\_localization package~\cite{MooreStouch2014, Moore}, the defacto Kalman Filter solution for state estimation in ROS. We did not make any modifications to the source code.
 \pause
 \begin{itemize}
 \item Continuous Filter
@@ -223,12 +261,14 @@ For our UKFs we used the robot\_localization package~\cite{MooreStouch2014, Moor
     \item Receives Lidar and calculates external poses
     \item Sends movement commands
     \end{itemize}
+\pause
 \item Move\_Base
     \begin{itemize}
     \item The ROS navigation stack
     \item Contains global and local planners
     \item Receives movement goals from robot node and executes them
     \end{itemize}
+\pause
 \item Filters
     \begin{itemize}
     \item Continuous filter
@@ -252,10 +292,11 @@ For our UKFs we used the robot\_localization package~\cite{MooreStouch2014, Moor
 For sharing external poses we implemented an Action Server. Each robot has an action server that receives external poses, and then publishes them as an input to the UKF.
 \vspace{14pt}
 
+\pause
 Each robot is able to scan the available servers and detected when a new server/robot is present. The robot then creates a client for the other server, and maintains a list of clients for all other robots in the environment.
 \end{frame}
 
-\section{Noise Model}
+\subsection{Noise Model}
 \begin{frame}
 \frametitle{Noise Model}
 Gazebo is an almost noise-free simulation, so we must add noise to create a realistic simulation.
@@ -288,8 +329,7 @@ This table is reproduced on the next slide.
 
 \begingroup
 \footnotesize
-\begin{frame}
-\frametitle{Odometry Model Algorithm}
+\begin{frame}{Odometry Model Algorithm}
 \begin{align}
 &\delta_{\text{rot1}} = \text{atan2}(\bar{y}' - \bar{y}, \bar{x}' - \bar{x}) - \bar{\theta}\\ 
 &\delta_{\text{trans}} = \sqrt{(\bar{x} - \bar{x}')^2 + (\bar{y} - \bar{y}')^2}\\
@@ -305,6 +345,7 @@ This table is reproduced on the next slide.
 \notag \\
 &return \ x_t = (x', y', \theta')^T
 \end{align}
+\setcounter{equation}{0}
 \end{frame}
 \endgroup
 
@@ -312,9 +353,10 @@ This table is reproduced on the next slide.
 \frametitle{GPS Noise Model}
 \begin{itemize}
 \item For GPS noise, we consulted an FAA study about the accuracy of GPS receivers~\cite{FAAGPS}.
+\pause
 \item This study showed that the GPS error fit a 95\% confidence interval of \SI{3.351}{\meter}.
-\item Assuming this data is normally distributed, this gives a standard deviation of \SI{1.71}{\meter}.
-\item We further assumed a mean of 0 for the error
+\pause
+\item We assumed a normal distribution with a mean of 0, and calculated a standard deviation of \SI{1.71}{\meter}.
 \end{itemize}
 
 
@@ -323,20 +365,21 @@ This table is reproduced on the next slide.
 \frametitle{GPS Algorithm}
 The algorithm for taking an odometry reading from Gazebo, $\bar{x}$, and the robot's initial position and creating a noisy GPS signal in the map frame.
 \begin{align}
-&x = x_{initial} + \bar{x}\\
-&y = y_{initial} + \bar{y}\\
+&x_{map} = x_{initial} + \bar{x}\\
+&y_{map} = y_{initial} + \bar{y}\\
 \notag \\
 &horiz_{error} = \textbf{sample}(1.71)\\
 &\theta = \textbf{$sample_{uniform}$}(0, 2\pi)\\
 \notag \\
-&x' = x + horiz_{error}\cos(\theta)\\
-&y' = y + horiz_{error}\sin(\theta)
+&x' = x_{map} + horiz_{error}\cos(\theta)\\
+&y' = y_{map}+ horiz_{error}\sin(\theta)
 \end{align}
 \end{frame}
 
 \begin{frame}
 \frametitle{Lidar Noise}
 Our Lidar is simulated using a Kinect camera. To create noise in the Lidar we add noise to the Kinect camera in Gazebo.
+\pause 
 
 \vspace{14pt}
 Per the Gazebo Sensor Noise Tutorial~\cite{GazeboSensorNoise} recommendation, we used a mean of 0 and standard deviation of 0.007 for our camera's noise parameters.
@@ -346,22 +389,26 @@ Per the Gazebo Sensor Noise Tutorial~\cite{GazeboSensorNoise} recommendation, we
 \frametitle{Pose Estimate Error}
 The calculated poses of other robots have two sources of error.
 \begin{itemize}
+\pause
 \item The external pose is calculated in reference to the robot's own noisy pose
-\item The Lidar does not hit the direct center of the robot. This has a maximum error of \SI{0.2}{\meter}, and testing shows a mean error of \SIrange{0.05}{0.1}{\meter}
+\pause
+\item The Lidar does not hit the direct center of the robot. This has a maximum error of 20 \si{\cm}, and testing shows a mean error of 5 \si{\cm} to 10 \si{\cm}.
 \end{itemize}
 \end{frame}
 
-\section{Results}
+\section{Simulation Results}
 \begin{frame}
 \frametitle{Control Group Results}
 Control group testing of the continuous filter in a noiseless environment shows the localization systems functions correctly.
 
 \begin{itemize}
+\pause
 \item Stationary Robot
     \begin{itemize}
     \item Max position error = \SI{.000002}{\meter}
     \item Max yaw error = \SI{.0001}{\radian}
     \end{itemize}
+\pause
 \item Mobile
     \begin{itemize}
     \item Max position error = \SI{.0001}{\meter}
@@ -375,43 +422,56 @@ Control group testing of the continuous filter in a noiseless environment shows 
 Next, we tested a single robot in a noisy environment. We saw expected drift with the mobile robot for the continuous filter, and no drift but a noisy estimate for the distributed filter. The stationary robot remained relatively noise free.
 \end{frame}
 
-\begin{frame}{Noisy Individual Results, cont.}
-\begin{columns}[t]
-\column{0.5\linewidth}
-Stationary Robot
-    \begin{itemize}
-    \item Continuous Filter
-        \begin{itemize}
-        \item Max position error = \SI{.00001}{\meter}
-        \item Mean yaw error = \SI{.0001}{\radian}
-        \end{itemize}
-    \item Discrete Filter
-        \begin{itemize}
-        \item Mean position error = \SI{.000004}{\meter}
-        \item Max position error = \SI{.00001}{\meter}
-        \end{itemize}
-    \end{itemize}
-%\end{itemize}
-%\end{column}
-\column{0.5\linewidth}
-%\begin{itemize}
-%\item
-Mobile Robot
-    \begin{itemize}
-    \item Continuous Filter
-        \begin{itemize}
-        \item Max position error = \SI{28.697}{\meter}
-        \item Mean yaw error = \SI{.029}{\radian}
-        \end{itemize}
-    \item Discrete Filter
-        \begin{itemize}
-        \item Mean position error = \SI{1.366}{\meter}
-        \item Max position error = \SI{6.037}{\meter}
-        \end{itemize}
-    \end{itemize}
-%\end{itemize}
-%\end{column}
-\end{columns}
+%\begin{frame}{Noisy Individual Results, cont.}
+%\begin{columns}[t]
+%\column{0.5\linewidth}
+%Stationary Robot
+%    \begin{itemize}
+%    \item Continuous Filter
+%        \begin{itemize}
+%        \item Max position error = \SI{.00001}{\meter}
+%        \item Mean yaw error = \SI{.0001}{\radian}
+%        \end{itemize}
+%    \item Discrete Filter
+%        \begin{itemize}
+%        \item Mean position error = \SI{.000004}{\meter}
+%        \item Max position error = \SI{.00001}{\meter}
+%        \end{itemize}
+%    \end{itemize}
+%%\end{itemize}
+%%\end{column}
+%\pause
+%\column{0.5\linewidth}
+%%\begin{itemize}
+%%\item
+%Mobile Robot
+%    \begin{itemize}
+%    \item Continuous Filter
+%        \begin{itemize}
+%        \item Max position error = \SI{28.697}{\meter}
+%        \item Mean yaw error = \SI{.029}{\radian}
+%        \end{itemize}
+%    \item Discrete Filter
+%        \begin{itemize}
+%        \item Mean position error = \SI{1.366}{\meter}
+%        \item Max position error = \SI{6.037}{\meter}
+%        \end{itemize}
+%    \end{itemize}
+%%\end{itemize}
+%%\end{column}
+%\end{columns}
+%\end{frame}
+
+\begin{frame}{Individual Noisy Stationary Robot}
+\includegraphics[keepaspectratio, height=.85\textheight]{one_stationary_continuous_error}
+\end{frame}
+
+\begin{frame}{Individual Noisy Mobile Robot}
+\includegraphics[keepaspectratio, height=.85\textheight]{one_mobile_continuous_error}
+\end{frame}
+
+\begin{frame}{Individual Noisy Mobile Robot}
+\includegraphics[keepaspectratio, height=.85\textheight]{one_mobile_discrete_error}
 \end{frame}
 
 \begin{frame}
@@ -419,6 +479,7 @@ Mobile Robot
 Finally, we simulate two mobile robots operating together and sharing external pose calculations between themselves.
 
 \vspace{14pt}
+\pause
 \begin{itemize}
 \item Distributed Filter
     \begin{itemize}
@@ -427,6 +488,7 @@ Finally, we simulate two mobile robots operating together and sharing external p
     \end{itemize}
 \end{itemize}
 
+\pause
 \vspace{14pt}
 Group operation reduced mean and max position error by 30\%.
 \end{frame}
@@ -495,8 +557,11 @@ We had five goals from our Problem Statement:
 \end{frame}
 
 \section{References}
+\begingroup
+\tiny
 \begin{frame}[allowframebreaks]
 \frametitle{References}
 \printbibliography
 \end{frame}
+\endgroup
 \end{document}
